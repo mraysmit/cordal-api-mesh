@@ -1,0 +1,54 @@
+# Test SQL queries configuration for unit tests
+queries:
+  # Basic test query
+  test-query:
+    name: "test-query"
+    description: "Test query for unit testing"
+    sql: "SELECT id, name FROM test_table WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "INTEGER"
+        required: true
+
+  # Test paginated query
+  test-paginated-query:
+    name: "test-paginated-query"
+    description: "Test paginated query"
+    sql: "SELECT id, name FROM test_table ORDER BY id LIMIT ? OFFSET ?"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  # Test count query
+  test-count-query:
+    name: "test-count-query"
+    description: "Test count query"
+    sql: "SELECT COUNT(*) FROM test_table"
+    parameters: []
+
+  # Test query with multiple parameters
+  test-multi-param-query:
+    name: "test-multi-param-query"
+    description: "Test query with multiple parameters"
+    sql: "SELECT id, name, status FROM test_table WHERE name = ? AND status = ? AND created_date >= ?"
+    parameters:
+      - name: "name"
+        type: "STRING"
+        required: true
+      - name: "status"
+        type: "STRING"
+        required: false
+      - name: "created_date"
+        type: "TIMESTAMP"
+        required: false
+
+  # Test query with no parameters
+  test-no-param-query:
+    name: "test-no-param-query"
+    description: "Test query with no parameters"
+    sql: "SELECT id, name FROM test_table ORDER BY id"
+    parameters: []

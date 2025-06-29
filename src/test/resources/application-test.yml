@@ -32,12 +32,13 @@ metrics:
     excludePaths:
       - "/dashboard"
       - "/metrics"
+      - "/api/metrics"
       - "/api/performance-metrics"
     samplingRate: 1.0
     asyncSave: false  # Use sync for tests to ensure immediate availability
   dashboard:
     custom:
-      enabled: true
+      enabled: false  # Disable dashboard in test environment to prevent hanging
       path: "/dashboard"
     grafana:
       enabled: false

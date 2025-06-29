@@ -51,6 +51,14 @@ class StockTradeApiIntegrationTest {
         DatabaseManager databaseManager = injector.getInstance(DatabaseManager.class);
         databaseManager.cleanDatabase();
 
+        // Also clean metrics database to prevent interference
+        try {
+            var metricsDatabaseManager = injector.getInstance(dev.mars.database.MetricsDatabaseManager.class);
+            metricsDatabaseManager.cleanDatabase();
+        } catch (Exception e) {
+            // Ignore if metrics database manager not available
+        }
+
         // Insert test data
         insertTestData();
     }
@@ -58,7 +66,13 @@ class StockTradeApiIntegrationTest {
     @AfterEach
     void tearDown() {
         if (application != null) {
-            application.stop();
+            try {
+                application.stop();
+                // Wait for proper shutdown
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // Ignore cleanup errors in tests
+            }
             application = null; // Clear the reference to allow new instance creation
         }
         System.clearProperty("config.file");

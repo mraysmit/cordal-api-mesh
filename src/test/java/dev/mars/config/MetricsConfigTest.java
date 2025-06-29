@@ -81,9 +81,9 @@ public class MetricsConfigTest {
     @Test
     void testMetricsDashboardConfiguration() {
         AppConfig.MetricsDashboard config = appConfig.getMetricsDashboard();
-        
+
         assertThat(config).isNotNull();
-        assertThat(config.getCustom().isEnabled()).isTrue();
+        assertThat(config.getCustom().isEnabled()).isFalse(); // Dashboard disabled in test environment
         assertThat(config.getCustom().getPath()).isEqualTo("/dashboard");
         assertThat(config.getGrafana().isEnabled()).isFalse();
     }

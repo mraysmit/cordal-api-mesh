@@ -24,7 +24,7 @@ class MetricsPersistenceTest {
 
     private Application application;
     private PerformanceMetricsService metricsService;
-    private static final String BASE_URL = "http://localhost:8080";
+    private String BASE_URL;
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -33,25 +33,44 @@ class MetricsPersistenceTest {
     void setUp() {
         // Use test configuration with sync metrics saving
         System.setProperty("config.file", "application-test.yml");
-        
+
         application = new Application();
         application.start();
-        
+
+        // Get the actual port the application started on
+        int port = application.getApp().port();
+        BASE_URL = "http://localhost:" + port;
+
         // Get the metrics service from the injector
         metricsService = application.getInjector().getInstance(PerformanceMetricsService.class);
-        
+
         // Wait for application to start
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
+        // Clear any existing metrics to ensure clean state
+        try {
+            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.database.MetricsDatabaseManager.class);
+            metricsDatabaseManager.cleanDatabase();
+            Thread.sleep(500); // Wait for deletion to complete
+        } catch (Exception e) {
+            // Ignore cleanup errors during setup
+        }
     }
 
     @AfterEach
     void tearDown() {
         if (application != null) {
-            application.stop();
+            try {
+                application.stop();
+                // Wait for proper shutdown
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // Ignore cleanup errors in tests
+            }
         }
         System.clearProperty("config.file");
     }

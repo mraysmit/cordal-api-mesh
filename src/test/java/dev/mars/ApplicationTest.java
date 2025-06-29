@@ -95,10 +95,20 @@ public class ApplicationTest {
     void testApplicationWithoutConfiguration() {
         System.clearProperty("config.file");
 
+        // Create a new application instance for this test to avoid conflicts
+        Application testApp = new Application();
+
         // Should still start with default configuration
         assertThatCode(() -> {
-            application.start();
-            assertThat(application.getApp()).isNotNull();
+            testApp.start();
+            assertThat(testApp.getApp()).isNotNull();
         }).doesNotThrowAnyException();
+
+        // Clean up the test application
+        try {
+            testApp.stop();
+        } catch (Exception e) {
+            // Ignore cleanup errors
+        }
     }
 }

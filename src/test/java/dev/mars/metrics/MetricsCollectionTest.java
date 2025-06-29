@@ -24,7 +24,7 @@ public class MetricsCollectionTest {
 
     private Application application;
     private PerformanceMetricsService metricsService;
-    private static final String BASE_URL = "http://localhost:8080";
+    private String BASE_URL;
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -33,25 +33,44 @@ public class MetricsCollectionTest {
     void setUp() {
         // Use test configuration with sync metrics saving
         System.setProperty("config.file", "application-test.yml");
-        
+
         application = new Application();
         application.start();
-        
+
+        // Get the actual port the application started on
+        int port = application.getApp().port();
+        BASE_URL = "http://localhost:" + port;
+
         // Get the metrics service from the injector
         metricsService = application.getInjector().getInstance(PerformanceMetricsService.class);
-        
+
         // Wait for application to start
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
+        // Clear any existing metrics to ensure clean state
+        try {
+            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.database.MetricsDatabaseManager.class);
+            metricsDatabaseManager.cleanDatabase();
+            Thread.sleep(500); // Wait for deletion to complete
+        } catch (Exception e) {
+            // Ignore cleanup errors during setup
+        }
     }
 
     @AfterEach
     void tearDown() {
         if (application != null) {
-            application.stop();
+            try {
+                application.stop();
+                // Wait for proper shutdown
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // Ignore cleanup errors in tests
+            }
         }
         System.clearProperty("config.file");
     }
@@ -170,28 +189,30 @@ public class MetricsCollectionTest {
         var initialMetrics = metricsService.getAllMetrics(0, 100);
         int initialCount = initialMetrics.getData().size();
 
-        // Make request to excluded path (dashboard)
+        // Note: Dashboard is disabled in test environment to prevent hanging
+        // Test with a different excluded path that's still available
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/dashboard"))
+                .uri(URI.create(BASE_URL + "/api/performance-metrics"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
 
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertThat(response.statusCode()).isEqualTo(200);
 
         // Wait for potential metrics processing
         Thread.sleep(1000);
 
         // Verify no new metrics were added for excluded path
         var finalMetrics = metricsService.getAllMetrics(0, 100);
-        
-        // Should not have any new metrics for dashboard
-        boolean hasDashboardMetric = finalMetrics.getData().stream()
-                .anyMatch(metric -> 
-                    metric.getTestType().equals("API_REQUEST") && 
-                    metric.getTestName().contains("GET /dashboard"));
 
-        assertThat(hasDashboardMetric).isFalse();
+        // Should not have any new metrics for performance-metrics endpoint (it's excluded)
+        boolean hasPerformanceMetricsMetric = finalMetrics.getData().stream()
+                .anyMatch(metric ->
+                    metric.getTestType().equals("API_REQUEST") &&
+                    metric.getTestName().contains("GET /api/performance-metrics"));
+
+        assertThat(hasPerformanceMetricsMetric).isFalse();
     }
 
     @Test

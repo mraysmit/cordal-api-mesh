@@ -8,6 +8,11 @@ import dev.mars.controller.StockTradeController;
 import dev.mars.database.DataLoader;
 import dev.mars.database.DatabaseManager;
 import dev.mars.database.MetricsDatabaseManager;
+import dev.mars.generic.GenericApiController;
+import dev.mars.generic.GenericApiService;
+import dev.mars.generic.GenericRepository;
+import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.metrics.MetricsCollectionHandler;
 import dev.mars.repository.PerformanceMetricsRepository;
 import dev.mars.repository.StockTradeRepository;
@@ -142,11 +147,53 @@ public class GuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public ConfigurationLoader provideConfigurationLoader() {
+        logger.info("Creating ConfigurationLoader instance");
+        return new ConfigurationLoader();
+    }
+
+    @Provides
+    @Singleton
+    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoader configurationLoader) {
+        logger.info("Creating EndpointConfigurationManager instance");
+        EndpointConfigurationManager manager = new EndpointConfigurationManager(configurationLoader);
+
+        // Validate configurations on startup
+        manager.validateConfigurations();
+
+        return manager;
+    }
+
+    @Provides
+    @Singleton
+    public GenericRepository provideGenericRepository(DatabaseManager databaseManager) {
+        logger.info("Creating GenericRepository instance");
+        return new GenericRepository(databaseManager);
+    }
+
+    @Provides
+    @Singleton
+    public GenericApiService provideGenericApiService(GenericRepository genericRepository,
+                                                     EndpointConfigurationManager configurationManager) {
+        logger.info("Creating GenericApiService instance");
+        return new GenericApiService(genericRepository, configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public GenericApiController provideGenericApiController(GenericApiService genericApiService) {
+        logger.info("Creating GenericApiController instance");
+        return new GenericApiController(genericApiService);
+    }
+
+    @Provides
+    @Singleton
     public ApiRoutes provideApiRoutes(StockTradeController stockTradeController,
                                      PerformanceMetricsController performanceMetricsController,
                                      MetricsCollectionHandler metricsCollectionHandler,
+                                     GenericApiController genericApiController,
                                      AppConfig appConfig) {
         logger.info("Creating ApiRoutes instance");
-        return new ApiRoutes(stockTradeController, performanceMetricsController, metricsCollectionHandler, appConfig);
+        return new ApiRoutes(stockTradeController, performanceMetricsController, metricsCollectionHandler, genericApiController, appConfig);
     }
 }

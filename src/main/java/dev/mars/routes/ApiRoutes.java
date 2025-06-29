@@ -3,6 +3,7 @@ package dev.mars.routes;
 import dev.mars.config.AppConfig;
 import dev.mars.controller.PerformanceMetricsController;
 import dev.mars.controller.StockTradeController;
+import dev.mars.generic.GenericApiController;
 import dev.mars.metrics.MetricsCollectionHandler;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
@@ -23,16 +24,19 @@ public class ApiRoutes {
     private final StockTradeController stockTradeController;
     private final PerformanceMetricsController performanceMetricsController;
     private final MetricsCollectionHandler metricsCollectionHandler;
+    private final GenericApiController genericApiController;
     private final AppConfig appConfig;
 
     @Inject
     public ApiRoutes(StockTradeController stockTradeController,
                      PerformanceMetricsController performanceMetricsController,
                      MetricsCollectionHandler metricsCollectionHandler,
+                     GenericApiController genericApiController,
                      AppConfig appConfig) {
         this.stockTradeController = stockTradeController;
         this.performanceMetricsController = performanceMetricsController;
         this.metricsCollectionHandler = metricsCollectionHandler;
+        this.genericApiController = genericApiController;
         this.appConfig = appConfig;
     }
     
@@ -69,6 +73,9 @@ public class ApiRoutes {
             metricsCollectionHandler.resetMetrics();
             ctx.json(Map.of("message", "Metrics reset successfully"));
         });
+
+        // Generic API endpoints
+        configureGenericApiRoutes(app);
 
         // Dashboard static files (conditionally enabled)
         if (appConfig.getMetricsDashboard().getCustom().isEnabled()) {
@@ -687,5 +694,40 @@ public class ApiRoutes {
         }
 
         return metrics.toString();
+    }
+
+    /**
+     * Configure generic API routes based on YAML configuration
+     */
+    private void configureGenericApiRoutes(Javalin app) {
+        logger.info("Configuring generic API routes");
+
+        // Generic API management endpoints
+        app.get("/api/generic/health", genericApiController::getHealthStatus);
+        app.get("/api/generic/endpoints", genericApiController::getAvailableEndpoints);
+        app.get("/api/generic/endpoints/{endpointName}", genericApiController::getEndpointConfiguration);
+
+        // Configuration endpoints
+        app.get("/api/generic/config", genericApiController::getCompleteConfiguration);
+        app.get("/api/generic/config/queries", genericApiController::getQueryConfigurations);
+        app.get("/api/generic/config/queries/{queryName}", genericApiController::getQueryConfiguration);
+
+        // Stock trades generic endpoints (configured via YAML)
+        app.get("/api/generic/stock-trades", ctx ->
+            genericApiController.handleEndpointRequest(ctx, "stock-trades-list"));
+
+        app.get("/api/generic/stock-trades/symbol/{symbol}", ctx ->
+            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-symbol"));
+
+        app.get("/api/generic/stock-trades/{id}", ctx ->
+            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-id"));
+
+        app.get("/api/generic/stock-trades/trader/{trader_id}", ctx ->
+            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-trader"));
+
+        app.get("/api/generic/stock-trades/date-range", ctx ->
+            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-date-range"));
+
+        logger.info("Generic API routes configured successfully");
     }
 }

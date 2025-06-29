@@ -92,6 +92,14 @@ public class SwaggerConfig {
             {
               "name": "Performance Metrics",
               "description": "Performance monitoring, metrics collection and analysis"
+            },
+            {
+              "name": "Generic API",
+              "description": "Configuration-driven generic API endpoints"
+            },
+            {
+              "name": "Configuration",
+              "description": "API configuration management and introspection"
             }
           ],
           "paths": {
@@ -240,6 +248,188 @@ public class SwaggerConfig {
                 "responses": {
                   "200": {
                     "description": "Successfully retrieved performance summary"
+                  }
+                }
+              }
+            },
+            "/api/generic/health": {
+              "get": {
+                "tags": ["Generic API"],
+                "summary": "Generic API health check",
+                "description": "Check the health status of the generic API service",
+                "responses": {
+                  "200": {
+                    "description": "Generic API service is healthy",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "example": "UP"},
+                            "service": {"type": "string", "example": "Generic API Service"},
+                            "availableEndpoints": {"type": "integer", "example": 5},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/endpoints": {
+              "get": {
+                "tags": ["Generic API"],
+                "summary": "Get available endpoints",
+                "description": "Retrieve all available generic API endpoints with their configurations",
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved available endpoints",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "totalEndpoints": {"type": "integer", "example": 5},
+                            "endpoints": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "path": {"type": "string", "example": "/api/generic/stock-trades"},
+                                  "method": {"type": "string", "example": "GET"},
+                                  "description": {"type": "string", "example": "Get all stock trades with pagination"}
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get complete configuration",
+                "description": "Retrieve complete API configuration including endpoints and queries",
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved complete configuration",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "summary": {
+                              "type": "object",
+                              "properties": {
+                                "totalEndpoints": {"type": "integer", "example": 5},
+                                "totalQueries": {"type": "integer", "example": 11},
+                                "timestamp": {"type": "integer", "example": 1751213478431}
+                              }
+                            },
+                            "endpoints": {"type": "object"},
+                            "queries": {"type": "object"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/queries": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get all query configurations",
+                "description": "Retrieve all available query configurations with SQL and parameters",
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved query configurations",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "totalQueries": {"type": "integer", "example": 11},
+                            "queries": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {"type": "string", "example": "stock-trades-all"},
+                                  "description": {"type": "string", "example": "Get All Stock Trades"},
+                                  "sql": {"type": "string", "example": "SELECT * FROM stock_trades LIMIT ? OFFSET ?"}
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/queries/{queryName}": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get specific query configuration",
+                "description": "Retrieve configuration for a specific named query",
+                "parameters": [
+                  {
+                    "name": "queryName",
+                    "in": "path",
+                    "required": true,
+                    "description": "Name of the query to retrieve",
+                    "schema": {
+                      "type": "string",
+                      "example": "stock-trades-all"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved query configuration",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "name": {"type": "string", "example": "stock-trades-all"},
+                            "description": {"type": "string", "example": "Get All Stock Trades"},
+                            "sql": {"type": "string", "example": "SELECT * FROM stock_trades LIMIT ? OFFSET ?"},
+                            "parameters": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {"type": "string"},
+                                  "type": {"type": "string"},
+                                  "required": {"type": "boolean"}
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Query not found",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "error": {"type": "string", "example": "Query not found: nonexistent-query"}
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -392,6 +582,40 @@ public class SwaggerConfig {
                     <div class="description">Get available test types</div>
                 </div>
 
+                <h2>🔧 Generic API</h2>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/health</span>
+                    <div class="description">Generic API health check</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/endpoints</span>
+                    <div class="description">Get all available generic API endpoints</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/stock-trades</span>
+                    <div class="description">Get stock trades (configuration-driven endpoint)</div>
+                </div>
+
+                <h2>⚙️ Configuration Management</h2>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config</span>
+                    <div class="description">Get complete API configuration (endpoints + queries)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries</span>
+                    <div class="description">Get all query configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries/{{queryName}}</span>
+                    <div class="description">Get specific query configuration by name</div>
+                </div>
+
                 <h2>📱 Dashboards & Documentation</h2>
                 <div class="endpoint">
                     <span class="method get">GET</span>
@@ -411,7 +635,7 @@ public class SwaggerConfig {
             </div>
         </body>
         </html>
-        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
+        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
     }
 
     /**
