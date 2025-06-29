@@ -1,11 +1,11 @@
-# Javalin Stock Trade API
+# Javalin API Mesh
 
-A highly modularized Javalin-based REST API for managing stock trade data with proper separation of concerns, dependency injection, and async support.
+A highly modularized Javalin-based REST API Mesh.
 
 ## Features
 
-- **RESTful API** for stock trade operations
-- **H2 File-based Database** (not in-memory)
+- **RESTful API** 
+- **H2 File-based Database**
 - **Pagination Support** for large datasets
 - **Async Operations** using CompletableFuture
 - **Dependency Injection** with Google Guice
