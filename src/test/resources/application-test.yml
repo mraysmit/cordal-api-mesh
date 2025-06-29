@@ -1,0 +1,55 @@
+server:
+  port: 0  # Random port for testing
+  host: "localhost"
+
+database:
+  url: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  pool:
+    maximumPoolSize: 5
+    minimumIdle: 1
+    connectionTimeout: 10000
+    idleTimeout: 300000
+    maxLifetime: 600000
+
+metrics:
+  database:
+    url: "jdbc:h2:mem:testmetricsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 3
+      minimumIdle: 1
+      connectionTimeout: 10000
+      idleTimeout: 300000
+      maxLifetime: 600000
+  collection:
+    enabled: true
+    includeMemoryMetrics: true
+    excludePaths:
+      - "/dashboard"
+      - "/metrics"
+      - "/api/performance-metrics"
+    samplingRate: 1.0
+    asyncSave: false  # Use sync for tests to ensure immediate availability
+  dashboard:
+    custom:
+      enabled: true
+      path: "/dashboard"
+    grafana:
+      enabled: false
+      prometheus:
+        enabled: false
+
+data:
+  loadSampleData: false
+  sampleDataSize: 10
+
+logging:
+  level:
+    root: WARN
+    dev.mars: DEBUG
+  pattern: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

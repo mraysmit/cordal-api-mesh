@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  host: "localhost"
+
+database:
+  url: "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  pool:
+    maximumPoolSize: 10
+    minimumIdle: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+metrics:
+  database:
+    url: "jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      minimumIdle: 1
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+  dashboard:
+    custom:
+      enabled: false
+      path: "/dashboard"
+    grafana:
+      enabled: true
+      url: "http://localhost:3000"
+      prometheus:
+        enabled: true
+        port: 9090
+        path: "/metrics"
+
+data:
+  loadSampleData: true
+  sampleDataSize: 100
+
+logging:
+  level:
+    root: INFO
+    dev.mars: DEBUG
+  pattern: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
