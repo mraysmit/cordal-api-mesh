@@ -711,6 +711,16 @@ public class ApiRoutes {
         app.get("/api/generic/config", genericApiController::getCompleteConfiguration);
         app.get("/api/generic/config/queries", genericApiController::getQueryConfigurations);
         app.get("/api/generic/config/queries/{queryName}", genericApiController::getQueryConfiguration);
+        app.get("/api/generic/config/databases", genericApiController::getDatabaseConfigurations);
+        app.get("/api/generic/config/databases/{databaseName}", genericApiController::getDatabaseConfiguration);
+        app.get("/api/generic/config/relationships", genericApiController::getConfigurationRelationships);
+
+        // Configuration validation endpoints
+        app.get("/api/generic/config/validate", genericApiController::validateConfigurations);
+        app.get("/api/generic/config/validate/endpoints", genericApiController::validateEndpointConfigurations);
+        app.get("/api/generic/config/validate/queries", genericApiController::validateQueryConfigurations);
+        app.get("/api/generic/config/validate/databases", genericApiController::validateDatabaseConfigurations);
+        app.get("/api/generic/config/validate/relationships", genericApiController::validateConfigurationRelationships);
 
         // Stock trades generic endpoints (configured via YAML)
         app.get("/api/generic/stock-trades", ctx ->

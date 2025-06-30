@@ -3,6 +3,7 @@ package dev.mars.generic;
 import dev.mars.dto.PagedResponse;
 import dev.mars.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
+import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.config.QueryConfig;
 import dev.mars.generic.model.GenericResponse;
@@ -252,5 +253,286 @@ public class GenericApiService {
      */
     public Optional<QueryConfig> getQueryConfiguration(String queryName) {
         return configurationManager.getQueryConfig(queryName);
+    }
+
+    /**
+     * Get all database configurations
+     */
+    public Map<String, DatabaseConfig> getAllDatabaseConfigurations() {
+        return configurationManager.getAllDatabaseConfigurations();
+    }
+
+    /**
+     * Get specific database configuration
+     */
+    public Optional<DatabaseConfig> getDatabaseConfiguration(String databaseName) {
+        return configurationManager.getDatabaseConfig(databaseName);
+    }
+
+    /**
+     * Get configuration relationships (endpoints -> queries -> databases)
+     */
+    public Map<String, Object> getConfigurationRelationships() {
+        Map<String, Object> relationships = new HashMap<>();
+        Map<String, Object> endpointRelationships = new HashMap<>();
+        Map<String, Object> queryRelationships = new HashMap<>();
+
+        // Build endpoint -> query -> database relationships
+        for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig endpoint = entry.getValue();
+
+            Map<String, Object> endpointInfo = new HashMap<>();
+            endpointInfo.put("path", endpoint.getPath());
+            endpointInfo.put("method", endpoint.getMethod());
+            endpointInfo.put("description", endpoint.getDescription());
+            endpointInfo.put("query", endpoint.getQuery());
+            endpointInfo.put("countQuery", endpoint.getCountQuery());
+
+            // Get database for main query
+            if (endpoint.getQuery() != null) {
+                Optional<QueryConfig> queryConfig = configurationManager.getQueryConfig(endpoint.getQuery());
+                if (queryConfig.isPresent()) {
+                    endpointInfo.put("database", queryConfig.get().getDatabase());
+                }
+            }
+
+            endpointRelationships.put(endpointName, endpointInfo);
+        }
+
+        // Build query -> database relationships
+        for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig query = entry.getValue();
+
+            Map<String, Object> queryInfo = new HashMap<>();
+            queryInfo.put("name", query.getName());
+            queryInfo.put("description", query.getDescription());
+            queryInfo.put("database", query.getDatabase());
+            queryInfo.put("parameterCount", query.getParameters() != null ? query.getParameters().size() : 0);
+
+            queryRelationships.put(queryName, queryInfo);
+        }
+
+        relationships.put("endpoints", endpointRelationships);
+        relationships.put("queries", queryRelationships);
+        relationships.put("databases", configurationManager.getAllDatabaseConfigurations());
+        relationships.put("summary", Map.of(
+            "totalEndpoints", endpointRelationships.size(),
+            "totalQueries", queryRelationships.size(),
+            "totalDatabases", configurationManager.getAllDatabaseConfigurations().size(),
+            "timestamp", System.currentTimeMillis()
+        ));
+
+        return relationships;
+    }
+
+    /**
+     * Validate all configurations and return validation results
+     */
+    public Map<String, Object> validateConfigurations() {
+        Map<String, Object> validationResults = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        try {
+            // This will throw an exception if validation fails
+            configurationManager.validateConfigurations();
+            validationResults.put("status", "VALID");
+            validationResults.put("message", "All configurations are valid");
+        } catch (Exception e) {
+            validationResults.put("status", "INVALID");
+            validationResults.put("message", e.getMessage());
+            errors.add(e.getMessage());
+        }
+
+        // Additional detailed validation
+        validateEndpointConfigurations(errors, warnings);
+        validateQueryConfigurations(errors, warnings);
+        validateDatabaseConfigurations(errors, warnings);
+        validateRelationships(errors, warnings);
+
+        validationResults.put("errors", errors);
+        validationResults.put("warnings", warnings);
+        validationResults.put("errorCount", errors.size());
+        validationResults.put("warningCount", warnings.size());
+        validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    /**
+     * Validate endpoint configurations specifically
+     */
+    public Map<String, Object> validateEndpointConfigurations() {
+        Map<String, Object> validationResults = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        validateEndpointConfigurations(errors, warnings);
+
+        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
+        validationResults.put("errors", errors);
+        validationResults.put("warnings", warnings);
+        validationResults.put("errorCount", errors.size());
+        validationResults.put("warningCount", warnings.size());
+        validationResults.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
+        validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    /**
+     * Validate query configurations specifically
+     */
+    public Map<String, Object> validateQueryConfigurations() {
+        Map<String, Object> validationResults = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        validateQueryConfigurations(errors, warnings);
+
+        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
+        validationResults.put("errors", errors);
+        validationResults.put("warnings", warnings);
+        validationResults.put("errorCount", errors.size());
+        validationResults.put("warningCount", warnings.size());
+        validationResults.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
+        validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    /**
+     * Validate database configurations specifically
+     */
+    public Map<String, Object> validateDatabaseConfigurations() {
+        Map<String, Object> validationResults = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        validateDatabaseConfigurations(errors, warnings);
+
+        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
+        validationResults.put("errors", errors);
+        validationResults.put("warnings", warnings);
+        validationResults.put("errorCount", errors.size());
+        validationResults.put("warningCount", warnings.size());
+        validationResults.put("totalDatabases", configurationManager.getAllDatabaseConfigurations().size());
+        validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    /**
+     * Validate configuration relationships specifically
+     */
+    public Map<String, Object> validateConfigurationRelationships() {
+        Map<String, Object> validationResults = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        validateRelationships(errors, warnings);
+
+        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
+        validationResults.put("errors", errors);
+        validationResults.put("warnings", warnings);
+        validationResults.put("errorCount", errors.size());
+        validationResults.put("warningCount", warnings.size());
+        validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    // Private validation helper methods
+    private void validateEndpointConfigurations(List<String> errors, List<String> warnings) {
+        for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig endpoint = entry.getValue();
+
+            if (endpoint.getPath() == null || endpoint.getPath().trim().isEmpty()) {
+                errors.add("Endpoint '" + endpointName + "' has no path defined");
+            }
+
+            if (endpoint.getMethod() == null || endpoint.getMethod().trim().isEmpty()) {
+                errors.add("Endpoint '" + endpointName + "' has no HTTP method defined");
+            }
+
+            if (endpoint.getQuery() == null || endpoint.getQuery().trim().isEmpty()) {
+                errors.add("Endpoint '" + endpointName + "' has no query defined");
+            }
+
+            if (endpoint.getDescription() == null || endpoint.getDescription().trim().isEmpty()) {
+                warnings.add("Endpoint '" + endpointName + "' has no description");
+            }
+        }
+    }
+
+    private void validateQueryConfigurations(List<String> errors, List<String> warnings) {
+        for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig query = entry.getValue();
+
+            if (query.getSql() == null || query.getSql().trim().isEmpty()) {
+                errors.add("Query '" + queryName + "' has no SQL defined");
+            }
+
+            if (query.getDatabase() == null || query.getDatabase().trim().isEmpty()) {
+                errors.add("Query '" + queryName + "' has no database defined");
+            }
+
+            if (query.getDescription() == null || query.getDescription().trim().isEmpty()) {
+                warnings.add("Query '" + queryName + "' has no description");
+            }
+        }
+    }
+
+    private void validateDatabaseConfigurations(List<String> errors, List<String> warnings) {
+        for (Map.Entry<String, DatabaseConfig> entry : configurationManager.getAllDatabaseConfigurations().entrySet()) {
+            String databaseName = entry.getKey();
+            DatabaseConfig database = entry.getValue();
+
+            if (database.getUrl() == null || database.getUrl().trim().isEmpty()) {
+                errors.add("Database '" + databaseName + "' has no URL defined");
+            }
+
+            if (database.getDriver() == null || database.getDriver().trim().isEmpty()) {
+                errors.add("Database '" + databaseName + "' has no driver defined");
+            }
+
+            if (database.getUsername() == null) {
+                warnings.add("Database '" + databaseName + "' has no username defined");
+            }
+
+            if (database.getDescription() == null || database.getDescription().trim().isEmpty()) {
+                warnings.add("Database '" + databaseName + "' has no description");
+            }
+        }
+    }
+
+    private void validateRelationships(List<String> errors, List<String> warnings) {
+        // Validate endpoint -> query relationships
+        for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig endpoint = entry.getValue();
+
+            if (endpoint.getQuery() != null && !configurationManager.hasQuery(endpoint.getQuery())) {
+                errors.add("Endpoint '" + endpointName + "' references non-existent query: " + endpoint.getQuery());
+            }
+
+            if (endpoint.getCountQuery() != null && !configurationManager.hasQuery(endpoint.getCountQuery())) {
+                errors.add("Endpoint '" + endpointName + "' references non-existent count query: " + endpoint.getCountQuery());
+            }
+        }
+
+        // Validate query -> database relationships
+        for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig query = entry.getValue();
+
+            if (query.getDatabase() != null && !configurationManager.hasDatabase(query.getDatabase())) {
+                errors.add("Query '" + queryName + "' references non-existent database: " + query.getDatabase());
+            }
+        }
     }
 }

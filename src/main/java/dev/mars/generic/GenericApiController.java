@@ -2,6 +2,7 @@ package dev.mars.generic;
 
 import dev.mars.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
+import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.model.GenericResponse;
 import io.javalin.http.Context;
 import org.slf4j.Logger;
@@ -168,7 +169,7 @@ public class GenericApiController {
     }
 
     /**
-     * Get complete configuration (endpoints + queries)
+     * Get complete configuration (endpoints + queries + databases)
      */
     public void getCompleteConfiguration(Context ctx) {
         logger.debug("Getting complete configuration");
@@ -176,21 +177,161 @@ public class GenericApiController {
         try {
             var endpoints = genericApiService.getAvailableEndpoints();
             var queries = genericApiService.getAllQueryConfigurations();
+            var databases = genericApiService.getAllDatabaseConfigurations();
 
             // Create comprehensive response
             Map<String, Object> response = new HashMap<>();
             response.put("summary", Map.of(
                 "totalEndpoints", endpoints.size(),
                 "totalQueries", queries.size(),
+                "totalDatabases", databases.size(),
                 "timestamp", System.currentTimeMillis()
             ));
             response.put("endpoints", endpoints);
             response.put("queries", queries);
+            response.put("databases", databases);
 
             ctx.json(response);
 
         } catch (Exception e) {
             logger.error("Error getting complete configuration", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get all database configurations
+     */
+    public void getDatabaseConfigurations(Context ctx) {
+        logger.debug("Getting all database configurations");
+
+        try {
+            var databaseConfigurations = genericApiService.getAllDatabaseConfigurations();
+
+            // Create summary response
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalDatabases", databaseConfigurations.size());
+            response.put("databases", databaseConfigurations);
+
+            ctx.json(response);
+
+        } catch (Exception e) {
+            logger.error("Error getting database configurations", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get specific database configuration
+     */
+    public void getDatabaseConfiguration(Context ctx) {
+        String databaseName = ctx.pathParam("databaseName");
+        logger.debug("Getting configuration for database: {}", databaseName);
+
+        try {
+            DatabaseConfig config = genericApiService.getDatabaseConfiguration(databaseName)
+                    .orElseThrow(() -> ApiException.notFound("Database not found: " + databaseName));
+
+            ctx.json(config);
+
+        } catch (Exception e) {
+            logger.error("Error getting database configuration: {}", databaseName, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get configuration relationships
+     */
+    public void getConfigurationRelationships(Context ctx) {
+        logger.debug("Getting configuration relationships");
+
+        try {
+            var relationships = genericApiService.getConfigurationRelationships();
+            ctx.json(relationships);
+
+        } catch (Exception e) {
+            logger.error("Error getting configuration relationships", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate all configurations
+     */
+    public void validateConfigurations(Context ctx) {
+        logger.debug("Validating all configurations");
+
+        try {
+            var validationResults = genericApiService.validateConfigurations();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating configurations", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate endpoint configurations
+     */
+    public void validateEndpointConfigurations(Context ctx) {
+        logger.debug("Validating endpoint configurations");
+
+        try {
+            var validationResults = genericApiService.validateEndpointConfigurations();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating endpoint configurations", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate query configurations
+     */
+    public void validateQueryConfigurations(Context ctx) {
+        logger.debug("Validating query configurations");
+
+        try {
+            var validationResults = genericApiService.validateQueryConfigurations();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating query configurations", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate database configurations
+     */
+    public void validateDatabaseConfigurations(Context ctx) {
+        logger.debug("Validating database configurations");
+
+        try {
+            var validationResults = genericApiService.validateDatabaseConfigurations();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating database configurations", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Validate configuration relationships
+     */
+    public void validateConfigurationRelationships(Context ctx) {
+        logger.debug("Validating configuration relationships");
+
+        try {
+            var validationResults = genericApiService.validateConfigurationRelationships();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating configuration relationships", e);
             throw e;
         }
     }

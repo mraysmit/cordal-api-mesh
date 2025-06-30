@@ -1,10 +1,13 @@
 package dev.mars.generic;
 
 import dev.mars.database.DatabaseManager;
+import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.config.QueryConfig;
+import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.generic.model.QueryParameter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -19,6 +22,7 @@ import static org.assertj.core.api.Assertions.*;
 class GenericRepositoryTest {
 
     private GenericRepository repository;
+    private DatabaseConnectionManager databaseConnectionManager;
     private DatabaseManager databaseManager;
 
     @BeforeEach
@@ -33,7 +37,14 @@ class GenericRepositoryTest {
         databaseManager.initializeSchema();
         databaseManager.cleanDatabase();
 
-        repository = new GenericRepository(databaseManager);
+        // Create configuration loader and manager for test configurations
+        ConfigurationLoader configurationLoader = new TestConfigurationLoader();
+        EndpointConfigurationManager configurationManager = new EndpointConfigurationManager(configurationLoader);
+
+        // Create database connection manager
+        databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
+
+        repository = new GenericRepository(databaseConnectionManager);
     }
 
     @AfterEach
@@ -45,14 +56,14 @@ class GenericRepositoryTest {
     void testRepositoryExists() {
         // Test that the repository can be instantiated
         assertThat(repository).isNotNull();
-        assertThat(databaseManager).isNotNull();
+        assertThat(databaseConnectionManager).isNotNull();
     }
 
     @Test
     void testExecuteQuery_WithValidQuery() {
         // Test executing a simple query (this will fail if no data exists, which is expected)
         QueryConfig queryConfig = new QueryConfig("test-query", "Test query",
-            "SELECT COUNT(*) as count FROM stock_trades", Collections.emptyList());
+            "SELECT COUNT(*) as count FROM stock_trades", "test-db", Collections.emptyList());
         List<QueryParameter> parameters = Collections.emptyList();
 
         // Act & Assert - should not throw an exception
@@ -66,7 +77,7 @@ class GenericRepositoryTest {
     void testExecuteCountQuery_WithValidQuery() {
         // Test executing a count query
         QueryConfig queryConfig = new QueryConfig("count-query", "Count query",
-            "SELECT COUNT(*) FROM stock_trades", Collections.emptyList());
+            "SELECT COUNT(*) FROM stock_trades", "test-db", Collections.emptyList());
         List<QueryParameter> parameters = Collections.emptyList();
 
         // Act & Assert - should not throw an exception

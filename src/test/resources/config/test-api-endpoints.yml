@@ -54,11 +54,18 @@ endpoints:
           type: "STRING"
           description: "Test name"
 
-  # Test endpoint with missing query (for validation testing)
-  invalid-endpoint:
-    path: "/api/test/invalid"
+  # Test endpoint with valid query
+  test-simple-endpoint:
+    path: "/api/test/simple"
     method: "GET"
-    description: "Invalid endpoint for testing"
-    query: "nonexistent-query"
+    description: "Simple test endpoint"
+    query: "test-no-param-query"
     response:
-      type: "SINGLE"
+      type: "LIST"
+      fields:
+        - name: "id"
+          type: "INTEGER"
+          description: "Test ID"
+        - name: "name"
+          type: "STRING"
+          description: "Test name"

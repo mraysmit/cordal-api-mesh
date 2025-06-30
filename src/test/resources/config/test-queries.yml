@@ -4,6 +4,7 @@ queries:
   test-query:
     name: "test-query"
     description: "Test query for unit testing"
+    database: "test-db"
     sql: "SELECT id, name FROM test_table WHERE id = ?"
     parameters:
       - name: "id"
@@ -14,6 +15,7 @@ queries:
   test-paginated-query:
     name: "test-paginated-query"
     description: "Test paginated query"
+    database: "test-db"
     sql: "SELECT id, name FROM test_table ORDER BY id LIMIT ? OFFSET ?"
     parameters:
       - name: "limit"
@@ -27,6 +29,7 @@ queries:
   test-count-query:
     name: "test-count-query"
     description: "Test count query"
+    database: "test-db"
     sql: "SELECT COUNT(*) FROM test_table"
     parameters: []
 
@@ -34,6 +37,7 @@ queries:
   test-multi-param-query:
     name: "test-multi-param-query"
     description: "Test query with multiple parameters"
+    database: "test-db"
     sql: "SELECT id, name, status FROM test_table WHERE name = ? AND status = ? AND created_date >= ?"
     parameters:
       - name: "name"
@@ -50,5 +54,6 @@ queries:
   test-no-param-query:
     name: "test-no-param-query"
     description: "Test query with no parameters"
+    database: "test-db"
     sql: "SELECT id, name FROM test_table ORDER BY id"
     parameters: []

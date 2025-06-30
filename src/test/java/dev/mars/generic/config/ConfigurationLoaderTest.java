@@ -41,6 +41,31 @@ class ConfigurationLoaderTest {
         assertThat(stockTradesAll.getDescription()).isNotNull();
         assertThat(stockTradesAll.getSql()).isNotNull();
         assertThat(stockTradesAll.getSql()).containsIgnoringCase("SELECT");
+        assertThat(stockTradesAll.getDatabase()).isEqualTo("stock-trades-db");
+    }
+
+    @Test
+    void testLoadDatabaseConfigurations() {
+        // Act
+        Map<String, DatabaseConfig> databases = loader.loadDatabaseConfigurations();
+
+        // Assert
+        assertThat(databases).isNotNull();
+        assertThat(databases).isNotEmpty();
+
+        // Verify that we have some expected databases from the configuration
+        assertThat(databases).containsKey("stock-trades-db");
+        assertThat(databases).containsKey("metrics-db");
+
+        // Verify database structure
+        DatabaseConfig stockTradesDb = databases.get("stock-trades-db");
+        assertThat(stockTradesDb).isNotNull();
+        assertThat(stockTradesDb.getName()).isEqualTo("stock-trades-db");
+        assertThat(stockTradesDb.getDescription()).isNotNull();
+        assertThat(stockTradesDb.getUrl()).isNotNull();
+        assertThat(stockTradesDb.getDriver()).isEqualTo("org.h2.Driver");
+        assertThat(stockTradesDb.getPool()).isNotNull();
+        assertThat(stockTradesDb.getPool().getMaximumPoolSize()).isEqualTo(10);
     }
 
     @Test
@@ -132,10 +157,12 @@ class ConfigurationLoaderTest {
         for (Map.Entry<String, QueryConfig> entry : queries.entrySet()) {
             String queryName = entry.getKey();
             QueryConfig query = entry.getValue();
-            
+
             assertThat(query.getName()).as("Query %s should have a name", queryName).isNotNull();
             assertThat(query.getSql()).as("Query %s should have SQL", queryName).isNotNull();
             assertThat(query.getSql()).as("Query %s SQL should not be empty", queryName).isNotEmpty();
+            assertThat(query.getDatabase()).as("Query %s should have a database", queryName).isNotNull();
+            assertThat(query.getDatabase()).as("Query %s database should not be empty", queryName).isNotEmpty();
         }
     }
 
@@ -165,23 +192,35 @@ class ConfigurationLoaderTest {
     @Test
     void testConfigurationConsistency() {
         // Act
+        Map<String, DatabaseConfig> databases = loader.loadDatabaseConfigurations();
         Map<String, QueryConfig> queries = loader.loadQueryConfigurations();
         Map<String, ApiEndpointConfig> endpoints = loader.loadEndpointConfigurations();
+
+        // Assert - verify that all query databases exist
+        for (Map.Entry<String, QueryConfig> entry : queries.entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig query = entry.getValue();
+
+            if (query.getDatabase() != null) {
+                assertThat(databases).as("Database %s referenced by query %s should exist",
+                    query.getDatabase(), queryName).containsKey(query.getDatabase());
+            }
+        }
 
         // Assert - verify that all endpoint queries exist
         for (Map.Entry<String, ApiEndpointConfig> entry : endpoints.entrySet()) {
             String endpointName = entry.getKey();
             ApiEndpointConfig endpoint = entry.getValue();
-            
+
             // Check main query exists
             if (endpoint.getQuery() != null) {
-                assertThat(queries).as("Query %s referenced by endpoint %s should exist", 
+                assertThat(queries).as("Query %s referenced by endpoint %s should exist",
                     endpoint.getQuery(), endpointName).containsKey(endpoint.getQuery());
             }
-            
+
             // Check count query exists if specified
             if (endpoint.getCountQuery() != null) {
-                assertThat(queries).as("Count query %s referenced by endpoint %s should exist", 
+                assertThat(queries).as("Count query %s referenced by endpoint %s should exist",
                     endpoint.getCountQuery(), endpointName).containsKey(endpoint.getCountQuery());
             }
         }
@@ -217,7 +256,7 @@ class ConfigurationLoaderTest {
         for (ApiEndpointConfig endpoint : endpoints.values()) {
             if (endpoint.getParameters() != null) {
                 for (ApiEndpointConfig.EndpointParameter param : endpoint.getParameters()) {
-                    assertThat(param.getType()).isIn("STRING", "INTEGER", "LONG", "BOOLEAN", "DOUBLE");
+                    assertThat(param.getType()).isIn("STRING", "INTEGER", "LONG", "BOOLEAN", "DOUBLE", "TIMESTAMP", "DECIMAL");
                 }
             }
         }
@@ -232,7 +271,7 @@ class ConfigurationLoaderTest {
         for (ApiEndpointConfig endpoint : endpoints.values()) {
             if (endpoint.getResponse() != null && endpoint.getResponse().getFields() != null) {
                 for (ApiEndpointConfig.ResponseField field : endpoint.getResponse().getFields()) {
-                    assertThat(field.getType()).isIn("STRING", "INTEGER", "LONG", "BOOLEAN", "DOUBLE", "TIMESTAMP");
+                    assertThat(field.getType()).isIn("STRING", "INTEGER", "LONG", "BOOLEAN", "DOUBLE", "TIMESTAMP", "DECIMAL");
                 }
             }
         }

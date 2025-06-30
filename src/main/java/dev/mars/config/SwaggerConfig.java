@@ -100,6 +100,10 @@ public class SwaggerConfig {
             {
               "name": "Configuration",
               "description": "API configuration management and introspection"
+            },
+            {
+              "name": "Validation",
+              "description": "Configuration validation and integrity checking"
             }
           ],
           "paths": {
@@ -426,6 +430,271 @@ public class SwaggerConfig {
                           "type": "object",
                           "properties": {
                             "error": {"type": "string", "example": "Query not found: nonexistent-query"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/databases": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get all database configurations",
+                "description": "Retrieve all available database configurations with connection details",
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved database configurations",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "totalDatabases": {"type": "integer", "example": 2},
+                            "databases": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {"type": "string", "example": "stock-trades-db"},
+                                  "description": {"type": "string", "example": "Primary database for stock trading application"},
+                                  "url": {"type": "string", "example": "jdbc:h2:./data/stocktrades"},
+                                  "driver": {"type": "string", "example": "org.h2.Driver"}
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/databases/{databaseName}": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get specific database configuration",
+                "description": "Retrieve configuration for a specific named database",
+                "parameters": [
+                  {
+                    "name": "databaseName",
+                    "in": "path",
+                    "required": true,
+                    "description": "Name of the database to retrieve",
+                    "schema": {
+                      "type": "string",
+                      "example": "stock-trades-db"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved database configuration",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "name": {"type": "string", "example": "stock-trades-db"},
+                            "description": {"type": "string", "example": "Primary database for stock trading application"},
+                            "url": {"type": "string", "example": "jdbc:h2:./data/stocktrades"},
+                            "username": {"type": "string", "example": "sa"},
+                            "driver": {"type": "string", "example": "org.h2.Driver"},
+                            "pool": {
+                              "type": "object",
+                              "properties": {
+                                "maximumPoolSize": {"type": "integer", "example": 10},
+                                "minimumIdle": {"type": "integer", "example": 2},
+                                "connectionTimeout": {"type": "integer", "example": 30000}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Database not found",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "error": {"type": "string", "example": "Database not found: nonexistent-db"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/relationships": {
+              "get": {
+                "tags": ["Configuration"],
+                "summary": "Get configuration relationships",
+                "description": "Retrieve complete configuration relationships showing how endpoints connect to queries and databases",
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved configuration relationships",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "summary": {
+                              "type": "object",
+                              "properties": {
+                                "totalEndpoints": {"type": "integer", "example": 5},
+                                "totalQueries": {"type": "integer", "example": 11},
+                                "totalDatabases": {"type": "integer", "example": 2},
+                                "timestamp": {"type": "integer", "example": 1751213478431}
+                              }
+                            },
+                            "endpoints": {"type": "object"},
+                            "queries": {"type": "object"},
+                            "databases": {"type": "object"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/validate": {
+              "get": {
+                "tags": ["Validation"],
+                "summary": "Validate all configurations",
+                "description": "Validate the integrity of all configuration files (endpoints, queries, databases, and relationships)",
+                "responses": {
+                  "200": {
+                    "description": "Configuration validation results",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "enum": ["VALID", "INVALID"], "example": "VALID"},
+                            "message": {"type": "string", "example": "All configurations are valid"},
+                            "errors": {"type": "array", "items": {"type": "string"}},
+                            "warnings": {"type": "array", "items": {"type": "string"}},
+                            "errorCount": {"type": "integer", "example": 0},
+                            "warningCount": {"type": "integer", "example": 0},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/validate/endpoints": {
+              "get": {
+                "tags": ["Validation"],
+                "summary": "Validate endpoint configurations",
+                "description": "Validate the integrity of endpoint configurations",
+                "responses": {
+                  "200": {
+                    "description": "Endpoint validation results",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "enum": ["VALID", "INVALID"], "example": "VALID"},
+                            "errors": {"type": "array", "items": {"type": "string"}},
+                            "warnings": {"type": "array", "items": {"type": "string"}},
+                            "errorCount": {"type": "integer", "example": 0},
+                            "warningCount": {"type": "integer", "example": 0},
+                            "totalEndpoints": {"type": "integer", "example": 5},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/validate/queries": {
+              "get": {
+                "tags": ["Validation"],
+                "summary": "Validate query configurations",
+                "description": "Validate the integrity of query configurations",
+                "responses": {
+                  "200": {
+                    "description": "Query validation results",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "enum": ["VALID", "INVALID"], "example": "VALID"},
+                            "errors": {"type": "array", "items": {"type": "string"}},
+                            "warnings": {"type": "array", "items": {"type": "string"}},
+                            "errorCount": {"type": "integer", "example": 0},
+                            "warningCount": {"type": "integer", "example": 0},
+                            "totalQueries": {"type": "integer", "example": 11},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/validate/databases": {
+              "get": {
+                "tags": ["Validation"],
+                "summary": "Validate database configurations",
+                "description": "Validate the integrity of database configurations",
+                "responses": {
+                  "200": {
+                    "description": "Database validation results",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "enum": ["VALID", "INVALID"], "example": "VALID"},
+                            "errors": {"type": "array", "items": {"type": "string"}},
+                            "warnings": {"type": "array", "items": {"type": "string"}},
+                            "errorCount": {"type": "integer", "example": 0},
+                            "warningCount": {"type": "integer", "example": 0},
+                            "totalDatabases": {"type": "integer", "example": 2},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/generic/config/validate/relationships": {
+              "get": {
+                "tags": ["Validation"],
+                "summary": "Validate configuration relationships",
+                "description": "Validate the integrity of relationships between endpoints, queries, and databases",
+                "responses": {
+                  "200": {
+                    "description": "Relationship validation results",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "status": {"type": "string", "enum": ["VALID", "INVALID"], "example": "VALID"},
+                            "errors": {"type": "array", "items": {"type": "string"}},
+                            "warnings": {"type": "array", "items": {"type": "string"}},
+                            "errorCount": {"type": "integer", "example": 0},
+                            "warningCount": {"type": "integer", "example": 0},
+                            "timestamp": {"type": "integer", "example": 1751213478431}
                           }
                         }
                       }

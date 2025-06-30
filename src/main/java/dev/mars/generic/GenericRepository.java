@@ -1,8 +1,8 @@
 package dev.mars.generic;
 
-import dev.mars.database.DatabaseManager;
 import dev.mars.exception.ApiException;
 import dev.mars.generic.config.QueryConfig;
+import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.generic.model.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,24 +18,27 @@ import java.util.*;
 @Singleton
 public class GenericRepository {
     private static final Logger logger = LoggerFactory.getLogger(GenericRepository.class);
-    
-    private final DatabaseManager databaseManager;
+
+    private final DatabaseConnectionManager databaseConnectionManager;
     
     @Inject
-    public GenericRepository(DatabaseManager databaseManager) {
-        this.databaseManager = databaseManager;
+    public GenericRepository(DatabaseConnectionManager databaseConnectionManager) {
+        this.databaseConnectionManager = databaseConnectionManager;
+        logger.info("Generic repository initialized");
     }
     
     /**
      * Execute a query and return results as list of maps
      */
     public List<Map<String, Object>> executeQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
-        logger.debug("Executing query: {} with {} parameters", queryConfig.getName(), parameters.size());
-        
+        logger.debug("Executing query: {} with {} parameters on database: {}",
+                    queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
+
         String sql = queryConfig.getSql();
+        String databaseName = queryConfig.getDatabase();
         List<Map<String, Object>> results = new ArrayList<>();
-        
-        try (Connection connection = databaseManager.getConnection();
+
+        try (Connection connection = databaseConnectionManager.getConnection(databaseName);
              PreparedStatement statement = connection.prepareStatement(sql)) {
             
             // Set parameters
@@ -72,11 +75,13 @@ public class GenericRepository {
      * Execute a count query and return the count value
      */
     public long executeCountQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
-        logger.debug("Executing count query: {} with {} parameters", queryConfig.getName(), parameters.size());
-        
+        logger.debug("Executing count query: {} with {} parameters on database: {}",
+                    queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
+
         String sql = queryConfig.getSql();
-        
-        try (Connection connection = databaseManager.getConnection();
+        String databaseName = queryConfig.getDatabase();
+
+        try (Connection connection = databaseConnectionManager.getConnection(databaseName);
              PreparedStatement statement = connection.prepareStatement(sql)) {
             
             // Set parameters

@@ -271,8 +271,8 @@ class GenericApiIntegrationTest {
 
                 @SuppressWarnings("unchecked")
                 Map<String, Object> data = (Map<String, Object>) genericResponse.getData();
-                assertThat(data).containsKey("id");
-                assertThat(data.get("id")).isEqualTo(1);
+                assertThat(data).containsKey("ID");
+                assertThat(data.get("ID")).isEqualTo(1);
             } else {
                 // If no data exists with ID 1, should return 404
                 assertThat(response.code()).isEqualTo(404);
@@ -316,9 +316,9 @@ class GenericApiIntegrationTest {
                 List<Map<String, Object>> dataList = (List<Map<String, Object>>) genericResponse.getData();
                 if (!dataList.isEmpty()) {
                     Map<String, Object> firstItem = dataList.get(0);
-                    assertThat(firstItem).containsKey("id");
-                    assertThat(firstItem).containsKey("symbol");
-                    assertThat(firstItem).containsKey("trade_type");
+                    assertThat(firstItem).containsKey("ID");
+                    assertThat(firstItem).containsKey("SYMBOL");
+                    assertThat(firstItem).containsKey("TRADE_TYPE");
                 }
             }
         }

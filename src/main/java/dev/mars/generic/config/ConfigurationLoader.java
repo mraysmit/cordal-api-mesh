@@ -54,6 +54,37 @@ public class ConfigurationLoader {
     }
     
     /**
+     * Load database configurations from YAML file
+     */
+    public Map<String, DatabaseConfig> loadDatabaseConfigurations() {
+        logger.info("Loading database configurations from databases.yml");
+
+        try (InputStream inputStream = getClass().getClassLoader()
+                .getResourceAsStream("config/databases.yml")) {
+
+            if (inputStream == null) {
+                throw new RuntimeException("databases.yml not found in classpath");
+            }
+
+            DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
+            Map<String, DatabaseConfig> databases = wrapper.getDatabases();
+
+            logger.info("Loaded {} database configurations", databases.size());
+
+            // Log each database for debugging
+            databases.forEach((key, config) -> {
+                logger.debug("Loaded database '{}': {}", key, config.getName());
+            });
+
+            return databases;
+
+        } catch (Exception e) {
+            logger.error("Failed to load database configurations", e);
+            throw new RuntimeException("Failed to load database configurations", e);
+        }
+    }
+
+    /**
      * Load API endpoint configurations from YAML file
      */
     public Map<String, ApiEndpointConfig> loadEndpointConfigurations() {
@@ -104,13 +135,28 @@ public class ConfigurationLoader {
      */
     public static class EndpointsWrapper {
         private Map<String, ApiEndpointConfig> endpoints;
-        
+
         public Map<String, ApiEndpointConfig> getEndpoints() {
             return endpoints;
         }
-        
+
         public void setEndpoints(Map<String, ApiEndpointConfig> endpoints) {
             this.endpoints = endpoints;
+        }
+    }
+
+    /**
+     * Wrapper class for databases YAML structure
+     */
+    public static class DatabasesWrapper {
+        private Map<String, DatabaseConfig> databases;
+
+        public Map<String, DatabaseConfig> getDatabases() {
+            return databases;
+        }
+
+        public void setDatabases(Map<String, DatabaseConfig> databases) {
+            this.databases = databases;
         }
     }
 }

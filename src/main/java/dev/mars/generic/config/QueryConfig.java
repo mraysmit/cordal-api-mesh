@@ -10,16 +10,18 @@ public class QueryConfig {
     private String name;
     private String description;
     private String sql;
+    private String database; // Reference to database configuration
     private List<QueryParameter> parameters;
 
     // Default constructor
     public QueryConfig() {}
 
     // Constructor with all fields
-    public QueryConfig(String name, String description, String sql, List<QueryParameter> parameters) {
+    public QueryConfig(String name, String description, String sql, String database, List<QueryParameter> parameters) {
         this.name = name;
         this.description = description;
         this.sql = sql;
+        this.database = database;
         this.parameters = parameters;
     }
 
@@ -48,6 +50,14 @@ public class QueryConfig {
         this.sql = sql;
     }
 
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
     public List<QueryParameter> getParameters() {
         return parameters;
     }
@@ -64,12 +74,13 @@ public class QueryConfig {
         return Objects.equals(name, that.name) &&
                Objects.equals(description, that.description) &&
                Objects.equals(sql, that.sql) &&
+               Objects.equals(database, that.database) &&
                Objects.equals(parameters, that.parameters);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, sql, parameters);
+        return Objects.hash(name, description, sql, database, parameters);
     }
 
     @Override
@@ -78,6 +89,7 @@ public class QueryConfig {
                "name='" + name + '\'' +
                ", description='" + description + '\'' +
                ", sql='" + sql + '\'' +
+               ", database='" + database + '\'' +
                ", parameters=" + parameters +
                '}';
     }

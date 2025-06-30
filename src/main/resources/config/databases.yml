@@ -1,0 +1,54 @@
+# Database Connections Configuration
+# This file contains database connection configurations that can be referenced by queries
+
+databases:
+  # Primary application database for stock trades
+  stock-trades-db:
+    name: "stock-trades-db"
+    description: "Primary database for stock trading application"
+    url: "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  # Metrics database for performance monitoring
+  metrics-db:
+    name: "metrics-db"
+    description: "Database for storing performance and system metrics"
+    url: "jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      minimumIdle: 1
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  # Example additional database configuration
+  # analytics-db:
+  #   name: "analytics-db"
+  #   description: "Analytics and reporting database"
+  #   url: "jdbc:postgresql://localhost:5432/analytics"
+  #   username: "analytics_user"
+  #   password: "analytics_password"
+  #   driver: "org.postgresql.Driver"
+  #   pool:
+  #     maximumPoolSize: 15
+  #     minimumIdle: 3
+  #     connectionTimeout: 30000
+  #     idleTimeout: 600000
+  #     maxLifetime: 1800000
+  #     leakDetectionThreshold: 60000
+  #     connectionTestQuery: "SELECT 1"

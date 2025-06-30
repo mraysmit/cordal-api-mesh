@@ -13,6 +13,7 @@ import dev.mars.generic.GenericApiService;
 import dev.mars.generic.GenericRepository;
 import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.EndpointConfigurationManager;
+import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.metrics.MetricsCollectionHandler;
 import dev.mars.repository.PerformanceMetricsRepository;
 import dev.mars.repository.StockTradeRepository;
@@ -166,9 +167,16 @@ public class GuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public GenericRepository provideGenericRepository(DatabaseManager databaseManager) {
+    public DatabaseConnectionManager provideDatabaseConnectionManager(EndpointConfigurationManager configurationManager) {
+        logger.info("Creating DatabaseConnectionManager instance");
+        return new DatabaseConnectionManager(configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager) {
         logger.info("Creating GenericRepository instance");
-        return new GenericRepository(databaseManager);
+        return new GenericRepository(databaseConnectionManager);
     }
 
     @Provides

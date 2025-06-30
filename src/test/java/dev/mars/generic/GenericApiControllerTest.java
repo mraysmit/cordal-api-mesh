@@ -3,6 +3,7 @@ package dev.mars.generic;
 import dev.mars.database.DatabaseManager;
 import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.EndpointConfigurationManager;
+import dev.mars.generic.database.DatabaseConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -35,11 +36,12 @@ class GenericApiControllerTest {
         databaseManager.cleanDatabase();
 
         // Create configuration components
-        ConfigurationLoader configurationLoader = new ConfigurationLoader();
+        ConfigurationLoader configurationLoader = new TestConfigurationLoader();
         configurationManager = new EndpointConfigurationManager(configurationLoader);
 
-        // Create repository and service
-        genericRepository = new GenericRepository(databaseManager);
+        // Create database connection manager, repository and service
+        DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
+        genericRepository = new GenericRepository(databaseConnectionManager);
         genericApiService = new GenericApiService(genericRepository, configurationManager);
 
         // Create controller
@@ -63,16 +65,16 @@ class GenericApiControllerTest {
         // Test that we can get available endpoints
         var endpoints = genericApiService.getAvailableEndpoints();
         assertThat(endpoints).isNotNull();
-        // Should have at least the stock-trades-list endpoint from configuration
-        assertThat(endpoints).containsKey("stock-trades-list");
+        // Should have at least the test-endpoint from test configuration
+        assertThat(endpoints).containsKey("test-endpoint");
     }
 
     @Test
     void testGetEndpointConfiguration() {
         // Test getting a specific endpoint configuration
-        var endpointConfig = genericApiService.getEndpointConfiguration("stock-trades-list");
+        var endpointConfig = genericApiService.getEndpointConfiguration("test-endpoint");
         assertThat(endpointConfig).isPresent();
-        assertThat(endpointConfig.get().getPath()).isEqualTo("/api/generic/stock-trades");
+        assertThat(endpointConfig.get().getPath()).isEqualTo("/api/test/endpoint");
         assertThat(endpointConfig.get().getMethod()).isEqualTo("GET");
     }
 
@@ -96,17 +98,17 @@ class GenericApiControllerTest {
         var queries = genericApiService.getAllQueryConfigurations();
         assertThat(queries).isNotNull();
         assertThat(queries).isNotEmpty();
-        assertThat(queries).containsKey("stock-trades-all");
-        assertThat(queries).containsKey("stock-trades-count");
+        assertThat(queries).containsKey("test-query");
+        assertThat(queries).containsKey("test-count-query");
     }
 
     @Test
     void testGetSpecificQueryConfiguration() {
         // Test getting a specific query configuration
-        var queryConfig = genericApiService.getQueryConfiguration("stock-trades-all");
+        var queryConfig = genericApiService.getQueryConfiguration("test-query");
         assertThat(queryConfig).isPresent();
-        assertThat(queryConfig.get().getName()).isEqualTo("stock-trades-all");
-        assertThat(queryConfig.get().getDescription()).contains("Get All Stock Trades");
+        assertThat(queryConfig.get().getName()).isEqualTo("test-query");
+        assertThat(queryConfig.get().getDescription()).contains("Test query for unit testing");
     }
 
     @Test
