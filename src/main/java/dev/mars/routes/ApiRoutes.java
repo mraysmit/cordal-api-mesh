@@ -2,7 +2,6 @@ package dev.mars.routes;
 
 import dev.mars.config.AppConfig;
 import dev.mars.controller.PerformanceMetricsController;
-import dev.mars.controller.StockTradeController;
 import dev.mars.generic.GenericApiController;
 import dev.mars.metrics.MetricsCollectionHandler;
 import io.javalin.Javalin;
@@ -21,19 +20,16 @@ import java.util.Map;
 public class ApiRoutes {
     private static final Logger logger = LoggerFactory.getLogger(ApiRoutes.class);
 
-    private final StockTradeController stockTradeController;
     private final PerformanceMetricsController performanceMetricsController;
     private final MetricsCollectionHandler metricsCollectionHandler;
     private final GenericApiController genericApiController;
     private final AppConfig appConfig;
 
     @Inject
-    public ApiRoutes(StockTradeController stockTradeController,
-                     PerformanceMetricsController performanceMetricsController,
+    public ApiRoutes(PerformanceMetricsController performanceMetricsController,
                      MetricsCollectionHandler metricsCollectionHandler,
                      GenericApiController genericApiController,
                      AppConfig appConfig) {
-        this.stockTradeController = stockTradeController;
         this.performanceMetricsController = performanceMetricsController;
         this.metricsCollectionHandler = metricsCollectionHandler;
         this.genericApiController = genericApiController;
@@ -46,13 +42,14 @@ public class ApiRoutes {
     public void configure(Javalin app) {
         logger.info("Configuring API routes");
 
-        // Health check endpoint
-        app.get("/api/health", stockTradeController::getHealthStatus);
-
-        // Stock trades endpoints
-        app.get("/api/stock-trades", stockTradeController::getAllStockTrades);
-        app.get("/api/stock-trades/{id}", stockTradeController::getStockTradeById);
-        app.get("/api/stock-trades/symbol/{symbol}", stockTradeController::getStockTradesBySymbol);
+        // Health check endpoint - simple endpoint that doesn't require stock trade controller
+        app.get("/api/health", ctx -> {
+            ctx.json(Map.of(
+                "status", "UP",
+                "timestamp", System.currentTimeMillis(),
+                "service", "javalin-api-mesh"
+            ));
+        });
 
         // Performance metrics endpoints (specific routes first, then parameterized routes)
         app.get("/api/performance-metrics/test-types", performanceMetricsController::getAvailableTestTypes);

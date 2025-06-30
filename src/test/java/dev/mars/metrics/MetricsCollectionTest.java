@@ -83,7 +83,7 @@ public class MetricsCollectionTest {
 
         // Make API request to stock trades endpoint
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -104,9 +104,9 @@ public class MetricsCollectionTest {
         // Verify the metrics contain API request data for stock trades
         List<PerformanceMetrics> newMetrics = finalMetrics.getData();
         boolean foundStockTradesMetric = newMetrics.stream()
-                .anyMatch(metric -> 
-                    metric.getTestType().equals("API_REQUEST") && 
-                    metric.getTestName().contains("GET /api/stock-trades"));
+                .anyMatch(metric ->
+                    metric.getTestType().equals("API_REQUEST") &&
+                    metric.getTestName().contains("GET /api/generic/stock-trades"));
 
         assertThat(foundStockTradesMetric).isTrue();
     }
@@ -146,8 +146,8 @@ public class MetricsCollectionTest {
     void testMetricsCollectionForMultipleEndpoints() throws IOException, InterruptedException {
         // Make requests to different endpoints
         String[] endpoints = {
-            "/api/stock-trades",
-            "/api/stock-trades/1",
+            "/api/generic/stock-trades",
+            "/api/generic/stock-trades/1",
             "/api/health"
         };
 
@@ -172,9 +172,9 @@ public class MetricsCollectionTest {
 
         // Should have metrics for all endpoints
         boolean hasStockTrades = apiMetrics.stream()
-                .anyMatch(metric -> metric.getTestName().contains("GET /api/stock-trades"));
+                .anyMatch(metric -> metric.getTestName().contains("GET /api/generic/stock-trades"));
         boolean hasStockTradeById = apiMetrics.stream()
-                .anyMatch(metric -> metric.getTestName().contains("GET /api/stock-trades/{id}"));
+                .anyMatch(metric -> metric.getTestName().contains("GET /api/generic/stock-trades/{id}"));
         boolean hasHealth = apiMetrics.stream()
                 .anyMatch(metric -> metric.getTestName().contains("GET /api/health"));
 
@@ -219,7 +219,7 @@ public class MetricsCollectionTest {
     void testMetricsIncludeMemoryData() throws IOException, InterruptedException {
         // Make an API request that should include memory metrics
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades?page=0&size=5"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades?page=0&size=5"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -234,7 +234,7 @@ public class MetricsCollectionTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         PerformanceMetrics stockTradeMetric = allMetrics.getData().stream()
-                .filter(metric -> metric.getTestName().contains("GET /api/stock-trades"))
+                .filter(metric -> metric.getTestName().contains("GET /api/generic/stock-trades"))
                 .filter(metric -> metric.getTestType().equals("API_REQUEST"))
                 .findFirst()
                 .orElse(null);
@@ -250,7 +250,7 @@ public class MetricsCollectionTest {
     void testMetricsForAsyncEndpoints() throws IOException, InterruptedException {
         // Test async endpoint
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades?async=true&page=0&size=5"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades?async=true&page=0&size=5"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -265,9 +265,9 @@ public class MetricsCollectionTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         boolean hasAsyncMetric = allMetrics.getData().stream()
-                .anyMatch(metric -> 
-                    metric.getTestType().equals("API_REQUEST") && 
-                    metric.getTestName().contains("GET /api/stock-trades") &&
+                .anyMatch(metric ->
+                    metric.getTestType().equals("API_REQUEST") &&
+                    metric.getTestName().contains("GET /api/generic/stock-trades") &&
                     metric.getTestPassed());
 
         assertThat(hasAsyncMetric).isTrue();
@@ -277,7 +277,7 @@ public class MetricsCollectionTest {
     void testMetricsAdditionalDataContainsEndpointInfo() throws IOException, InterruptedException {
         // Make an API request
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades/123"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades/123"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -291,7 +291,7 @@ public class MetricsCollectionTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/stock-trades/{id}"))
+                .filter(m -> m.getTestName().contains("GET /api/generic/stock-trades/{id}"))
                 .filter(m -> m.getTestType().equals("API_REQUEST"))
                 .findFirst()
                 .orElse(null);

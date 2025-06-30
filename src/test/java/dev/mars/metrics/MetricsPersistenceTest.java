@@ -83,8 +83,8 @@ class MetricsPersistenceTest {
 
         // Make API requests to generate metrics
         String[] endpoints = {
-            "/api/stock-trades",
-            "/api/stock-trades/1",
+            "/api/generic/stock-trades",
+            "/api/generic/stock-trades/1",
             "/api/health"
         };
 
@@ -152,7 +152,7 @@ class MetricsPersistenceTest {
     void testMetricsWithMemoryData() throws IOException, InterruptedException {
         // Make an API request that should include memory metrics
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades?page=0&size=5"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades?page=0&size=5"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -167,7 +167,7 @@ class MetricsPersistenceTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         PerformanceMetrics stockTradeMetric = allMetrics.getData().stream()
-                .filter(metric -> metric.getTestName().contains("GET /api/stock-trades"))
+                .filter(metric -> metric.getTestName().contains("GET /api/generic/stock-trades"))
                 .filter(metric -> metric.getTestType().equals("API_REQUEST"))
                 .findFirst()
                 .orElse(null);
@@ -183,7 +183,7 @@ class MetricsPersistenceTest {
     void testMetricsAdditionalData() throws IOException, InterruptedException {
         // Make an API request
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades/123"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades/123"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -198,7 +198,7 @@ class MetricsPersistenceTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/stock-trades/{id}"))
+                .filter(m -> m.getTestName().contains("GET /api/generic/stock-trades/{id}"))
                 .filter(m -> m.getTestType().equals("API_REQUEST"))
                 .findFirst()
                 .orElse(null);
@@ -218,7 +218,7 @@ class MetricsPersistenceTest {
     void testMetricsForErrorResponses() throws IOException, InterruptedException {
         // Make a request that will likely result in an error (non-existent ID)
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades/999999"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades/999999"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -233,7 +233,7 @@ class MetricsPersistenceTest {
         var allMetrics = metricsService.getAllMetrics(0, 100);
         
         PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/stock-trades/{id}"))
+                .filter(m -> m.getTestName().contains("GET /api/generic/stock-trades/{id}"))
                 .filter(m -> m.getTestType().equals("API_REQUEST"))
                 .findFirst()
                 .orElse(null);

@@ -54,7 +54,7 @@ public class MetricsCollectionHandler {
         
         try {
             RequestMetrics metrics = new RequestMetrics();
-            metrics.startTime = System.currentTimeMillis();
+            metrics.startTime = System.nanoTime(); // Use nanoTime for higher precision
             metrics.path = ctx.path();
             metrics.method = ctx.method().toString();
             metrics.endpoint = generateEndpointKey(ctx);
@@ -84,9 +84,10 @@ public class MetricsCollectionHandler {
         }
         
         try {
-            // Calculate response time
-            long endTime = System.currentTimeMillis();
-            long responseTime = endTime - metrics.startTime;
+            // Calculate response time with nanosecond precision
+            long endTime = System.nanoTime();
+            long responseTimeNanos = endTime - metrics.startTime;
+            double responseTimeMs = responseTimeNanos / 1_000_000.0; // Convert to milliseconds with decimal precision
             
             // Capture final memory if enabled
             long memoryIncrease = 0;
@@ -97,13 +98,13 @@ public class MetricsCollectionHandler {
             }
             
             // Update endpoint metrics
-            updateEndpointMetrics(metrics.endpoint, responseTime, ctx.status().getCode());
+            updateEndpointMetrics(metrics.endpoint, responseTimeMs, ctx.status().getCode());
 
             // Check sampling rate
             if (shouldSampleRequest()) {
                 // Create and save performance metrics
                 PerformanceMetrics performanceMetrics = createPerformanceMetrics(
-                    metrics, responseTime, memoryIncrease, ctx.status().getCode());
+                    metrics, responseTimeMs, memoryIncrease, ctx.status().getCode());
                 
                 if (appConfig.getMetricsCollection().isAsyncSave()) {
                     saveMetricsAsync(performanceMetrics);
@@ -112,8 +113,8 @@ public class MetricsCollectionHandler {
                 }
             }
             
-            logger.debug("Completed metrics collection for: {} {} - {}ms", 
-                        metrics.method, metrics.path, responseTime);
+            logger.debug("Completed metrics collection for: {} {} - {:.3f}ms",
+                        metrics.method, metrics.path, responseTimeMs);
             
         } catch (Exception e) {
             logger.warn("Failed to complete metrics collection for request", e);
@@ -133,9 +134,9 @@ public class MetricsCollectionHandler {
             Map<String, Object> endpointSummary = new HashMap<>();
             
             endpointSummary.put("totalRequests", metrics.totalRequests);
-            endpointSummary.put("averageResponseTime", 
-                metrics.totalRequests > 0 ? (double) metrics.totalResponseTime / metrics.totalRequests : 0.0);
-            endpointSummary.put("successRate", 
+            endpointSummary.put("averageResponseTime",
+                metrics.totalRequests > 0 ? metrics.totalResponseTime / metrics.totalRequests : 0.0);
+            endpointSummary.put("successRate",
                 metrics.totalRequests > 0 ? (double) metrics.successfulRequests / metrics.totalRequests * 100 : 0.0);
             endpointSummary.put("lastRequestTime", metrics.lastRequestTime);
             
@@ -181,35 +182,35 @@ public class MetricsCollectionHandler {
                   .replaceAll("/[A-Z]{2,}", "/{symbol}"); // For stock symbols
     }
     
-    private void updateEndpointMetrics(String endpoint, long responseTime, int statusCode) {
+    private void updateEndpointMetrics(String endpoint, double responseTime, int statusCode) {
         endpointMetrics.compute(endpoint, (key, existing) -> {
             if (existing == null) {
                 existing = new EndpointMetrics();
             }
-            
+
             existing.totalRequests++;
             existing.totalResponseTime += responseTime;
             existing.lastRequestTime = LocalDateTime.now();
-            
+
             if (statusCode >= 200 && statusCode < 400) {
                 existing.successfulRequests++;
             }
-            
+
             return existing;
         });
     }
     
-    private PerformanceMetrics createPerformanceMetrics(RequestMetrics requestMetrics, 
-                                                       long responseTime, 
-                                                       long memoryIncrease, 
+    private PerformanceMetrics createPerformanceMetrics(RequestMetrics requestMetrics,
+                                                       double responseTime,
+                                                       long memoryIncrease,
                                                        int statusCode) {
         String testName = "API Request - " + requestMetrics.endpoint;
         String testType = "API_REQUEST";
-        
+
         PerformanceMetrics metrics = new PerformanceMetrics(testName, testType);
         metrics.setTotalRequests(1);
-        metrics.setTotalTimeMs(responseTime);
-        metrics.setAverageResponseTimeMs((double) responseTime);
+        metrics.setTotalTimeMs(Math.round(responseTime)); // Round to nearest millisecond for storage
+        metrics.setAverageResponseTimeMs(responseTime); // Keep full precision for average
         metrics.setTestPassed(statusCode >= 200 && statusCode < 400);
         
         if (appConfig.getMetricsCollection().isIncludeMemoryMetrics()) {
@@ -256,7 +257,7 @@ public class MetricsCollectionHandler {
     
     private static class EndpointMetrics {
         long totalRequests = 0;
-        long totalResponseTime = 0;
+        double totalResponseTime = 0.0;
         long successfulRequests = 0;
         LocalDateTime lastRequestTime;
     }

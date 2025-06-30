@@ -1,7 +1,6 @@
 package dev.mars.database;
 
 import dev.mars.config.AppConfig;
-import dev.mars.model.StockTrade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,16 +94,35 @@ public class DataLoader {
             connection.setAutoCommit(false);
             
             for (int i = 0; i < appConfig.getSampleDataSize(); i++) {
-                StockTrade trade = generateRandomTrade();
-                
-                statement.setString(1, trade.getSymbol());
-                statement.setString(2, trade.getTradeType());
-                statement.setInt(3, trade.getQuantity());
-                statement.setBigDecimal(4, trade.getPrice());
-                statement.setBigDecimal(5, trade.getTotalValue());
-                statement.setObject(6, trade.getTradeDateTime());
-                statement.setString(7, trade.getTraderId());
-                statement.setString(8, trade.getExchange());
+                // Generate random trade data directly
+                String symbol = SYMBOLS[random.nextInt(SYMBOLS.length)];
+                String tradeType = TRADE_TYPES[random.nextInt(TRADE_TYPES.length)];
+                int quantity = random.nextInt(1000) + 1; // 1 to 1000
+
+                // Generate price between $10 and $500
+                BigDecimal price = BigDecimal.valueOf(10 + (random.nextDouble() * 490))
+                        .setScale(2, RoundingMode.HALF_UP);
+
+                BigDecimal totalValue = price.multiply(BigDecimal.valueOf(quantity))
+                        .setScale(2, RoundingMode.HALF_UP);
+
+                // Generate trade time within last 30 days
+                LocalDateTime tradeDateTime = LocalDateTime.now()
+                        .minusDays(random.nextInt(30))
+                        .minusHours(random.nextInt(24))
+                        .minusMinutes(random.nextInt(60));
+
+                String traderId = "TRADER_" + String.format("%04d", random.nextInt(100) + 1);
+                String exchange = EXCHANGES[random.nextInt(EXCHANGES.length)];
+
+                statement.setString(1, symbol);
+                statement.setString(2, tradeType);
+                statement.setInt(3, quantity);
+                statement.setBigDecimal(4, price);
+                statement.setBigDecimal(5, totalValue);
+                statement.setObject(6, tradeDateTime);
+                statement.setString(7, traderId);
+                statement.setString(8, exchange);
                 
                 statement.addBatch();
                 
@@ -126,28 +144,5 @@ public class DataLoader {
         }
     }
     
-    private StockTrade generateRandomTrade() {
-        String symbol = SYMBOLS[random.nextInt(SYMBOLS.length)];
-        String tradeType = TRADE_TYPES[random.nextInt(TRADE_TYPES.length)];
-        int quantity = random.nextInt(1000) + 1; // 1 to 1000
-        
-        // Generate price between $10 and $500
-        BigDecimal price = BigDecimal.valueOf(10 + (random.nextDouble() * 490))
-                .setScale(2, RoundingMode.HALF_UP);
-        
-        BigDecimal totalValue = price.multiply(BigDecimal.valueOf(quantity))
-                .setScale(2, RoundingMode.HALF_UP);
-        
-        // Generate trade time within last 30 days
-        LocalDateTime tradeDateTime = LocalDateTime.now()
-                .minusDays(random.nextInt(30))
-                .minusHours(random.nextInt(24))
-                .minusMinutes(random.nextInt(60));
-        
-        String traderId = "TRADER_" + String.format("%04d", random.nextInt(100) + 1);
-        String exchange = EXCHANGES[random.nextInt(EXCHANGES.length)];
-        
-        return new StockTrade(null, symbol, tradeType, quantity, price, 
-                            totalValue, tradeDateTime, traderId, exchange);
-    }
+
 }

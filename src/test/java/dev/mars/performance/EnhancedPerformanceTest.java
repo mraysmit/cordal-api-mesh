@@ -63,7 +63,7 @@ class EnhancedPerformanceTest {
                     for (int i = 0; i < requestsPerThread; i++) {
                         try {
                             Request request = new Request.Builder()
-                                    .url(baseUrl + "/api/stock-trades?page=0&size=10")
+                                    .url(baseUrl + "/api/generic/stock-trades?page=0&size=10")
                                     .build();
                             try (Response response = httpClient.newCall(request).execute()) {
                                 assertThat(response.code()).isEqualTo(200);
@@ -125,7 +125,7 @@ class EnhancedPerformanceTest {
             long syncStartTime = System.currentTimeMillis();
             for (int i = 0; i < numberOfRequests; i++) {
                 Request request = new Request.Builder()
-                        .url(baseUrl + "/api/stock-trades?page=0&size=10&async=false")
+                        .url(baseUrl + "/api/generic/stock-trades?page=0&size=10&async=false")
                         .build();
                 try (Response response = httpClient.newCall(request).execute()) {
                     assertThat(response.code()).isEqualTo(200);
@@ -139,7 +139,7 @@ class EnhancedPerformanceTest {
             long asyncStartTime = System.currentTimeMillis();
             for (int i = 0; i < numberOfRequests; i++) {
                 Request request = new Request.Builder()
-                        .url(baseUrl + "/api/stock-trades?page=0&size=10&async=true")
+                        .url(baseUrl + "/api/generic/stock-trades?page=0&size=10&async=true")
                         .build();
                 try (Response response = httpClient.newCall(request).execute()) {
                     assertThat(response.code()).isEqualTo(200);
@@ -184,7 +184,8 @@ class EnhancedPerformanceTest {
 
     @Test
     void testPaginationPerformanceWithMetrics() throws Exception {
-        int[] pageSizes = {10, 50, 100, 500, 1000};
+        // Use page sizes within the configured maxSize limit (100)
+        int[] pageSizes = {10, 20, 50, 75, 100};
         OkHttpClient httpClient = new OkHttpClient();
 
         for (int pageSize : pageSizes) {
@@ -194,7 +195,7 @@ class EnhancedPerformanceTest {
                 long startTime = System.currentTimeMillis();
 
                 Request request = new Request.Builder()
-                        .url(baseUrl + "/api/stock-trades?page=0&size=" + pageSize)
+                        .url(baseUrl + "/api/generic/stock-trades?page=0&size=" + pageSize)
                         .build();
                 try (Response response = httpClient.newCall(request).execute()) {
                     assertThat(response.code()).isEqualTo(200);
@@ -250,7 +251,7 @@ class EnhancedPerformanceTest {
             // Make multiple requests to potentially cause memory issues
             for (int i = 0; i < 100; i++) {
                 Request request = new Request.Builder()
-                        .url(baseUrl + "/api/stock-trades?page=0&size=100")
+                        .url(baseUrl + "/api/generic/stock-trades?page=0&size=100")
                         .build();
                 try (Response response = httpClient.newCall(request).execute()) {
                     assertThat(response.code()).isEqualTo(200);

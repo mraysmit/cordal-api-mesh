@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main application class for the Javalin Stock Trade API
+ * Main application class for the Javalin API Mesh - Generic API System
  */
 public class Application {
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
@@ -40,7 +40,7 @@ public class Application {
     }
     
     public void start() {
-        logger.info("Starting Javalin Stock Trade API application");
+        logger.info("Starting Javalin API Mesh - Generic API System");
         
         try {
             // Initialize dependency injection
@@ -185,7 +185,7 @@ public class Application {
         String baseUrl = String.format("http://%s:%d", host, port);
 
         logger.info("=".repeat(80));
-        logger.info("🚀 JAVALIN API MESH - SERVER STARTED SUCCESSFULLY");
+        logger.info("🚀 JAVALIN API MESH - GENERIC API SYSTEM STARTED SUCCESSFULLY");
         logger.info("=".repeat(80));
         logger.info("📍 Server URL: {}", baseUrl);
         logger.info("");
@@ -195,11 +195,22 @@ public class Application {
         logger.info("   ├─ Health Check:     GET  {}/api/health", baseUrl);
         logger.info("");
 
-        // Stock Trades API Endpoints
-        logger.info("📈 STOCK TRADES API:");
-        logger.info("   ├─ Get All Trades:   GET  {}/api/stock-trades", baseUrl);
-        logger.info("   ├─ Get Trade by ID:  GET  {}/api/stock-trades/{{id}}", baseUrl);
-        logger.info("   └─ Get by Symbol:    GET  {}/api/stock-trades/symbol/{{symbol}}", baseUrl);
+        // Generic API Endpoints
+        logger.info("🔧 GENERIC API SYSTEM:");
+        logger.info("   ├─ Stock Trades:     GET  {}/api/generic/stock-trades", baseUrl);
+        logger.info("   ├─ Trade by ID:      GET  {}/api/generic/stock-trades/{{id}}", baseUrl);
+        logger.info("   ├─ By Symbol:        GET  {}/api/generic/stock-trades/symbol/{{symbol}}", baseUrl);
+        logger.info("   ├─ By Trader:        GET  {}/api/generic/stock-trades/trader/{{trader_id}}", baseUrl);
+        logger.info("   └─ Date Range:       GET  {}/api/generic/stock-trades/date-range", baseUrl);
+        logger.info("");
+
+        // Configuration Management API
+        logger.info("⚙️  CONFIGURATION MANAGEMENT:");
+        logger.info("   ├─ Validate All:     GET  {}/api/generic/config/validate", baseUrl);
+        logger.info("   ├─ Validate Endpoints: GET  {}/api/generic/config/validate/endpoints", baseUrl);
+        logger.info("   ├─ Validate Queries: GET  {}/api/generic/config/validate/queries", baseUrl);
+        logger.info("   ├─ Validate DBs:     GET  {}/api/generic/config/validate/databases", baseUrl);
+        logger.info("   └─ Relationships:    GET  {}/api/generic/config/validate/relationships", baseUrl);
         logger.info("");
 
 
@@ -260,14 +271,16 @@ public class Application {
 
         // Configuration Information
         logger.info("⚙️  CONFIGURATION:");
-        logger.info("   ├─ Custom Dashboard: {}", appConfig.getMetricsDashboard().getCustom().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
-        logger.info("   ├─ Grafana Mode:     {}", appConfig.getMetricsDashboard().getGrafana().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
-        logger.info("   └─ Prometheus:       {}",
+        logger.info("   ├─ API Configuration: 📄 YAML-based (api-endpoints.yml, queries.yml, databases.yml)");
+        logger.info("   ├─ Custom Dashboard:  {}", appConfig.getMetricsDashboard().getCustom().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
+        logger.info("   ├─ Grafana Mode:      {}", appConfig.getMetricsDashboard().getGrafana().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
+        logger.info("   └─ Prometheus:        {}",
             appConfig.getMetricsDashboard().getGrafana().isEnabled() &&
             appConfig.getMetricsDashboard().getGrafana().getPrometheus().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
 
         logger.info("=".repeat(80));
-        logger.info("🎯 Ready to accept requests!");
+        logger.info("🎯 Generic API System ready to accept requests!");
+        logger.info("💡 APIs are dynamically configured via YAML files");
         logger.info("=".repeat(80));
     }
 }

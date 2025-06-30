@@ -3,7 +3,7 @@ package dev.mars;
 import com.google.inject.Injector;
 import dev.mars.config.AppConfig;
 import dev.mars.database.DatabaseManager;
-import dev.mars.service.StockTradeService;
+import dev.mars.generic.GenericApiService;
 import io.javalin.Javalin;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +56,7 @@ public class ApplicationTest {
         // Test that all major components can be instantiated
         assertThat(injector.getInstance(AppConfig.class)).isNotNull();
         assertThat(injector.getInstance(DatabaseManager.class)).isNotNull();
-        assertThat(injector.getInstance(StockTradeService.class)).isNotNull();
+        assertThat(injector.getInstance(GenericApiService.class)).isNotNull();
     }
 
     @Test
@@ -85,8 +85,8 @@ public class ApplicationTest {
         Injector injector = application.getInjector();
 
         // Test that singleton instances are properly managed
-        StockTradeService service1 = injector.getInstance(StockTradeService.class);
-        StockTradeService service2 = injector.getInstance(StockTradeService.class);
+        GenericApiService service1 = injector.getInstance(GenericApiService.class);
+        GenericApiService service2 = injector.getInstance(GenericApiService.class);
 
         assertThat(service1).isSameAs(service2); // Should be the same singleton instance
     }

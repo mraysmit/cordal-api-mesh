@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import dev.mars.controller.PerformanceMetricsController;
-import dev.mars.controller.StockTradeController;
 import dev.mars.database.DataLoader;
 import dev.mars.database.DatabaseManager;
 import dev.mars.database.MetricsDatabaseManager;
@@ -16,10 +15,8 @@ import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.metrics.MetricsCollectionHandler;
 import dev.mars.repository.PerformanceMetricsRepository;
-import dev.mars.repository.StockTradeRepository;
 import dev.mars.routes.ApiRoutes;
 import dev.mars.service.PerformanceMetricsService;
-import dev.mars.service.StockTradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,26 +87,7 @@ public class GuiceModule extends AbstractModule {
         return new MetricsDatabaseManager(metricsDatabaseConfig);
     }
 
-    @Provides
-    @Singleton
-    public StockTradeRepository provideStockTradeRepository(DatabaseManager databaseManager) {
-        logger.info("Creating StockTradeRepository instance");
-        return new StockTradeRepository(databaseManager);
-    }
 
-    @Provides
-    @Singleton
-    public StockTradeService provideStockTradeService(StockTradeRepository repository) {
-        logger.info("Creating StockTradeService instance");
-        return new StockTradeService(repository);
-    }
-
-    @Provides
-    @Singleton
-    public StockTradeController provideStockTradeController(StockTradeService service) {
-        logger.info("Creating StockTradeController instance");
-        return new StockTradeController(service);
-    }
 
     @Provides
     @Singleton
@@ -196,12 +174,11 @@ public class GuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ApiRoutes provideApiRoutes(StockTradeController stockTradeController,
-                                     PerformanceMetricsController performanceMetricsController,
+    public ApiRoutes provideApiRoutes(PerformanceMetricsController performanceMetricsController,
                                      MetricsCollectionHandler metricsCollectionHandler,
                                      GenericApiController genericApiController,
                                      AppConfig appConfig) {
         logger.info("Creating ApiRoutes instance");
-        return new ApiRoutes(stockTradeController, performanceMetricsController, metricsCollectionHandler, genericApiController, appConfig);
+        return new ApiRoutes(performanceMetricsController, metricsCollectionHandler, genericApiController, appConfig);
     }
 }

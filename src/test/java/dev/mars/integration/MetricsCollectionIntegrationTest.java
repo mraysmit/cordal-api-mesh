@@ -74,7 +74,7 @@ class MetricsCollectionIntegrationTest {
     void testMetricsCollectionForStockTradesEndpoint() throws IOException, InterruptedException {
         // Make a request to stock trades endpoint
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades?page=0&size=5"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades?page=0&size=5"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -99,10 +99,10 @@ class MetricsCollectionIntegrationTest {
         
         // Verify metrics were collected for the endpoint
         assertThat(metrics).isNotEmpty();
-        assertThat(metrics).containsKey("GET /api/stock-trades");
-        
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades");
+
         @SuppressWarnings("unchecked")
-        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/stock-trades");
+        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/generic/stock-trades");
         assertThat(endpointMetrics.get("totalRequests")).isEqualTo(1);
         assertThat(endpointMetrics.get("successRate")).isEqualTo(100.0);
         assertThat(endpointMetrics.get("averageResponseTime")).isInstanceOf(Number.class);
@@ -113,8 +113,8 @@ class MetricsCollectionIntegrationTest {
     void testMetricsCollectionForMultipleRequests() throws IOException, InterruptedException {
         // Make multiple requests to different endpoints
         String[] endpoints = {
-            "/api/stock-trades",
-            "/api/stock-trades/1",
+            "/api/generic/stock-trades",
+            "/api/generic/stock-trades/1",
             "/api/health"
         };
 
@@ -143,8 +143,8 @@ class MetricsCollectionIntegrationTest {
 
         // Verify metrics for multiple endpoints
         assertThat(metrics).hasSize(3);
-        assertThat(metrics).containsKey("GET /api/stock-trades");
-        assertThat(metrics).containsKey("GET /api/stock-trades/{id}");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades/{id}");
         assertThat(metrics).containsKey("GET /api/health");
     }
 
@@ -184,7 +184,7 @@ class MetricsCollectionIntegrationTest {
     void testMetricsReset() throws IOException, InterruptedException {
         // Make a request to generate metrics
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -223,7 +223,7 @@ class MetricsCollectionIntegrationTest {
     void testErrorResponseMetrics() throws IOException, InterruptedException {
         // Make a request that should return 404
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades/999999"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades/999999"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -244,14 +244,14 @@ class MetricsCollectionIntegrationTest {
         Map<String, Object> metrics = objectMapper.readValue(metricsResponse.body(), new TypeReference<Map<String, Object>>() {});
 
         // Verify metrics were collected even for error responses
-        assertThat(metrics).containsKey("GET /api/stock-trades/{id}");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades/{id}");
     }
 
     @Test
     void testMetricsCollectionForDifferentHttpMethods() throws IOException, InterruptedException {
         // Test GET request
         HttpRequest getRequest = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -290,7 +290,7 @@ class MetricsCollectionIntegrationTest {
         Map<String, Object> metrics = objectMapper.readValue(metricsResponse.body(), new TypeReference<Map<String, Object>>() {});
 
         // Verify both GET and POST requests are tracked
-        assertThat(metrics).containsKey("GET /api/stock-trades");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades");
         // Note: POST to performance-metrics is excluded, so it won't appear in metrics
     }
 
@@ -340,7 +340,7 @@ class MetricsCollectionIntegrationTest {
     void testMetricsCollectionWithAsyncEndpoints() throws IOException, InterruptedException {
         // Test async endpoint
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/stock-trades?async=true&page=0&size=5"))
+                .uri(URI.create(BASE_URL + "/api/generic/stock-trades?async=true&page=0&size=5"))
                 .GET()
                 .timeout(Duration.ofSeconds(30))
                 .build();
@@ -361,10 +361,10 @@ class MetricsCollectionIntegrationTest {
         Map<String, Object> metrics = objectMapper.readValue(metricsResponse.body(), new TypeReference<Map<String, Object>>() {});
 
         // Verify async endpoint metrics are collected
-        assertThat(metrics).containsKey("GET /api/stock-trades");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades");
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/stock-trades");
+        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/generic/stock-trades");
         assertThat(endpointMetrics.get("successRate")).isEqualTo(100.0);
     }
 
@@ -377,7 +377,7 @@ class MetricsCollectionIntegrationTest {
         int requestCount = 10;
         for (int i = 0; i < requestCount; i++) {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/api/stock-trades?page=0&size=1"))
+                    .uri(URI.create(BASE_URL + "/api/generic/stock-trades?page=0&size=1"))
                     .GET()
                     .timeout(Duration.ofSeconds(30))
                     .build();
@@ -400,10 +400,10 @@ class MetricsCollectionIntegrationTest {
         HttpResponse<String> metricsResponse = httpClient.send(metricsRequest, HttpResponse.BodyHandlers.ofString());
         Map<String, Object> metrics = objectMapper.readValue(metricsResponse.body(), new TypeReference<Map<String, Object>>() {});
 
-        assertThat(metrics).containsKey("GET /api/stock-trades");
+        assertThat(metrics).containsKey("GET /api/generic/stock-trades");
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/stock-trades");
+        Map<String, Object> endpointMetrics = (Map<String, Object>) metrics.get("GET /api/generic/stock-trades");
         assertThat(endpointMetrics.get("totalRequests")).isEqualTo(requestCount);
 
         // Verify performance impact is minimal (average response time should be reasonable)
