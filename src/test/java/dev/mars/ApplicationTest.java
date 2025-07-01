@@ -30,6 +30,8 @@ public class ApplicationTest {
         if (application != null) {
             try {
                 application.stop();
+                // Wait a moment for proper shutdown
+                Thread.sleep(500);
             } catch (Exception e) {
                 // Ignore cleanup errors in tests
             }

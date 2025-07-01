@@ -195,7 +195,7 @@ public class Application {
         logger.info("   ├─ Health Check:     GET  {}/api/health", baseUrl);
         logger.info("");
 
-        // Generic API Endpoints
+        // Example Generic API Endpoints
         logger.info("🔧 GENERIC API SYSTEM:");
         logger.info("   ├─ Stock Trades:     GET  {}/api/generic/stock-trades", baseUrl);
         logger.info("   ├─ Trade by ID:      GET  {}/api/generic/stock-trades/{{id}}", baseUrl);

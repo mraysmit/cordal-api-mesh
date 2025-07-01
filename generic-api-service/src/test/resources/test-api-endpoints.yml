@@ -1,0 +1,65 @@
+endpoints:
+  test-endpoint:
+    path: "/api/test/endpoint"
+    method: "GET"
+    query: "test-query"
+    countQuery: "test-count-query"
+    description: "Test endpoint for unit testing"
+
+  stock-trades-list:
+    path: "/api/generic/stock-trades"
+    method: "GET"
+    query: "stock-trades-all"
+    countQuery: "stock-trades-count"
+    description: "Get all stock trades with pagination"
+
+  stock-trades-by-symbol:
+    path: "/api/generic/stock-trades/symbol/{symbol}"
+    method: "GET"
+    query: "stock-trades-by-symbol"
+    countQuery: "stock-trades-count-by-symbol"
+    description: "Get stock trades by symbol with pagination"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        source: "PATH"
+        required: true
+
+  stock-trades-by-id:
+    path: "/api/generic/stock-trades/{id}"
+    method: "GET"
+    query: "stock-trades-by-id"
+    description: "Get stock trade by ID"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        source: "PATH"
+        required: true
+
+  stock-trades-by-trader:
+    path: "/api/generic/stock-trades/trader/{trader_id}"
+    method: "GET"
+    query: "stock-trades-by-trader"
+    countQuery: "stock-trades-count-by-trader"
+    description: "Get stock trades by trader ID with pagination"
+    parameters:
+      - name: "trader_id"
+        type: "LONG"
+        source: "PATH"
+        required: true
+
+  stock-trades-by-date-range:
+    path: "/api/generic/stock-trades/date-range"
+    method: "GET"
+    query: "stock-trades-by-date-range"
+    countQuery: "stock-trades-count-by-date-range"
+    description: "Get stock trades by date range with pagination"
+    parameters:
+      - name: "startDate"
+        type: "STRING"
+        source: "QUERY"
+        required: true
+      - name: "endDate"
+        type: "STRING"
+        source: "QUERY"
+        required: true

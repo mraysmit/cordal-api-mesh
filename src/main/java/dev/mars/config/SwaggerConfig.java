@@ -61,8 +61,8 @@ public class SwaggerConfig {
         {
           "openapi": "3.0.3",
           "info": {
-            "title": "Javalin API Mesh",
-            "description": "High-performance stock trading API with comprehensive performance monitoring and dual dashboard architecture",
+            "title": "Javalin API Mesh - Generic API System",
+            "description": "High-performance generic API system with YAML-configured endpoints, comprehensive performance monitoring and dual dashboard architecture",
             "version": "1.0.0",
             "contact": {
               "name": "Mars Development Team",
@@ -87,7 +87,7 @@ public class SwaggerConfig {
             },
             {
               "name": "Stock Trades",
-              "description": "Stock trading operations and data retrieval"
+              "description": "YAML-configured stock trading operations and data retrieval via generic API system"
             },
             {
               "name": "Performance Metrics",
@@ -130,11 +130,11 @@ public class SwaggerConfig {
                 }
               }
             },
-            "/api/stock-trades": {
+            "/api/generic/stock-trades": {
               "get": {
                 "tags": ["Stock Trades"],
-                "summary": "Get all stock trades",
-                "description": "Retrieve a paginated list of all stock trades",
+                "summary": "Get all stock trades (Generic API)",
+                "description": "Retrieve a paginated list of all stock trades using the YAML-configured generic API system",
                 "parameters": [
                   {
                     "name": "page",
@@ -145,7 +145,7 @@ public class SwaggerConfig {
                   {
                     "name": "size",
                     "in": "query",
-                    "description": "Number of items per page",
+                    "description": "Number of items per page (max 100)",
                     "schema": {"type": "integer", "default": 20}
                   },
                   {
@@ -163,27 +163,187 @@ public class SwaggerConfig {
                         "schema": {
                           "type": "object",
                           "properties": {
-                            "content": {
+                            "data": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
                                   "id": {"type": "integer"},
                                   "symbol": {"type": "string"},
+                                  "trade_type": {"type": "string"},
                                   "quantity": {"type": "integer"},
                                   "price": {"type": "number"},
-                                  "timestamp": {"type": "string"}
+                                  "total_value": {"type": "number"},
+                                  "trade_date_time": {"type": "string"},
+                                  "trader_id": {"type": "string"},
+                                  "exchange": {"type": "string"}
                                 }
                               }
                             },
                             "totalElements": {"type": "integer"},
                             "totalPages": {"type": "integer"},
-                            "currentPage": {"type": "integer"},
-                            "pageSize": {"type": "integer"}
+                            "page": {"type": "integer"},
+                            "size": {"type": "integer"}
                           }
                         }
                       }
                     }
+                  }
+                }
+              }
+            },
+            "/api/generic/stock-trades/{id}": {
+              "get": {
+                "tags": ["Stock Trades"],
+                "summary": "Get stock trade by ID",
+                "description": "Retrieve a specific stock trade by its ID using the generic API system",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "Stock trade ID",
+                    "schema": {"type": "integer"}
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved stock trade",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {"type": "integer"},
+                                  "symbol": {"type": "string"},
+                                  "trade_type": {"type": "string"},
+                                  "quantity": {"type": "integer"},
+                                  "price": {"type": "number"},
+                                  "total_value": {"type": "number"},
+                                  "trade_date_time": {"type": "string"},
+                                  "trader_id": {"type": "string"},
+                                  "exchange": {"type": "string"}
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Stock trade not found"
+                  }
+                }
+              }
+            },
+            "/api/generic/stock-trades/symbol/{symbol}": {
+              "get": {
+                "tags": ["Stock Trades"],
+                "summary": "Get stock trades by symbol",
+                "description": "Retrieve stock trades for a specific symbol with pagination",
+                "parameters": [
+                  {
+                    "name": "symbol",
+                    "in": "path",
+                    "required": true,
+                    "description": "Stock symbol (e.g., AAPL, GOOGL)",
+                    "schema": {"type": "string"}
+                  },
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "description": "Page number (0-based)",
+                    "schema": {"type": "integer", "default": 0}
+                  },
+                  {
+                    "name": "size",
+                    "in": "query",
+                    "description": "Number of items per page (max 100)",
+                    "schema": {"type": "integer", "default": 20}
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved stock trades for symbol"
+                  }
+                }
+              }
+            },
+            "/api/generic/stock-trades/trader/{trader_id}": {
+              "get": {
+                "tags": ["Stock Trades"],
+                "summary": "Get stock trades by trader",
+                "description": "Retrieve stock trades for a specific trader with pagination",
+                "parameters": [
+                  {
+                    "name": "trader_id",
+                    "in": "path",
+                    "required": true,
+                    "description": "Trader ID",
+                    "schema": {"type": "string"}
+                  },
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "description": "Page number (0-based)",
+                    "schema": {"type": "integer", "default": 0}
+                  },
+                  {
+                    "name": "size",
+                    "in": "query",
+                    "description": "Number of items per page (max 100)",
+                    "schema": {"type": "integer", "default": 20}
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved stock trades for trader"
+                  }
+                }
+              }
+            },
+            "/api/generic/stock-trades/date-range": {
+              "get": {
+                "tags": ["Stock Trades"],
+                "summary": "Get stock trades by date range",
+                "description": "Retrieve stock trades within a specific date range with pagination",
+                "parameters": [
+                  {
+                    "name": "start_date",
+                    "in": "query",
+                    "required": true,
+                    "description": "Start date (yyyy-MM-dd HH:mm:ss)",
+                    "schema": {"type": "string"}
+                  },
+                  {
+                    "name": "end_date",
+                    "in": "query",
+                    "required": true,
+                    "description": "End date (yyyy-MM-dd HH:mm:ss)",
+                    "schema": {"type": "string"}
+                  },
+                  {
+                    "name": "page",
+                    "in": "query",
+                    "description": "Page number (0-based)",
+                    "schema": {"type": "integer", "default": 0}
+                  },
+                  {
+                    "name": "size",
+                    "in": "query",
+                    "description": "Number of items per page (max 100)",
+                    "schema": {"type": "integer", "default": 20}
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Successfully retrieved stock trades for date range"
                   }
                 }
               }
@@ -794,8 +954,8 @@ public class SwaggerConfig {
                     <a href="/openapi.json">📄 OpenAPI JSON</a>
                 </div>
 
-                <h1>🚀 Javalin API Mesh - API Documentation</h1>
-                <p>High-performance stock trading API with comprehensive performance monitoring and dual dashboard architecture.</p>
+                <h1>🚀 Javalin API Mesh - Generic API System Documentation</h1>
+                <p>High-performance generic API system with YAML-configured endpoints, comprehensive performance monitoring and dual dashboard architecture.</p>
 
                 <h2>🏥 Health & System</h2>
                 <div class="endpoint">
@@ -804,22 +964,40 @@ public class SwaggerConfig {
                     <div class="description">Check the health status of the application</div>
                 </div>
 
-                <h2>📈 Stock Trades API</h2>
+                <h2>📈 Stock Trades API (Generic System)</h2>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <span class="url">%s/api/stock-trades</span>
+                    <span class="url">%s/api/generic/stock-trades</span>
                     <span class="badge">Paginated</span>
-                    <div class="description">Get all stock trades with pagination support. Supports async processing.</div>
+                    <span class="badge">YAML-Configured</span>
+                    <div class="description">Get all stock trades with pagination support. Supports async processing. Configured via YAML.</div>
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <span class="url">%s/api/stock-trades/{id}</span>
-                    <div class="description">Get a specific stock trade by ID</div>
+                    <span class="url">%s/api/generic/stock-trades/{id}</span>
+                    <span class="badge">YAML-Configured</span>
+                    <div class="description">Get a specific stock trade by ID using the generic API system</div>
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <span class="url">%s/api/stock-trades/symbol/{symbol}</span>
-                    <div class="description">Get stock trades by symbol</div>
+                    <span class="url">%s/api/generic/stock-trades/symbol/{symbol}</span>
+                    <span class="badge">Paginated</span>
+                    <span class="badge">YAML-Configured</span>
+                    <div class="description">Get stock trades by symbol with pagination</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/stock-trades/trader/{trader_id}</span>
+                    <span class="badge">Paginated</span>
+                    <span class="badge">YAML-Configured</span>
+                    <div class="description">Get stock trades by trader ID with pagination</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/stock-trades/date-range</span>
+                    <span class="badge">Paginated</span>
+                    <span class="badge">YAML-Configured</span>
+                    <div class="description">Get stock trades by date range with pagination</div>
                 </div>
 
                 <h2>📊 Performance Metrics API</h2>
@@ -851,28 +1029,28 @@ public class SwaggerConfig {
                     <div class="description">Get available test types</div>
                 </div>
 
-                <h2>🔧 Generic API</h2>
+                <h2>🔧 Generic API System</h2>
                 <div class="endpoint">
                     <span class="method get">GET</span>
                     <span class="url">%s/api/generic/health</span>
-                    <div class="description">Generic API health check</div>
+                    <div class="description">Generic API health check with endpoint count</div>
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
                     <span class="url">%s/api/generic/endpoints</span>
-                    <div class="description">Get all available generic API endpoints</div>
+                    <div class="description">Get all available generic API endpoints with their configurations</div>
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <span class="url">%s/api/generic/stock-trades</span>
-                    <div class="description">Get stock trades (configuration-driven endpoint)</div>
+                    <span class="url">%s/api/generic/endpoints/{endpointName}</span>
+                    <div class="description">Get specific endpoint configuration by name</div>
                 </div>
 
                 <h2>⚙️ Configuration Management</h2>
                 <div class="endpoint">
                     <span class="method get">GET</span>
                     <span class="url">%s/api/generic/config</span>
-                    <div class="description">Get complete API configuration (endpoints + queries)</div>
+                    <div class="description">Get complete API configuration (endpoints + queries + databases)</div>
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
@@ -881,8 +1059,55 @@ public class SwaggerConfig {
                 </div>
                 <div class="endpoint">
                     <span class="method get">GET</span>
-                    <span class="url">%s/api/generic/config/queries/{{queryName}}</span>
+                    <span class="url">%s/api/generic/config/queries/{queryName}</span>
                     <div class="description">Get specific query configuration by name</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases</span>
+                    <div class="description">Get all database configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases/{databaseName}</span>
+                    <div class="description">Get specific database configuration by name</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/relationships</span>
+                    <div class="description">Get configuration relationships between endpoints, queries, and databases</div>
+                </div>
+
+                <h2>✅ Configuration Validation</h2>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/validate</span>
+                    <span class="badge">Validation</span>
+                    <div class="description">Validate all configurations (endpoints, queries, databases, relationships)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/validate/endpoints</span>
+                    <span class="badge">Validation</span>
+                    <div class="description">Validate endpoint configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/validate/queries</span>
+                    <span class="badge">Validation</span>
+                    <div class="description">Validate query configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/validate/databases</span>
+                    <span class="badge">Validation</span>
+                    <div class="description">Validate database configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/validate/relationships</span>
+                    <span class="badge">Validation</span>
+                    <div class="description">Validate configuration relationships and integrity</div>
                 </div>
 
                 <h2>📱 Dashboards & Documentation</h2>
@@ -904,7 +1129,7 @@ public class SwaggerConfig {
             </div>
         </body>
         </html>
-        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
+        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
     }
 
     /**

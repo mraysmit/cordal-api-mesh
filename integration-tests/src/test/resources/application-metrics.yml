@@ -1,0 +1,25 @@
+server:
+  host: localhost
+  port: 18081
+
+metricsDatabase:
+  url: jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+  username: sa
+  password: ""
+  driver: org.h2.Driver
+
+metricsCollection:
+  enabled: true
+  asyncSave: true
+  samplingRate: 1.0
+
+metricsDashboard:
+  custom:
+    enabled: true
+    path: /dashboard
+  grafana:
+    enabled: false
+    url: http://localhost:3000
+    prometheus:
+      enabled: false
+      path: /metrics

@@ -1,0 +1,63 @@
+queries:
+  test-query:
+    name: "test-query"
+    sql: "SELECT * FROM stock_trades ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+    description: "Test query for unit testing"
+
+  test-count-query:
+    name: "test-count-query"
+    sql: "SELECT COUNT(*) FROM stock_trades"
+    database: "stock-trades-db"
+    description: "Test count query for unit testing"
+
+  test-paginated-query:
+    name: "test-paginated-query"
+    sql: "SELECT * FROM stock_trades ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+    description: "Test paginated query for unit testing"
+
+  stock-trades-all:
+    name: "stock-trades-all"
+    sql: "SELECT * FROM stock_trades ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+    
+  stock-trades-count:
+    name: "stock-trades-count"
+    sql: "SELECT COUNT(*) FROM stock_trades"
+    database: "stock-trades-db"
+
+  stock-trades-by-symbol:
+    name: "stock-trades-by-symbol"
+    sql: "SELECT * FROM stock_trades WHERE symbol = ? ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+
+  stock-trades-count-by-symbol:
+    name: "stock-trades-count-by-symbol"
+    sql: "SELECT COUNT(*) FROM stock_trades WHERE symbol = ?"
+    database: "stock-trades-db"
+
+  stock-trades-by-id:
+    name: "stock-trades-by-id"
+    sql: "SELECT * FROM stock_trades WHERE id = ?"
+    database: "stock-trades-db"
+
+  stock-trades-by-trader:
+    name: "stock-trades-by-trader"
+    sql: "SELECT * FROM stock_trades WHERE trader_id = ? ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+
+  stock-trades-count-by-trader:
+    name: "stock-trades-count-by-trader"
+    sql: "SELECT COUNT(*) FROM stock_trades WHERE trader_id = ?"
+    database: "stock-trades-db"
+
+  stock-trades-by-date-range:
+    name: "stock-trades-by-date-range"
+    sql: "SELECT * FROM stock_trades WHERE trade_date BETWEEN ? AND ? ORDER BY trade_date DESC LIMIT ? OFFSET ?"
+    database: "stock-trades-db"
+
+  stock-trades-count-by-date-range:
+    name: "stock-trades-count-by-date-range"
+    sql: "SELECT COUNT(*) FROM stock_trades WHERE trade_date BETWEEN ? AND ?"
+    database: "stock-trades-db"
