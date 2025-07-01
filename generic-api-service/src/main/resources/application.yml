@@ -11,3 +11,10 @@ database:
 swagger:
   enabled: true
   path: /swagger
+
+# Configuration file paths
+config:
+  paths:
+    databases: "config/databases.yml"
+    queries: "config/queries.yml"
+    endpoints: "config/api-endpoints.yml"

@@ -36,7 +36,7 @@ class GenericApiControllerTest {
         databaseManager.cleanDatabase();
 
         // Create configuration components
-        ConfigurationLoader configurationLoader = new TestConfigurationLoader();
+        ConfigurationLoader configurationLoader = new TestConfigurationLoader(genericApiConfig);
         configurationManager = new EndpointConfigurationManager(configurationLoader);
 
         // Create database connection manager, repository and service

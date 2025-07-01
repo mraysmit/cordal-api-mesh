@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
+import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.Map;
+import dev.mars.config.GenericApiConfig;
 
 /**
  * Loads YAML configuration files for queries and API endpoints
@@ -15,24 +17,28 @@ import java.util.Map;
 @Singleton
 public class ConfigurationLoader {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationLoader.class);
-    
+
     private final ObjectMapper yamlMapper;
-    
-    public ConfigurationLoader() {
+    private final GenericApiConfig genericApiConfig;
+
+    @Inject
+    public ConfigurationLoader(GenericApiConfig genericApiConfig) {
         this.yamlMapper = new ObjectMapper(new YAMLFactory());
+        this.genericApiConfig = genericApiConfig;
     }
     
     /**
      * Load query configurations from YAML file
      */
     public Map<String, QueryConfig> loadQueryConfigurations() {
-        logger.info("Loading query configurations from queries.yml");
-        
+        String configPath = genericApiConfig.getQueriesConfigPath();
+        logger.info("Loading query configurations from {}", configPath);
+
         try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream("config/queries.yml")) {
-            
+                .getResourceAsStream(configPath)) {
+
             if (inputStream == null) {
-                throw new RuntimeException("queries.yml not found in classpath");
+                throw new RuntimeException(configPath + " not found in classpath");
             }
             
             QueriesWrapper wrapper = yamlMapper.readValue(inputStream, QueriesWrapper.class);
@@ -57,13 +63,14 @@ public class ConfigurationLoader {
      * Load database configurations from YAML file
      */
     public Map<String, DatabaseConfig> loadDatabaseConfigurations() {
-        logger.info("Loading database configurations from databases.yml");
+        String configPath = genericApiConfig.getDatabasesConfigPath();
+        logger.info("Loading database configurations from {}", configPath);
 
         try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream("config/databases.yml")) {
+                .getResourceAsStream(configPath)) {
 
             if (inputStream == null) {
-                throw new RuntimeException("databases.yml not found in classpath");
+                throw new RuntimeException(configPath + " not found in classpath");
             }
 
             DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
@@ -88,13 +95,14 @@ public class ConfigurationLoader {
      * Load API endpoint configurations from YAML file
      */
     public Map<String, ApiEndpointConfig> loadEndpointConfigurations() {
-        logger.info("Loading endpoint configurations from api-endpoints.yml");
-        
+        String configPath = genericApiConfig.getEndpointsConfigPath();
+        logger.info("Loading endpoint configurations from {}", configPath);
+
         try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream("config/api-endpoints.yml")) {
-            
+                .getResourceAsStream(configPath)) {
+
             if (inputStream == null) {
-                throw new RuntimeException("api-endpoints.yml not found in classpath");
+                throw new RuntimeException(configPath + " not found in classpath");
             }
             
             EndpointsWrapper wrapper = yamlMapper.readValue(inputStream, EndpointsWrapper.class);

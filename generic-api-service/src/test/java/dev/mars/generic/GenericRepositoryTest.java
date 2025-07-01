@@ -38,7 +38,7 @@ class GenericRepositoryTest {
         databaseManager.cleanDatabase();
 
         // Create configuration loader and manager for test configurations
-        ConfigurationLoader configurationLoader = new TestConfigurationLoader();
+        ConfigurationLoader configurationLoader = new TestConfigurationLoader(genericApiConfig);
         EndpointConfigurationManager configurationManager = new EndpointConfigurationManager(configurationLoader);
 
         // Create database connection manager

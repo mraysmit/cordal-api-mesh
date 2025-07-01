@@ -73,9 +73,9 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ConfigurationLoader provideConfigurationLoader() {
+    public ConfigurationLoader provideConfigurationLoader(GenericApiConfig genericApiConfig) {
         logger.info("Creating ConfigurationLoader instance");
-        return new ConfigurationLoader();
+        return new ConfigurationLoader(genericApiConfig);
     }
 
     @Provides

@@ -2,6 +2,7 @@ package dev.mars.generic.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import dev.mars.config.GenericApiConfig;
 
 import java.util.Map;
 
@@ -17,7 +18,8 @@ class ConfigurationLoaderTest {
 
     @BeforeEach
     void setUp() {
-        loader = new ConfigurationLoader();
+        GenericApiConfig config = new GenericApiConfig();
+        loader = new ConfigurationLoader(config);
     }
 
     @Test

@@ -17,6 +17,7 @@ public class GenericApiConfig {
     private ServerConfig server = new ServerConfig();
     private DatabaseSettings database = new DatabaseSettings();
     private SwaggerSettings swagger = new SwaggerSettings();
+    private ConfigPaths config = new ConfigPaths();
 
     public GenericApiConfig() {
         // Default constructor
@@ -74,6 +75,22 @@ public class GenericApiConfig {
                     }
                 }
 
+                if (configMap.containsKey("config")) {
+                    Map<String, Object> configSection = (Map<String, Object>) configMap.get("config");
+                    if (configSection.containsKey("paths")) {
+                        Map<String, Object> pathsMap = (Map<String, Object>) configSection.get("paths");
+                        if (pathsMap.containsKey("databases")) {
+                            config.config.setDatabasesPath((String) pathsMap.get("databases"));
+                        }
+                        if (pathsMap.containsKey("queries")) {
+                            config.config.setQueriesPath((String) pathsMap.get("queries"));
+                        }
+                        if (pathsMap.containsKey("endpoints")) {
+                            config.config.setEndpointsPath((String) pathsMap.get("endpoints"));
+                        }
+                    }
+                }
+
                 logger.info("Configuration loaded successfully from {}", configFile);
                 return config;
             } else {
@@ -118,6 +135,18 @@ public class GenericApiConfig {
     public String getSwaggerPath() {
         return swagger.path;
     }
+
+    public String getDatabasesConfigPath() {
+        return config.databasesPath;
+    }
+
+    public String getQueriesConfigPath() {
+        return config.queriesPath;
+    }
+
+    public String getEndpointsConfigPath() {
+        return config.endpointsPath;
+    }
     
     // Inner classes for configuration structure
     public static class ServerConfig {
@@ -151,11 +180,25 @@ public class GenericApiConfig {
     public static class SwaggerSettings {
         private boolean enabled = true;
         private String path = "/swagger";
-        
+
         // Getters and setters
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
         public String getPath() { return path; }
         public void setPath(String path) { this.path = path; }
+    }
+
+    public static class ConfigPaths {
+        private String databasesPath = "config/databases.yml";
+        private String queriesPath = "config/queries.yml";
+        private String endpointsPath = "config/api-endpoints.yml";
+
+        // Getters and setters
+        public String getDatabasesPath() { return databasesPath; }
+        public void setDatabasesPath(String databasesPath) { this.databasesPath = databasesPath; }
+        public String getQueriesPath() { return queriesPath; }
+        public void setQueriesPath(String queriesPath) { this.queriesPath = queriesPath; }
+        public String getEndpointsPath() { return endpointsPath; }
+        public void setEndpointsPath(String endpointsPath) { this.endpointsPath = endpointsPath; }
     }
 }

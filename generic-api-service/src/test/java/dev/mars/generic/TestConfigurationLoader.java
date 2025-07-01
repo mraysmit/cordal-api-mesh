@@ -1,11 +1,16 @@
 package dev.mars.generic;
 
 import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.config.GenericApiConfig;
 
 /**
  * Test configuration loader that loads test-specific configurations
  */
 public class TestConfigurationLoader extends ConfigurationLoader {
+
+    public TestConfigurationLoader(GenericApiConfig config) {
+        super(config);
+    }
     
     @Override
     public java.util.Map<String, dev.mars.generic.config.DatabaseConfig> loadDatabaseConfigurations() {
