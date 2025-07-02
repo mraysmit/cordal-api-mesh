@@ -15,13 +15,13 @@ class ConfigurablePathsTest {
     @BeforeEach
     void setUp() {
         // Clear any existing system properties
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @AfterEach
     void tearDown() {
         // Clean up system properties
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @Test
@@ -36,21 +36,21 @@ class ConfigurablePathsTest {
 
     @Test
     void testCustomConfigurationPaths() {
-        // Test that custom paths are loaded from application.yml
-        System.setProperty("config.file", "application-custom-paths.yml");
-        
+        // Test that custom paths are loaded from application-custom-paths.yml
+        System.setProperty("generic.config.file", "application-custom-paths.yml");
+
         GenericApiConfig config = GenericApiConfig.loadFromFile();
-        
-        // After refactoring, we use default paths from the configuration
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("config/databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("config/queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("config/api-endpoints.yml");
+
+        // The custom configuration file specifies custom paths
+        assertThat(config.getDatabasesConfigPath()).isEqualTo("custom/databases.yml");
+        assertThat(config.getQueriesConfigPath()).isEqualTo("custom/queries.yml");
+        assertThat(config.getEndpointsConfigPath()).isEqualTo("custom/api-endpoints.yml");
     }
 
     @Test
     void testConfigurationLoaderUsesDefaultPaths() {
         // Test that ConfigurationLoader uses the default paths (refactored architecture)
-        System.setProperty("config.file", "application-custom-paths.yml");
+        System.setProperty("generic.config.file", "application-custom-paths.yml");
 
         GenericApiConfig config = GenericApiConfig.loadFromFile();
         ConfigurationLoader loader = new ConfigurationLoader(config);

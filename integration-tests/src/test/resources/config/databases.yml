@@ -1,0 +1,28 @@
+databases:
+  stock-trades-db:
+    name: "stock-trades-db"
+    description: "Main database for stock trading data"
+    url: "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      minimumIdle: 2
+      maximumPoolSize: 10
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+
+  metrics-db:
+    name: "metrics-db"
+    description: "Database for performance metrics and monitoring data"
+    url: "jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      minimumIdle: 1
+      maximumPoolSize: 5
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000

@@ -57,17 +57,17 @@ public class TestIsolationHelper {
      */
     public static void setupTestConfiguration() {
         // Clear any existing config properties
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
         
         // Set test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
     }
     
     /**
      * Cleans up test configuration
      */
     public static void cleanupTestConfiguration() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
     
     /**

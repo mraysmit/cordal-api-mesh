@@ -5,6 +5,23 @@ endpoints:
     query: "test-query"
     countQuery: "test-count-query"
     description: "Test endpoint for unit testing"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+      - name: "size"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+    response:
+      type: "PAGED"
 
   stock-trades-list:
     path: "/api/generic/stock-trades"
@@ -12,6 +29,37 @@ endpoints:
     query: "stock-trades-all"
     countQuery: "stock-trades-count"
     description: "Get all stock trades with pagination"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+      - name: "size"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+      - name: "async"
+        type: "BOOLEAN"
+        source: "QUERY"
+        required: false
+        defaultValue: "false"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+        - name: "symbol"
+          type: "STRING"
+        - name: "quantity"
+          type: "INTEGER"
+        - name: "price"
+          type: "DECIMAL"
 
   stock-trades-by-symbol:
     path: "/api/generic/stock-trades/symbol/{symbol}"
@@ -19,11 +67,41 @@ endpoints:
     query: "stock-trades-by-symbol"
     countQuery: "stock-trades-count-by-symbol"
     description: "Get stock trades by symbol with pagination"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
     parameters:
       - name: "symbol"
         type: "STRING"
         source: "PATH"
         required: true
+      - name: "page"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+      - name: "size"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+      - name: "async"
+        type: "BOOLEAN"
+        source: "QUERY"
+        required: false
+        defaultValue: "false"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+        - name: "symbol"
+          type: "STRING"
+        - name: "quantity"
+          type: "INTEGER"
+        - name: "price"
+          type: "DECIMAL"
 
   stock-trades-by-id:
     path: "/api/generic/stock-trades/{id}"
@@ -54,12 +132,42 @@ endpoints:
     query: "stock-trades-by-date-range"
     countQuery: "stock-trades-count-by-date-range"
     description: "Get stock trades by date range with pagination"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
     parameters:
-      - name: "startDate"
+      - name: "start_date"
         type: "STRING"
         source: "QUERY"
         required: true
-      - name: "endDate"
+      - name: "end_date"
         type: "STRING"
         source: "QUERY"
         required: true
+      - name: "page"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+      - name: "size"
+        type: "INTEGER"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+      - name: "async"
+        type: "BOOLEAN"
+        source: "QUERY"
+        required: false
+        defaultValue: "false"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+        - name: "symbol"
+          type: "STRING"
+        - name: "quantity"
+          type: "INTEGER"
+        - name: "price"
+          type: "DECIMAL"

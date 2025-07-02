@@ -28,7 +28,7 @@ class GenericRepositoryTest {
     @BeforeEach
     void setUp() throws SQLException {
         // Use test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
 
         // Create components manually to avoid Guice module complexity in tests
         var genericApiConfig = new dev.mars.config.GenericApiConfig();
@@ -49,7 +49,7 @@ class GenericRepositoryTest {
 
     @AfterEach
     void tearDown() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @Test
@@ -61,15 +61,16 @@ class GenericRepositoryTest {
 
     @Test
     void testExecuteQuery_WithValidQuery() {
-        // Test executing a simple query (this will fail if no data exists, which is expected)
+        // Test executing a simple query
         QueryConfig queryConfig = new QueryConfig("test-query", "Test query",
             "SELECT COUNT(*) as count FROM stock_trades", "stock-trades-db", Collections.emptyList());
         List<QueryParameter> parameters = Collections.emptyList();
 
-        // Act & Assert - should throw an exception due to missing table (expected in test)
-        assertThatThrownBy(() -> {
-            repository.executeQuery(queryConfig, parameters);
-        }).hasMessageContaining("Failed to execute query");
+        // Act & Assert - should not throw an exception
+        assertThatCode(() -> {
+            var results = repository.executeQuery(queryConfig, parameters);
+            assertThat(results).isNotNull();
+        }).doesNotThrowAnyException();
     }
 
     @Test
@@ -79,10 +80,11 @@ class GenericRepositoryTest {
             "SELECT COUNT(*) FROM stock_trades", "stock-trades-db", Collections.emptyList());
         List<QueryParameter> parameters = Collections.emptyList();
 
-        // Act & Assert - should throw an exception due to missing table (expected in test)
-        assertThatThrownBy(() -> {
-            repository.executeCountQuery(queryConfig, parameters);
-        }).hasMessageContaining("Failed to execute count query");
+        // Act & Assert - should not throw an exception
+        assertThatCode(() -> {
+            long count = repository.executeCountQuery(queryConfig, parameters);
+            assertThat(count).isGreaterThanOrEqualTo(0);
+        }).doesNotThrowAnyException();
     }
 
 }

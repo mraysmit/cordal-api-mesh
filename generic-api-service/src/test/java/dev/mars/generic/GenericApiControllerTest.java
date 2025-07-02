@@ -26,7 +26,7 @@ class GenericApiControllerTest {
     @BeforeEach
     void setUp() throws SQLException {
         // Use test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
 
         // Create components manually to avoid Guice module complexity in tests
         var genericApiConfig = new dev.mars.config.GenericApiConfig();
@@ -51,7 +51,7 @@ class GenericApiControllerTest {
 
     @AfterEach
     void tearDown() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @Test

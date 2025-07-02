@@ -20,12 +20,12 @@ class GenericApiApplicationTest {
     @BeforeAll
     void setUpAll() {
         // Set test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
     }
 
     @AfterAll
     void tearDownAll() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @BeforeEach

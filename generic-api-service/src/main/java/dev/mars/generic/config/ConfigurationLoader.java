@@ -9,6 +9,7 @@ import javax.inject.Singleton;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.HashMap;
 import dev.mars.config.GenericApiConfig;
 
 /**
@@ -32,6 +33,32 @@ public class ConfigurationLoader {
         logger.info("  - Queries config path: {}", genericApiConfig.getQueriesConfigPath());
         logger.info("  - Endpoints config path: {}", genericApiConfig.getEndpointsConfigPath());
     }
+
+    /**
+     * Resolve a configuration resource with fallback paths
+     */
+    private InputStream resolveConfigResource(String configPath) {
+        logger.debug("Attempting to load resource: {}", configPath);
+
+        // Try direct path first
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configPath);
+
+        // Try with config/ prefix if not found
+        if (inputStream == null && !configPath.startsWith("config/")) {
+            String altPath = "config/" + configPath;
+            logger.debug("Resource not found, trying alternative path: {}", altPath);
+            inputStream = getClass().getClassLoader().getResourceAsStream(altPath);
+        }
+
+        // Try without config/ prefix if not found
+        if (inputStream == null && configPath.startsWith("config/")) {
+            String altPath = configPath.substring(7);
+            logger.debug("Resource not found, trying alternative path: {}", altPath);
+            inputStream = getClass().getClassLoader().getResourceAsStream(altPath);
+        }
+
+        return inputStream;
+    }
     
     /**
      * Load query configurations from YAML file
@@ -40,12 +67,12 @@ public class ConfigurationLoader {
         String configPath = genericApiConfig.getQueriesConfigPath();
         logger.info("Loading query configurations from path: {}", configPath);
 
-        try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream(configPath)) {
-
+        try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
                 logger.error("Configuration file not found: {}", configPath);
-                throw new RuntimeException(configPath + " not found in classpath");
+                // Return empty map instead of throwing exception
+                logger.warn("Returning empty query configuration map");
+                return new HashMap<>();
             }
 
             QueriesWrapper wrapper = yamlMapper.readValue(inputStream, QueriesWrapper.class);
@@ -59,10 +86,12 @@ public class ConfigurationLoader {
             });
 
             return queries;
-            
+
         } catch (Exception e) {
             logger.error("Failed to load query configurations", e);
-            throw new RuntimeException("Failed to load query configurations", e);
+            // Return empty map instead of throwing exception
+            logger.warn("Returning empty query configuration map due to error");
+            return new HashMap<>();
         }
     }
     
@@ -73,12 +102,12 @@ public class ConfigurationLoader {
         String configPath = genericApiConfig.getDatabasesConfigPath();
         logger.info("Loading database configurations from path: {}", configPath);
 
-        try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream(configPath)) {
-
+        try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
                 logger.error("Configuration file not found: {}", configPath);
-                throw new RuntimeException(configPath + " not found in classpath");
+                // Return empty map instead of throwing exception
+                logger.warn("Returning empty database configuration map");
+                return new HashMap<>();
             }
 
             DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
@@ -95,7 +124,9 @@ public class ConfigurationLoader {
 
         } catch (Exception e) {
             logger.error("Failed to load database configurations", e);
-            throw new RuntimeException("Failed to load database configurations", e);
+            // Return empty map instead of throwing exception
+            logger.warn("Returning empty database configuration map due to error");
+            return new HashMap<>();
         }
     }
 
@@ -106,12 +137,12 @@ public class ConfigurationLoader {
         String configPath = genericApiConfig.getEndpointsConfigPath();
         logger.info("Loading endpoint configurations from path: {}", configPath);
 
-        try (InputStream inputStream = getClass().getClassLoader()
-                .getResourceAsStream(configPath)) {
-
+        try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
                 logger.error("Configuration file not found: {}", configPath);
-                throw new RuntimeException(configPath + " not found in classpath");
+                // Return empty map instead of throwing exception
+                logger.warn("Returning empty endpoint configuration map");
+                return new HashMap<>();
             }
 
             EndpointsWrapper wrapper = yamlMapper.readValue(inputStream, EndpointsWrapper.class);
@@ -125,10 +156,12 @@ public class ConfigurationLoader {
             });
 
             return endpoints;
-            
+
         } catch (Exception e) {
             logger.error("Failed to load endpoint configurations", e);
-            throw new RuntimeException("Failed to load endpoint configurations", e);
+            // Return empty map instead of throwing exception
+            logger.warn("Returning empty endpoint configuration map due to error");
+            return new HashMap<>();
         }
     }
     

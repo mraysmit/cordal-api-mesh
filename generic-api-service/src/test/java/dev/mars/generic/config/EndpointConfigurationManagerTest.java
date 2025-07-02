@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import dev.mars.config.GenericApiConfig;
+import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.TestConfigurationLoader;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -17,17 +19,17 @@ class EndpointConfigurationManagerTest {
     @BeforeEach
     void setUp() {
         // Use test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
 
-        // Create manager with real configuration loader
+        // Create manager with test configuration loader
         GenericApiConfig config = GenericApiConfig.loadFromFile();
-        ConfigurationLoader configurationLoader = new ConfigurationLoader(config);
+        ConfigurationLoader configurationLoader = new TestConfigurationLoader(config);
         manager = new EndpointConfigurationManager(configurationLoader);
     }
 
     @AfterEach
     void tearDown() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
     }
 
     @Test

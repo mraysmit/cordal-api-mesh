@@ -57,13 +57,30 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     private void loadConfigPaths() {
-        String databasesPath = getString("config.databasesPath", "config/databases.yml");
-        String queriesPath = getString("config.queriesPath", "config/queries.yml");
-        String endpointsPath = getString("config.endpointsPath", "config/api-endpoints.yml");
+        // Try to load from config.paths first (new structure)
+        String databasesPath = getString("config.paths.databases", null);
+        String queriesPath = getString("config.paths.queries", null);
+        String endpointsPath = getString("config.paths.endpoints", null);
+
+        // Fall back to old structure if not found
+        if (databasesPath == null) {
+            databasesPath = getString("config.databasesPath", "config/databases.yml");
+        }
+
+        if (queriesPath == null) {
+            queriesPath = getString("config.queriesPath", "config/queries.yml");
+        }
+
+        if (endpointsPath == null) {
+            endpointsPath = getString("config.endpointsPath", "config/api-endpoints.yml");
+        }
 
         config.setDatabasesPath(databasesPath);
         config.setQueriesPath(queriesPath);
         config.setEndpointsPath(endpointsPath);
+
+        logger.info("Configured paths: databases={}, queries={}, endpoints={}",
+                    databasesPath, queriesPath, endpointsPath);
     }
 
     @Override
@@ -72,6 +89,13 @@ public class GenericApiConfig extends BaseConfig {
         String configFile = System.getProperty("generic.config.file", "application.yml");
         logger.info("GenericApiConfig - Using config file: {} (from system property: {})",
                    configFile, System.getProperty("generic.config.file"));
+
+        // Verify the file exists in classpath
+        if (getClass().getClassLoader().getResource(configFile) == null) {
+            logger.warn("Config file {} not found in classpath, falling back to default", configFile);
+            return "application.yml";
+        }
+
         return configFile;
     }
 

@@ -148,6 +148,7 @@ mvn test -pl integration-tests
 **Metrics Service** (Port 8081):
 - `GET /api/performance-metrics` - Performance data
 - `GET /api/metrics/endpoints` - Real-time endpoint metrics
+- `GET /dashboard` - Performance monitoring dashboard
 - `GET /swagger` - API documentation
 
 ## 🔧 **Development Patterns**

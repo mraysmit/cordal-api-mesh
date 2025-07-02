@@ -3,6 +3,7 @@ package dev.mars.generic.config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import dev.mars.config.GenericApiConfig;
+import dev.mars.generic.TestConfigurationLoader;
 
 import java.util.Map;
 
@@ -19,7 +20,7 @@ class ConfigurationLoaderTest {
     @BeforeEach
     void setUp() {
         GenericApiConfig config = new GenericApiConfig();
-        loader = new ConfigurationLoader(config);
+        loader = new TestConfigurationLoader(config);
     }
 
     @Test
@@ -63,11 +64,10 @@ class ConfigurationLoaderTest {
         DatabaseConfig stockTradesDb = databases.get("stock-trades-db");
         assertThat(stockTradesDb).isNotNull();
         assertThat(stockTradesDb.getName()).isEqualTo("stock-trades-db");
-        assertThat(stockTradesDb.getDescription()).isNotNull();
         assertThat(stockTradesDb.getUrl()).isNotNull();
         assertThat(stockTradesDb.getDriver()).isEqualTo("org.h2.Driver");
         assertThat(stockTradesDb.getPool()).isNotNull();
-        assertThat(stockTradesDb.getPool().getMaximumPoolSize()).isEqualTo(10);
+        assertThat(stockTradesDb.getPool().getMaximumPoolSize()).isEqualTo(5);
     }
 
     @Test

@@ -11,3 +11,10 @@ database:
 swagger:
   enabled: true
   path: /swagger
+
+# Configuration file paths for testing
+config:
+  paths:
+    databases: "test-databases.yml"
+    queries: "test-queries.yml"
+    endpoints: "test-api-endpoints.yml"
