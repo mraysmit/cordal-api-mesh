@@ -1,15 +1,12 @@
 package dev.mars.metrics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.Module;
+import dev.mars.common.application.BaseJavalinApplication;
+import dev.mars.common.config.ServerConfig;
+import dev.mars.common.database.MetricsDatabaseManager;
 import dev.mars.config.MetricsConfig;
 import dev.mars.config.MetricsGuiceModule;
 import dev.mars.controller.PerformanceMetricsController;
-import dev.mars.database.MetricsDatabaseManager;
-import io.javalin.Javalin;
-import io.javalin.json.JavalinJackson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,110 +14,49 @@ import java.util.Map;
 
 /**
  * Main application class for the Metrics Service
+ * Extends BaseJavalinApplication for common functionality
  */
-public class MetricsApplication {
+public class MetricsApplication extends BaseJavalinApplication {
     private static final Logger logger = LoggerFactory.getLogger(MetricsApplication.class);
-    
-    private Javalin app;
-    private Injector injector;
-    
+
     public static void main(String[] args) {
         try {
             MetricsApplication application = new MetricsApplication();
             application.start();
-            
+
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(application::stop));
-            
+
         } catch (Exception e) {
             logger.error("Failed to start Metrics application", e);
             System.exit(1);
         }
     }
-    
-    public void start() {
-        logger.info("Starting Metrics Service");
-        
-        try {
-            // Initialize dependency injection
-            initializeDependencyInjection();
-            
-            // Get configuration
-            MetricsConfig config = injector.getInstance(MetricsConfig.class);
-            
-            // Initialize metrics database
-            MetricsDatabaseManager dbManager = injector.getInstance(MetricsDatabaseManager.class);
-            dbManager.initializeSchema();
-            
-            // Create and configure Javalin app
-            createJavalinApp(config);
-            
-            // Configure routes
-            configureRoutes();
-            
-            // Start the server
-            startServer(config);
-            
-            logger.info("Metrics Service started successfully");
 
-            // Display all available endpoints
-            displayAvailableEndpoints(config);
-            
-        } catch (Exception e) {
-            logger.error("Failed to start Metrics Service", e);
-            throw new RuntimeException("Metrics Service startup failed", e);
-        }
+    @Override
+    protected Module getGuiceModule() {
+        return new MetricsGuiceModule();
     }
-    
-    public void stop() {
-        logger.info("Stopping Metrics Service");
-        
-        if (app != null) {
-            app.stop();
-            app = null;
-            logger.info("Javalin server stopped");
-        }
-        
-        logger.info("Metrics Service stopped");
-    }
-    
-    private void initializeDependencyInjection() {
-        logger.info("Initializing dependency injection");
-        injector = Guice.createInjector(new MetricsGuiceModule());
-        logger.info("Dependency injection initialized");
-    }
-    
-    private void createJavalinApp(MetricsConfig config) {
-        logger.info("Creating Javalin application");
-        
-        // Configure Jackson for JSON serialization
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        
-        app = Javalin.create(javalinConfig -> {
-            // Configure JSON mapper
-            javalinConfig.jsonMapper(new JavalinJackson(objectMapper, true));
 
-            // Enable CORS for development
-            javalinConfig.bundledPlugins.enableCors(cors -> {
-                cors.addRule(it -> {
-                    it.anyHost();
-                    it.allowCredentials = false;
-                });
-            });
-
-            // Enable request logging
-            javalinConfig.bundledPlugins.enableDevLogging();
-
-            // Set server configuration
-            javalinConfig.jetty.defaultHost = config.getServerHost();
-            javalinConfig.jetty.defaultPort = config.getServerPort();
-        });
-        
-        logger.info("Javalin application created");
+    @Override
+    protected ServerConfig getServerConfig() {
+        MetricsConfig config = injector.getInstance(MetricsConfig.class);
+        return config.getServerConfig();
     }
-    
-    private void configureRoutes() {
+
+    @Override
+    protected String getApplicationName() {
+        return "Metrics Service";
+    }
+
+    @Override
+    protected void performPreStartupInitialization() {
+        // Initialize metrics database
+        MetricsDatabaseManager dbManager = injector.getInstance(MetricsDatabaseManager.class);
+        dbManager.initializeSchema();
+    }
+    @Override
+    protected void configureRoutes() {
         logger.info("Configuring routes");
         
         PerformanceMetricsController performanceMetricsController = injector.getInstance(PerformanceMetricsController.class);
@@ -214,77 +150,19 @@ public class MetricsApplication {
         
         logger.info("Routes configured");
     }
-    
-    private void startServer(MetricsConfig config) {
-        logger.info("Starting server on {}:{}", config.getServerHost(), config.getServerPort());
-        app.start();
-        logger.info("Server started successfully");
-    }
-    
-    // Getter for testing purposes
-    public Javalin getApp() {
-        return app;
-    }
-
-    public Injector getInjector() {
-        return injector;
-    }
-
-    /**
-     * Initialize the application without starting the server (for testing)
-     */
-    public void initializeForTesting() {
-        // Initialize dependency injection
-        initializeDependencyInjection();
-
-        // Get configuration
+    @Override
+    protected void displayApplicationSpecificEndpoints(String baseUrl) {
         MetricsConfig config = injector.getInstance(MetricsConfig.class);
 
-        // Initialize metrics database
-        MetricsDatabaseManager dbManager = injector.getInstance(MetricsDatabaseManager.class);
-        dbManager.initializeSchema();
-
-        // Create and configure Javalin app
-        createJavalinApp(config);
-
-        // Configure routes
-        configureRoutes();
-
-        // Don't start the server - let JavalinTest handle that
-    }
-
-    public int getPort() {
-        return app != null ? app.port() : -1;
-    }
-
-    /**
-     * Display all available endpoints on startup
-     */
-    private void displayAvailableEndpoints(MetricsConfig config) {
-        String host = config.getServerHost();
-        int port = config.getServerPort();
-        String baseUrl = String.format("http://%s:%d", host, port);
-
-        logger.info("=".repeat(80));
-        logger.info("📊 METRICS SERVICE STARTED SUCCESSFULLY");
-        logger.info("=".repeat(80));
-        logger.info("📍 Server URL: {}", baseUrl);
-        logger.info("");
-
-        // Health and System Endpoints
-        logger.info("🏥 HEALTH & SYSTEM:");
-        logger.info("   └─ Health Check:     GET  {}/api/health", baseUrl);
-        logger.info("");
-
-        // Performance Metrics API Endpoints
+        // Performance Metrics API
         logger.info("📊 PERFORMANCE METRICS API:");
-        logger.info("   ├─ Get All Metrics:  GET  {}/api/performance-metrics", baseUrl);
+        logger.info("   ├─ Get All:          GET  {}/api/performance-metrics", baseUrl);
         logger.info("   ├─ Get by ID:        GET  {}/api/performance-metrics/{{id}}", baseUrl);
-        logger.info("   ├─ Create Metric:    POST {}/api/performance-metrics", baseUrl);
+        logger.info("   ├─ Create:           POST {}/api/performance-metrics", baseUrl);
         logger.info("   ├─ Get Summary:      GET  {}/api/performance-metrics/summary", baseUrl);
         logger.info("   ├─ Get Trends:       GET  {}/api/performance-metrics/trends", baseUrl);
         logger.info("   ├─ Get Test Types:   GET  {}/api/performance-metrics/test-types", baseUrl);
-        logger.info("   ├─ Get by Type:      GET  {}/api/performance-metrics/test-type/{{type}}", baseUrl);
+        logger.info("   ├─ Get by Type:      GET  {}/api/performance-metrics/test-type/{{testType}}", baseUrl);
         logger.info("   └─ Get Date Range:   GET  {}/api/performance-metrics/date-range", baseUrl);
         logger.info("");
 
@@ -296,36 +174,18 @@ public class MetricsApplication {
 
         // Dashboard Endpoints
         logger.info("📱 DASHBOARDS:");
-
-        // Custom Dashboard
         if (config.getMetricsDashboard().getCustom().isEnabled()) {
             String dashboardPath = config.getMetricsDashboard().getCustom().getPath();
-            logger.info("   ├─ 🎨 Custom Dashboard:  {}{}", baseUrl, dashboardPath);
-            logger.info("   │  └─ Interactive performance monitoring with charts");
+            logger.info("   ├─ Custom Dashboard: GET  {}{}", baseUrl, dashboardPath);
         } else {
-            logger.info("   ├─ 🎨 Custom Dashboard:  ❌ DISABLED");
+            logger.info("   ├─ Custom Dashboard: ❌ DISABLED");
         }
 
-        // Grafana Integration
         if (config.getMetricsDashboard().getGrafana().isEnabled()) {
-            logger.info("   └─ 📊 Grafana Integration: ✅ ENABLED");
-            logger.info("      ├─ Grafana URL:      {}", config.getMetricsDashboard().getGrafana().getUrl());
-
-            if (config.getMetricsDashboard().getGrafana().getPrometheus().isEnabled()) {
-                String prometheusPath = config.getMetricsDashboard().getGrafana().getPrometheus().getPath();
-                logger.info("      └─ Prometheus:       GET  {}{}", baseUrl, prometheusPath);
-            } else {
-                logger.info("      └─ Prometheus:       ❌ DISABLED");
-            }
+            logger.info("   └─ Grafana Mode:     ✅ ENABLED");
         } else {
-            logger.info("   └─ 📊 Grafana Integration: ❌ DISABLED");
+            logger.info("   └─ Grafana Mode:     ❌ DISABLED");
         }
-
-        logger.info("");
-
-        // Database Information
-        logger.info("🗄️  DATABASE:");
-        logger.info("   └─ Metrics Database: {}", config.getMetricsDatabase().getUrl());
         logger.info("");
 
         // Configuration Information
@@ -338,11 +198,32 @@ public class MetricsApplication {
         logger.info("   └─ Prometheus:         {}",
             config.getMetricsDashboard().getGrafana().isEnabled() &&
             config.getMetricsDashboard().getGrafana().getPrometheus().isEnabled() ? "✅ ENABLED" : "❌ DISABLED");
-
-        logger.info("=".repeat(80));
-        logger.info("📈 Metrics Service ready to collect and analyze performance data!");
-        logger.info("=".repeat(80));
+        logger.info("");
+        logger.info("🚀 Metrics Service is ready!");
     }
+
+    /**
+     * Initialize the application without starting the server (for testing)
+     */
+    public void initializeForTesting() {
+        // Initialize dependency injection
+        initializeDependencyInjection();
+
+        // Get server configuration
+        ServerConfig serverConfig = getServerConfig();
+
+        // Perform any pre-startup initialization
+        performPreStartupInitialization();
+
+        // Create and configure Javalin app
+        createJavalinApp(serverConfig);
+
+        // Configure routes
+        configureRoutes();
+
+        // Don't start the server - let JavalinTest handle that
+    }
+
 
     /**
      * Get the dashboard HTML content (simplified version)
@@ -387,12 +268,12 @@ public class MetricsApplication {
             # HELP performance_test_total Total number of performance tests
             # TYPE performance_test_total counter
             performance_test_total 0
-            
+
             # HELP performance_test_duration_seconds Performance test duration
             # TYPE performance_test_duration_seconds histogram
             performance_test_duration_seconds_sum 0
             performance_test_duration_seconds_count 0
-            
+
             # HELP performance_test_success_rate Performance test success rate
             # TYPE performance_test_success_rate gauge
             performance_test_success_rate 1.0

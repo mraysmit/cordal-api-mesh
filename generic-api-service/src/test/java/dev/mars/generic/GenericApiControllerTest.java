@@ -45,7 +45,8 @@ class GenericApiControllerTest {
         genericApiService = new GenericApiService(genericRepository, configurationManager);
 
         // Create controller
-        controller = new GenericApiController(genericApiService);
+        dev.mars.generic.management.UsageStatisticsService statisticsService = new dev.mars.generic.management.UsageStatisticsService();
+        controller = new GenericApiController(genericApiService, statisticsService);
     }
 
     @AfterEach

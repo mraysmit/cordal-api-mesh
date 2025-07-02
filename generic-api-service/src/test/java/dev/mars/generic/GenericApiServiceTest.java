@@ -1,7 +1,7 @@
 package dev.mars.generic;
 
 import dev.mars.database.DatabaseManager;
-import dev.mars.exception.ApiException;
+import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.EndpointConfigurationManager;

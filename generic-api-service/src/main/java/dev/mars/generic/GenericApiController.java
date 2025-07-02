@@ -1,9 +1,10 @@
 package dev.mars.generic;
 
-import dev.mars.exception.ApiException;
+import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.model.GenericResponse;
+import dev.mars.generic.management.UsageStatisticsService;
 import io.javalin.http.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +23,12 @@ public class GenericApiController {
     private static final Logger logger = LoggerFactory.getLogger(GenericApiController.class);
     
     private final GenericApiService genericApiService;
-    
+    private final UsageStatisticsService statisticsService;
+
     @Inject
-    public GenericApiController(GenericApiService genericApiService) {
+    public GenericApiController(GenericApiService genericApiService, UsageStatisticsService statisticsService) {
         this.genericApiService = genericApiService;
+        this.statisticsService = statisticsService;
     }
     
     /**
@@ -33,27 +36,36 @@ public class GenericApiController {
      */
     public void handleEndpointRequest(Context ctx, String endpointName) {
         logger.debug("Handling request for endpoint: {}", endpointName);
-        
+
+        long startTime = System.currentTimeMillis();
+        boolean success = false;
+
         try {
             // Extract request parameters
             Map<String, Object> requestParameters = extractRequestParameters(ctx);
-            
+
             // Check if async processing is requested
             boolean async = parseBooleanParameter(ctx, "async", false);
-            
-            logger.debug("Request parameters for endpoint {}: {}, async: {}", 
+
+            logger.debug("Request parameters for endpoint {}: {}, async: {}",
                         endpointName, requestParameters, async);
-            
+
             if (async) {
                 handleAsyncRequest(ctx, endpointName, requestParameters);
             } else {
                 GenericResponse response = genericApiService.executeEndpoint(endpointName, requestParameters);
                 ctx.json(response);
             }
-            
+
+            success = true;
+
         } catch (Exception e) {
             logger.error("Error handling endpoint request: {}", endpointName, e);
             throw e;
+        } finally {
+            // Record usage statistics
+            long executionTime = System.currentTimeMillis() - startTime;
+            statisticsService.recordEndpointUsage(endpointName, executionTime, success);
         }
     }
     
@@ -316,6 +328,200 @@ public class GenericApiController {
 
         } catch (Exception e) {
             logger.error("Error validating database configurations", e);
+            throw e;
+        }
+    }
+
+    // ========== GRANULAR CONFIGURATION ENDPOINTS ==========
+
+    /**
+     * Get endpoint configuration schema (field names and data types)
+     */
+    public void getEndpointConfigurationSchema(Context ctx) {
+        logger.debug("Getting endpoint configuration schema");
+
+        try {
+            var schema = genericApiService.getEndpointConfigurationSchema();
+            ctx.json(schema);
+
+        } catch (Exception e) {
+            logger.error("Error getting endpoint configuration schema", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get only parameters from all endpoint configurations
+     */
+    public void getEndpointParameters(Context ctx) {
+        logger.debug("Getting endpoint parameters");
+
+        try {
+            var parameters = genericApiService.getEndpointParameters();
+            ctx.json(parameters);
+
+        } catch (Exception e) {
+            logger.error("Error getting endpoint parameters", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get database connections referenced by endpoints
+     */
+    public void getEndpointDatabaseConnections(Context ctx) {
+        logger.debug("Getting endpoint database connections");
+
+        try {
+            var connections = genericApiService.getEndpointDatabaseConnections();
+            ctx.json(connections);
+
+        } catch (Exception e) {
+            logger.error("Error getting endpoint database connections", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get endpoint configuration summary
+     */
+    public void getEndpointConfigurationSummary(Context ctx) {
+        logger.debug("Getting endpoint configuration summary");
+
+        try {
+            var summary = genericApiService.getEndpointConfigurationSummary();
+            ctx.json(summary);
+
+        } catch (Exception e) {
+            logger.error("Error getting endpoint configuration summary", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get query configuration schema (field names and data types)
+     */
+    public void getQueryConfigurationSchema(Context ctx) {
+        logger.debug("Getting query configuration schema");
+
+        try {
+            var schema = genericApiService.getQueryConfigurationSchema();
+            ctx.json(schema);
+
+        } catch (Exception e) {
+            logger.error("Error getting query configuration schema", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get only parameters from all query configurations
+     */
+    public void getQueryParameters(Context ctx) {
+        logger.debug("Getting query parameters");
+
+        try {
+            var parameters = genericApiService.getQueryParameters();
+            ctx.json(parameters);
+
+        } catch (Exception e) {
+            logger.error("Error getting query parameters", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get database connections referenced by queries
+     */
+    public void getQueryDatabaseConnections(Context ctx) {
+        logger.debug("Getting query database connections");
+
+        try {
+            var connections = genericApiService.getQueryDatabaseConnections();
+            ctx.json(connections);
+
+        } catch (Exception e) {
+            logger.error("Error getting query database connections", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get query configuration summary
+     */
+    public void getQueryConfigurationSummary(Context ctx) {
+        logger.debug("Getting query configuration summary");
+
+        try {
+            var summary = genericApiService.getQueryConfigurationSummary();
+            ctx.json(summary);
+
+        } catch (Exception e) {
+            logger.error("Error getting query configuration summary", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get database configuration schema (field names and data types)
+     */
+    public void getDatabaseConfigurationSchema(Context ctx) {
+        logger.debug("Getting database configuration schema");
+
+        try {
+            var schema = genericApiService.getDatabaseConfigurationSchema();
+            ctx.json(schema);
+
+        } catch (Exception e) {
+            logger.error("Error getting database configuration schema", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get only connection parameters (pool settings) from database configurations
+     */
+    public void getDatabaseParameters(Context ctx) {
+        logger.debug("Getting database parameters");
+
+        try {
+            var parameters = genericApiService.getDatabaseParameters();
+            ctx.json(parameters);
+
+        } catch (Exception e) {
+            logger.error("Error getting database parameters", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get only connection details from database configurations
+     */
+    public void getDatabaseConnections(Context ctx) {
+        logger.debug("Getting database connections");
+
+        try {
+            var connections = genericApiService.getDatabaseConnections();
+            ctx.json(connections);
+
+        } catch (Exception e) {
+            logger.error("Error getting database connections", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Get database configuration summary
+     */
+    public void getDatabaseConfigurationSummary(Context ctx) {
+        logger.debug("Getting database configuration summary");
+
+        try {
+            var summary = genericApiService.getDatabaseConfigurationSummary();
+            ctx.json(summary);
+
+        } catch (Exception e) {
+            logger.error("Error getting database configuration summary", e);
             throw e;
         }
     }

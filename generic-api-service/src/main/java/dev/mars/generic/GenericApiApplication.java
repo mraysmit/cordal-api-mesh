@@ -1,133 +1,74 @@
 package dev.mars.generic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.Module;
+import dev.mars.common.application.BaseJavalinApplication;
+import dev.mars.common.config.ServerConfig;
 import dev.mars.config.GenericApiConfig;
 import dev.mars.config.GenericApiGuiceModule;
 import dev.mars.config.SwaggerConfig;
 import dev.mars.database.DataLoader;
-import dev.mars.exception.GlobalExceptionHandler;
-import io.javalin.Javalin;
-import io.javalin.json.JavalinJackson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Main application class for the Generic API Service
+ * Extends BaseJavalinApplication for common functionality
  */
-public class GenericApiApplication {
+public class GenericApiApplication extends BaseJavalinApplication {
     private static final Logger logger = LoggerFactory.getLogger(GenericApiApplication.class);
-    
-    private Javalin app;
-    private Injector injector;
-    
+
     public static void main(String[] args) {
         try {
             GenericApiApplication application = new GenericApiApplication();
             application.start();
-            
+
             // Add shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(application::stop));
-            
+
         } catch (Exception e) {
             logger.error("Failed to start Generic API application", e);
             System.exit(1);
         }
     }
-    
-    public void start() {
-        logger.info("Starting Generic API Service");
-        
-        try {
-            // Initialize dependency injection
-            initializeDependencyInjection();
-            
-            // Get configuration
-            GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
-            
-            // Initialize data loader (this will create schema and load sample data)
-            injector.getInstance(DataLoader.class);
-            
-            // Create and configure Javalin app
-            createJavalinApp(config);
-            
-            // Configure routes
-            configureRoutes();
 
-            // Configure Swagger/OpenAPI
-            configureSwagger();
-
-            // Configure exception handling
-            configureExceptionHandling();
-            
-            // Start the server
-            startServer(config);
-            
-            logger.info("Generic API Service started successfully");
-
-            // Display all available endpoints
-            displayAvailableEndpoints(config);
-            
-        } catch (Exception e) {
-            logger.error("Failed to start Generic API Service", e);
-            throw new RuntimeException("Generic API Service startup failed", e);
-        }
+    @Override
+    protected Module getGuiceModule() {
+        return new GenericApiGuiceModule();
     }
-    
-    public void stop() {
-        logger.info("Stopping Generic API Service");
-        
-        if (app != null) {
-            app.stop();
-            app = null;
-            logger.info("Javalin server stopped");
-        }
-        
-        logger.info("Generic API Service stopped");
-    }
-    
-    private void initializeDependencyInjection() {
-        logger.info("Initializing dependency injection");
-        injector = Guice.createInjector(new GenericApiGuiceModule());
-        logger.info("Dependency injection initialized");
-    }
-    
-    private void createJavalinApp(GenericApiConfig config) {
-        logger.info("Creating Javalin application");
-        
-        // Configure Jackson for JSON serialization
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        
-        app = Javalin.create(javalinConfig -> {
-            // Configure JSON mapper
-            javalinConfig.jsonMapper(new JavalinJackson(objectMapper, true));
 
-            // Enable CORS for development
-            javalinConfig.bundledPlugins.enableCors(cors -> {
-                cors.addRule(it -> {
-                    it.anyHost();
-                    it.allowCredentials = false;
-                });
-            });
-
-            // Enable request logging
-            javalinConfig.bundledPlugins.enableDevLogging();
-
-            // Set server configuration
-            javalinConfig.jetty.defaultHost = config.getServerHost();
-            javalinConfig.jetty.defaultPort = config.getServerPort();
-        });
-        
-        logger.info("Javalin application created");
+    @Override
+    protected ServerConfig getServerConfig() {
+        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+        ServerConfig serverConfig = config.getServerConfig();
+        logger.info("GenericApiApplication - Retrieved server config: host={}, port={}",
+                   serverConfig.getHost(), serverConfig.getPort());
+        return serverConfig;
     }
-    
-    private void configureRoutes() {
+
+    @Override
+    protected String getApplicationName() {
+        return "Generic API Service";
+    }
+
+    @Override
+    protected void performPreStartupInitialization() {
+        // Initialize data loader (this will create schema and load sample data)
+        injector.getInstance(DataLoader.class);
+    }
+
+    @Override
+    protected void configureSwagger() {
+        logger.info("Configuring Swagger/OpenAPI");
+        SwaggerConfig swaggerConfig = injector.getInstance(SwaggerConfig.class);
+        swaggerConfig.configureSwagger(app);
+        logger.info("Swagger/OpenAPI configured");
+    }
+    @Override
+    protected void configureRoutes() {
         logger.info("Configuring routes");
         
         GenericApiController genericApiController = injector.getInstance(GenericApiController.class);
+        dev.mars.generic.management.ManagementController managementController = injector.getInstance(dev.mars.generic.management.ManagementController.class);
         
         // Health check endpoint
         app.get("/api/health", ctx -> {
@@ -158,6 +99,50 @@ public class GenericApiApplication {
         app.get("/api/generic/config/validate/databases", genericApiController::validateDatabaseConfigurations);
         app.get("/api/generic/config/validate/relationships", genericApiController::validateConfigurationRelationships);
 
+        // Granular configuration endpoints - Endpoints
+        app.get("/api/generic/config/endpoints/schema", genericApiController::getEndpointConfigurationSchema);
+        app.get("/api/generic/config/endpoints/parameters", genericApiController::getEndpointParameters);
+        app.get("/api/generic/config/endpoints/database-connections", genericApiController::getEndpointDatabaseConnections);
+        app.get("/api/generic/config/endpoints/summary", genericApiController::getEndpointConfigurationSummary);
+
+        // Granular configuration endpoints - Queries
+        app.get("/api/generic/config/queries/schema", genericApiController::getQueryConfigurationSchema);
+        app.get("/api/generic/config/queries/parameters", genericApiController::getQueryParameters);
+        app.get("/api/generic/config/queries/database-connections", genericApiController::getQueryDatabaseConnections);
+        app.get("/api/generic/config/queries/summary", genericApiController::getQueryConfigurationSummary);
+
+        // Granular configuration endpoints - Databases
+        app.get("/api/generic/config/databases/schema", genericApiController::getDatabaseConfigurationSchema);
+        app.get("/api/generic/config/databases/parameters", genericApiController::getDatabaseParameters);
+        app.get("/api/generic/config/databases/connections", genericApiController::getDatabaseConnections);
+        app.get("/api/generic/config/databases/summary", genericApiController::getDatabaseConfigurationSummary);
+
+        // ========== COMPREHENSIVE MANAGEMENT ENDPOINTS ==========
+
+        // Configuration metadata endpoints
+        app.get("/api/management/config/metadata", managementController::getConfigurationMetadata);
+        app.get("/api/management/config/paths", managementController::getConfigurationPaths);
+        app.get("/api/management/config/contents", managementController::getConfigurationFileContents);
+
+        // Configuration view endpoints
+        app.get("/api/management/config/endpoints", managementController::getConfiguredEndpoints);
+        app.get("/api/management/config/queries", managementController::getConfiguredQueries);
+        app.get("/api/management/config/databases", managementController::getConfiguredDatabases);
+
+        // Usage statistics endpoints
+        app.get("/api/management/statistics", managementController::getUsageStatistics);
+        app.get("/api/management/statistics/endpoints", managementController::getEndpointStatistics);
+        app.get("/api/management/statistics/queries", managementController::getQueryStatistics);
+        app.get("/api/management/statistics/databases", managementController::getDatabaseStatistics);
+
+        // Health monitoring endpoints
+        app.get("/api/management/health", managementController::getHealthStatus);
+        app.get("/api/management/health/databases", managementController::getDatabaseHealth);
+        app.get("/api/management/health/databases/{databaseName}", managementController::getSpecificDatabaseHealth);
+
+        // Comprehensive dashboard endpoint
+        app.get("/api/management/dashboard", managementController::getManagementDashboard);
+
         // Stock trades generic endpoints (configured via YAML)
         // IMPORTANT: Specific routes must be registered before generic routes with path parameters
         app.get("/api/generic/stock-trades", ctx ->
@@ -179,34 +164,6 @@ public class GenericApiApplication {
         logger.info("Routes configured");
     }
 
-    private void configureSwagger() {
-        logger.info("Configuring Swagger/OpenAPI");
-        SwaggerConfig swaggerConfig = injector.getInstance(SwaggerConfig.class);
-        swaggerConfig.configureSwagger(app);
-        logger.info("Swagger/OpenAPI configured");
-    }
-    
-    private void configureExceptionHandling() {
-        logger.info("Configuring exception handling");
-        GlobalExceptionHandler.configure(app);
-        logger.info("Exception handling configured");
-    }
-    
-    private void startServer(GenericApiConfig config) {
-        logger.info("Starting server on {}:{}", config.getServerHost(), config.getServerPort());
-        app.start();
-        logger.info("Server started successfully");
-    }
-    
-    // Getter for testing purposes
-    public Javalin getApp() {
-        return app;
-    }
-
-    public Injector getInjector() {
-        return injector;
-    }
-
     /**
      * Initialize the application without starting the server (for testing)
      */
@@ -214,14 +171,14 @@ public class GenericApiApplication {
         // Initialize dependency injection
         initializeDependencyInjection();
 
-        // Get configuration
-        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+        // Get server configuration
+        ServerConfig serverConfig = getServerConfig();
 
-        // Initialize data loader (this will create schema and load sample data)
-        injector.getInstance(DataLoader.class);
+        // Perform any pre-startup initialization
+        performPreStartupInitialization();
 
         // Create and configure Javalin app
-        createJavalinApp(config);
+        createJavalinApp(serverConfig);
 
         // Configure routes
         configureRoutes();
@@ -235,29 +192,10 @@ public class GenericApiApplication {
         // Don't start the server - let JavalinTest handle that
     }
 
-    public int getPort() {
-        return app != null ? app.port() : -1;
-    }
+    @Override
+    protected void displayApplicationSpecificEndpoints(String baseUrl) {
+        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
 
-    /**
-     * Display all available endpoints on startup
-     */
-    private void displayAvailableEndpoints(GenericApiConfig config) {
-        String host = config.getServerHost();
-        int port = config.getServerPort();
-        String baseUrl = String.format("http://%s:%d", host, port);
-
-        logger.info("=".repeat(80));
-        logger.info("🚀 GENERIC API SERVICE STARTED SUCCESSFULLY");
-        logger.info("=".repeat(80));
-        logger.info("📍 Server URL: {}", baseUrl);
-        logger.info("");
-
-        // Health and System Endpoints
-        logger.info("🏥 HEALTH & SYSTEM:");
-        logger.info("   ├─ Health Check:     GET  {}/api/health", baseUrl);
-        logger.info("   └─ Generic Health:   GET  {}/api/generic/health", baseUrl);
-        logger.info("");
 
         // Generic API Endpoints
         logger.info("🔧 GENERIC API SYSTEM:");
@@ -277,6 +215,43 @@ public class GenericApiApplication {
         logger.info("   └─ Relationships:    GET  {}/api/generic/config/validate/relationships", baseUrl);
         logger.info("");
 
+        // Granular Configuration APIs
+        logger.info("🔍 GRANULAR CONFIGURATION APIS:");
+        logger.info("   📋 ENDPOINTS:");
+        logger.info("      ├─ Schema:         GET  {}/api/generic/config/endpoints/schema", baseUrl);
+        logger.info("      ├─ Parameters:     GET  {}/api/generic/config/endpoints/parameters", baseUrl);
+        logger.info("      ├─ DB Connections: GET  {}/api/generic/config/endpoints/database-connections", baseUrl);
+        logger.info("      └─ Summary:        GET  {}/api/generic/config/endpoints/summary", baseUrl);
+        logger.info("   📝 QUERIES:");
+        logger.info("      ├─ Schema:         GET  {}/api/generic/config/queries/schema", baseUrl);
+        logger.info("      ├─ Parameters:     GET  {}/api/generic/config/queries/parameters", baseUrl);
+        logger.info("      ├─ DB Connections: GET  {}/api/generic/config/queries/database-connections", baseUrl);
+        logger.info("      └─ Summary:        GET  {}/api/generic/config/queries/summary", baseUrl);
+        logger.info("   🗄️  DATABASES:");
+        logger.info("      ├─ Schema:         GET  {}/api/generic/config/databases/schema", baseUrl);
+        logger.info("      ├─ Parameters:     GET  {}/api/generic/config/databases/parameters", baseUrl);
+        logger.info("      ├─ Connections:    GET  {}/api/generic/config/databases/connections", baseUrl);
+        logger.info("      └─ Summary:        GET  {}/api/generic/config/databases/summary", baseUrl);
+        logger.info("");
+
+        // Comprehensive Management API
+        logger.info("🔧 COMPREHENSIVE MANAGEMENT API:");
+        logger.info("   ├─ Dashboard:        GET  {}/api/management/dashboard", baseUrl);
+        logger.info("   ├─ Config Metadata: GET  {}/api/management/config/metadata", baseUrl);
+        logger.info("   ├─ Config Paths:    GET  {}/api/management/config/paths", baseUrl);
+        logger.info("   ├─ Config Contents: GET  {}/api/management/config/contents", baseUrl);
+        logger.info("   ├─ All Endpoints:   GET  {}/api/management/config/endpoints", baseUrl);
+        logger.info("   ├─ All Queries:     GET  {}/api/management/config/queries", baseUrl);
+        logger.info("   ├─ All Databases:   GET  {}/api/management/config/databases", baseUrl);
+        logger.info("   ├─ Usage Stats:     GET  {}/api/management/statistics", baseUrl);
+        logger.info("   ├─ Endpoint Stats:  GET  {}/api/management/statistics/endpoints", baseUrl);
+        logger.info("   ├─ Query Stats:     GET  {}/api/management/statistics/queries", baseUrl);
+        logger.info("   ├─ Database Stats:  GET  {}/api/management/statistics/databases", baseUrl);
+        logger.info("   ├─ Health Status:   GET  {}/api/management/health", baseUrl);
+        logger.info("   ├─ DB Health:       GET  {}/api/management/health/databases", baseUrl);
+        logger.info("   └─ Specific DB:     GET  {}/api/management/health/databases/{{name}}", baseUrl);
+        logger.info("");
+
         // API Documentation
         if (config.isSwaggerEnabled()) {
             logger.info("📚 API DOCUMENTATION:");
@@ -291,9 +266,7 @@ public class GenericApiApplication {
         logger.info("   └─ Main Database:    {}", config.getDatabaseUrl());
         logger.info("");
 
-        logger.info("=".repeat(80));
         logger.info("🎯 Generic API Service ready to accept requests!");
         logger.info("💡 APIs are dynamically configured via YAML files");
-        logger.info("=".repeat(80));
     }
 }

@@ -3,8 +3,9 @@ package dev.mars.config;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import dev.mars.common.config.DatabaseConfig;
+import dev.mars.common.database.MetricsDatabaseManager;
 import dev.mars.controller.PerformanceMetricsController;
-import dev.mars.database.MetricsDatabaseManager;
 import dev.mars.metrics.MetricsCollectionHandler;
 import dev.mars.repository.PerformanceMetricsRepository;
 import dev.mars.service.PerformanceMetricsService;
@@ -32,16 +33,23 @@ public class MetricsGuiceModule extends AbstractModule {
     
     @Provides
     @Singleton
-    public MetricsDatabaseConfig provideMetricsDatabaseConfig(MetricsConfig metricsConfig) {
-        logger.info("Creating MetricsDatabaseConfig instance");
-        return new MetricsDatabaseConfig(metricsConfig);
+    public DatabaseConfig provideMetricsDatabaseConfig(MetricsConfig metricsConfig) {
+        logger.info("Creating DatabaseConfig instance for metrics database");
+        DatabaseConfig config = new DatabaseConfig();
+        config.setName("metrics-db");
+        config.setDescription("Metrics database for performance monitoring");
+        config.setUrl(metricsConfig.getMetricsDatabase().getUrl());
+        config.setUsername(metricsConfig.getMetricsDatabase().getUsername());
+        config.setPassword(metricsConfig.getMetricsDatabase().getPassword());
+        config.setDriver(metricsConfig.getMetricsDatabase().getDriver());
+        return config;
     }
 
     @Provides
     @Singleton
-    public MetricsDatabaseManager provideMetricsDatabaseManager(MetricsDatabaseConfig metricsDatabaseConfig) {
+    public MetricsDatabaseManager provideMetricsDatabaseManager(DatabaseConfig databaseConfig) {
         logger.info("Creating MetricsDatabaseManager instance");
-        return new MetricsDatabaseManager(metricsDatabaseConfig);
+        return new MetricsDatabaseManager(databaseConfig);
     }
 
     @Provides

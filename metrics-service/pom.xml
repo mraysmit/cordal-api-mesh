@@ -17,6 +17,13 @@
     <description>Performance metrics collection and monitoring service</description>
 
     <dependencies>
+        <!-- Common Library -->
+        <dependency>
+            <groupId>dev.mars</groupId>
+            <artifactId>common-library</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Javalin Framework -->
         <dependency>
             <groupId>io.javalin</groupId>

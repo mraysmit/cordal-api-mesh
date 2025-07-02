@@ -1,6 +1,6 @@
 package dev.mars.generic;
 
-import dev.mars.exception.ApiException;
+import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.QueryConfig;
 import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.generic.model.QueryParameter;

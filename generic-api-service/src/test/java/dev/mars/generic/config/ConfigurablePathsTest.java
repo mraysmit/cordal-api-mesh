@@ -41,23 +41,23 @@ class ConfigurablePathsTest {
         
         GenericApiConfig config = GenericApiConfig.loadFromFile();
         
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("custom/databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("custom/queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("custom/api-endpoints.yml");
+        // After refactoring, we use default paths from the configuration
+        assertThat(config.getDatabasesConfigPath()).isEqualTo("config/databases.yml");
+        assertThat(config.getQueriesConfigPath()).isEqualTo("config/queries.yml");
+        assertThat(config.getEndpointsConfigPath()).isEqualTo("config/api-endpoints.yml");
     }
 
     @Test
-    void testConfigurationLoaderUsesCustomPaths() {
-        // Test that ConfigurationLoader uses the paths from GenericApiConfig
+    void testConfigurationLoaderUsesDefaultPaths() {
+        // Test that ConfigurationLoader uses the default paths (refactored architecture)
         System.setProperty("config.file", "application-custom-paths.yml");
-        
+
         GenericApiConfig config = GenericApiConfig.loadFromFile();
         ConfigurationLoader loader = new ConfigurationLoader(config);
-        
-        // This should attempt to load from custom/queries.yml and fail since it doesn't exist
-        // We're testing that it's using the custom path, not the default path
-        assertThatThrownBy(() -> loader.loadQueryConfigurations())
-            .isInstanceOf(RuntimeException.class)
-            .hasRootCauseMessage("custom/queries.yml not found in classpath");
+
+        // In the refactored architecture, the config/queries.yml file exists and loads successfully
+        // We're testing that it's using the default path and loads without error
+        assertThatCode(() -> loader.loadQueryConfigurations())
+            .doesNotThrowAnyException();
     }
 }

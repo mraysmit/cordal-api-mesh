@@ -2,7 +2,7 @@ package dev.mars.metrics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.mars.config.MetricsConfig;
-import dev.mars.model.PerformanceMetrics;
+import dev.mars.common.model.PerformanceMetrics;
 import dev.mars.service.PerformanceMetricsService;
 import io.javalin.http.Context;
 import org.slf4j.Logger;

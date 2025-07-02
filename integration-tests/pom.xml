@@ -17,6 +17,13 @@
     <description>Comprehensive integration tests between Generic API Service and Metrics Service</description>
 
     <dependencies>
+        <!-- Common Library -->
+        <dependency>
+            <groupId>dev.mars</groupId>
+            <artifactId>common-library</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Module Dependencies -->
         <dependency>
             <groupId>dev.mars</groupId>

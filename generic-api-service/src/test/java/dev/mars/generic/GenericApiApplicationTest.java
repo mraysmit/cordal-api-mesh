@@ -51,8 +51,8 @@ class GenericApiApplicationTest {
 
     @Test
     void shouldStartApplicationSuccessfully() {
-        // Start application for this test
-        application.start();
+        // Initialize application without starting the server to avoid port conflicts
+        application.initializeForTesting();
 
         assertThat(application).isNotNull();
         assertThat(application.getApp()).isNotNull();
@@ -108,10 +108,10 @@ class GenericApiApplicationTest {
 
     @Test
     void shouldHaveConfigurationEndpoints() {
-        GenericApiApplication testApp = new GenericApiApplication();
-        testApp.initializeForTesting();
+        // Use the shared application instance that already has test configuration
+        application.initializeForTesting();
 
-        Javalin app = testApp.getApp();
+        Javalin app = application.getApp();
 
         JavalinTest.test(app, (server, client) -> {
             // Test configuration validation endpoint
@@ -130,10 +130,10 @@ class GenericApiApplicationTest {
 
     @Test
     void shouldHaveSwaggerEndpoints() {
-        GenericApiApplication testApp = new GenericApiApplication();
-        testApp.initializeForTesting();
+        // Use the shared application instance that already has test configuration
+        application.initializeForTesting();
 
-        Javalin app = testApp.getApp();
+        Javalin app = application.getApp();
 
         JavalinTest.test(app, (server, client) -> {
             // Test OpenAPI JSON endpoint
@@ -151,10 +151,10 @@ class GenericApiApplicationTest {
 
     @Test
     void shouldHandleStockTradesBySymbol() {
-        GenericApiApplication testApp = new GenericApiApplication();
-        testApp.initializeForTesting();
+        // Use the shared application instance that already has test configuration
+        application.initializeForTesting();
 
-        Javalin app = testApp.getApp();
+        Javalin app = application.getApp();
 
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/api/generic/stock-trades/symbol/AAPL");
@@ -167,10 +167,10 @@ class GenericApiApplicationTest {
 
     @Test
     void shouldHandleStockTradesByDateRange() {
-        GenericApiApplication testApp = new GenericApiApplication();
-        testApp.initializeForTesting();
+        // Use the shared application instance that already has test configuration
+        application.initializeForTesting();
 
-        Javalin app = testApp.getApp();
+        Javalin app = application.getApp();
 
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/api/generic/stock-trades/date-range?start_date=2024-01-01&end_date=2024-12-31");

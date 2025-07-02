@@ -69,13 +69,14 @@ class PerformanceIntegrationTest {
 
     private void startApplications() {
         // Start Generic API Service first
-        genericApiApp = new GenericApiApplication();
         Thread genericApiThread = new Thread(() -> {
-            System.setProperty("config.file", "application-generic-api.yml");
+            System.setProperty("generic.config.file", "application-generic-api.yml");
+            System.out.println("DEBUG: Set generic.config.file = " + System.getProperty("generic.config.file"));
             try {
+                genericApiApp = new GenericApiApplication();
                 genericApiApp.start();
             } finally {
-                System.clearProperty("config.file");
+                System.clearProperty("generic.config.file");
             }
         });
         genericApiThread.start();
@@ -88,13 +89,14 @@ class PerformanceIntegrationTest {
         }
 
         // Start Metrics Service
-        metricsApp = new MetricsApplication();
         Thread metricsThread = new Thread(() -> {
-            System.setProperty("config.file", "application-metrics.yml");
+            System.setProperty("metrics.config.file", "application-metrics.yml");
+            System.out.println("DEBUG: Set metrics.config.file = " + System.getProperty("metrics.config.file"));
             try {
+                metricsApp = new MetricsApplication();
                 metricsApp.start();
             } finally {
-                System.clearProperty("config.file");
+                System.clearProperty("metrics.config.file");
             }
         });
         metricsThread.start();

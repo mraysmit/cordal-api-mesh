@@ -1,7 +1,7 @@
 package dev.mars.service;
 
-import dev.mars.dto.PagedResponse;
-import dev.mars.model.PerformanceMetrics;
+import dev.mars.common.dto.PagedResponse;
+import dev.mars.common.model.PerformanceMetrics;
 import dev.mars.repository.PerformanceMetricsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

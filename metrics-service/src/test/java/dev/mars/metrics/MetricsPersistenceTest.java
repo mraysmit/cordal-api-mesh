@@ -1,18 +1,12 @@
 package dev.mars.metrics;
 
 import dev.mars.metrics.MetricsApplication;
-import dev.mars.model.PerformanceMetrics;
+import dev.mars.common.model.PerformanceMetrics;
 import dev.mars.service.PerformanceMetricsService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.javalin.Javalin;
+import io.javalin.testtools.JavalinTest;
+import org.junit.jupiter.api.*;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,37 +18,23 @@ class MetricsPersistenceTest {
 
     private MetricsApplication application;
     private PerformanceMetricsService metricsService;
-    private String BASE_URL;
-    private static final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
 
     @BeforeEach
     void setUp() {
         // Use test configuration with sync metrics saving
         System.setProperty("config.file", "application-test.yml");
 
+        // Initialize application for testing (no server startup)
         application = new MetricsApplication();
-        application.start();
-
-        // Get the actual port the application started on
-        int port = application.getApp().port();
-        BASE_URL = "http://localhost:" + port;
+        application.initializeForTesting();
 
         // Get the metrics service from the injector
         metricsService = application.getInjector().getInstance(PerformanceMetricsService.class);
 
-        // Wait for application to start
+        // Clear any existing metrics to ensure clean state for each test
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // Clear any existing metrics to ensure clean state
-        try {
-            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.database.MetricsDatabaseManager.class);
-            metricsDatabaseManager.cleanDatabase();
+            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.common.database.MetricsDatabaseManager.class);
+            metricsDatabaseManager.cleanMetricsData();
             Thread.sleep(500); // Wait for deletion to complete
         } catch (Exception e) {
             // Ignore cleanup errors during setup
@@ -66,224 +46,234 @@ class MetricsPersistenceTest {
         if (application != null) {
             try {
                 application.stop();
-                // Wait for proper shutdown
-                Thread.sleep(500);
             } catch (Exception e) {
-                // Ignore cleanup errors in tests
+                // Ignore cleanup errors
             }
         }
         System.clearProperty("config.file");
     }
 
+
+
     @Test
-    void testMetricsArePersistentToDatabase() throws IOException, InterruptedException {
-        // Get initial count of metrics in database
-        var initialMetrics = metricsService.getAllMetrics(0, 100);
-        int initialCount = initialMetrics.getData().size();
+    void testMetricsArePersistentToDatabase() {
+        Javalin app = application.getApp();
 
-        // Make API requests to generate metrics
-        String[] endpoints = {
-            "/api/performance-metrics",
-            "/api/performance-metrics/summary",
-            "/api/health"
-        };
+        JavalinTest.test(app, (server, client) -> {
+            // Get initial count of metrics in database
+            var initialMetrics = metricsService.getAllMetrics(0, 100);
+            int initialCount = initialMetrics.getData().size();
 
-        for (String endpoint : endpoints) {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + endpoint))
-                    .GET()
-                    .timeout(Duration.ofSeconds(30))
-                    .build();
+            // Make API requests to generate metrics
+            String[] endpoints = {
+                "/api/performance-metrics",
+                "/api/performance-metrics/summary",
+                "/api/health"
+            };
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            assertThat(response.statusCode()).isIn(200, 404); // 404 is acceptable for non-existent IDs
-        }
+            for (String endpoint : endpoints) {
+                var response = client.get(endpoint);
+                assertThat(response.code()).isIn(200, 404); // 404 is acceptable for non-existent IDs
+            }
 
-        // Wait for metrics to be processed and saved
-        Thread.sleep(1000);
+            // Wait for metrics to be processed and saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
-        // Verify metrics were saved to database
-        var finalMetrics = metricsService.getAllMetrics(0, 100);
-        int finalCount = finalMetrics.getData().size();
+            // Verify metrics were saved to database
+            var finalMetrics = metricsService.getAllMetrics(0, 100);
+            int finalCount = finalMetrics.getData().size();
 
-        // Should have more metrics than before
-        assertThat(finalCount).isGreaterThan(initialCount);
+            // Should have more metrics than before
+            assertThat(finalCount).isGreaterThan(initialCount);
 
-        // Verify the metrics contain API request data
-        List<PerformanceMetrics> newMetrics = finalMetrics.getData();
-        boolean foundApiRequestMetric = newMetrics.stream()
-                .anyMatch(metric -> metric.getTestType().equals("API_REQUEST"));
+            // Verify the metrics contain API request data
+            List<PerformanceMetrics> newMetrics = finalMetrics.getData();
+            boolean foundApiRequestMetric = newMetrics.stream()
+                    .anyMatch(metric -> metric.getTestType().equals("API_REQUEST"));
 
-        assertThat(foundApiRequestMetric).isTrue();
+            assertThat(foundApiRequestMetric).isTrue();
+        });
     }
 
     @Test
-    void testMetricsContainCorrectData() throws IOException, InterruptedException {
-        // Make a specific API request
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/health"))
-                .GET()
-                .timeout(Duration.ofSeconds(30))
-                .build();
+    void testMetricsContainCorrectData() {
+        Javalin app = application.getApp();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        assertThat(response.statusCode()).isEqualTo(200);
+        JavalinTest.test(app, (server, client) -> {
+            // Make a specific API request
+            var response = client.get("/api/health");
+            assertThat(response.code()).isEqualTo(200);
 
-        // Wait for metrics to be saved
-        Thread.sleep(1000);
+            // Wait for metrics to be saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
-        // Find the health check metric in the database
-        var allMetrics = metricsService.getAllMetrics(0, 100);
-        
-        PerformanceMetrics healthMetric = allMetrics.getData().stream()
-                .filter(metric -> metric.getTestName().contains("GET /api/health"))
-                .filter(metric -> metric.getTestType().equals("API_REQUEST"))
-                .findFirst()
-                .orElse(null);
+            // Find the health check metric in the database
+            var allMetrics = metricsService.getAllMetrics(0, 100);
 
-        assertThat(healthMetric).isNotNull();
-        assertThat(healthMetric.getTotalRequests()).isEqualTo(1);
-        assertThat(healthMetric.getTestPassed()).isTrue();
-        assertThat(healthMetric.getAverageResponseTimeMs()).isGreaterThan(0);
-        assertThat(healthMetric.getTimestamp()).isNotNull();
+            PerformanceMetrics healthMetric = allMetrics.getData().stream()
+                    .filter(metric -> metric.getTestName().contains("GET /api/health"))
+                    .filter(metric -> metric.getTestType().equals("API_REQUEST"))
+                    .findFirst()
+                    .orElse(null);
+
+            assertThat(healthMetric).isNotNull();
+            assertThat(healthMetric.getTotalRequests()).isEqualTo(1);
+            assertThat(healthMetric.getTestPassed()).isTrue();
+            assertThat(healthMetric.getAverageResponseTimeMs()).isGreaterThan(0);
+            assertThat(healthMetric.getTimestamp()).isNotNull();
+        });
     }
 
     @Test
-    void testMetricsWithMemoryData() throws IOException, InterruptedException {
-        // Make an API request that should include memory metrics
-        // Use health endpoint since it exists and is not excluded
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/health"))
-                .GET()
-                .timeout(Duration.ofSeconds(30))
-                .build();
+    void testMetricsWithMemoryData() {
+        Javalin app = application.getApp();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        assertThat(response.statusCode()).isEqualTo(200);
+        JavalinTest.test(app, (server, client) -> {
+            // Make an API request that should include memory metrics
+            var response = client.get("/api/health");
+            assertThat(response.code()).isEqualTo(200);
 
-        // Wait for metrics to be saved
-        Thread.sleep(1000);
+            // Wait for metrics to be saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
-        // Find the metric in the database
-        var allMetrics = metricsService.getAllMetrics(0, 100);
+            // Find the metric in the database
+            var allMetrics = metricsService.getAllMetrics(0, 100);
 
-        PerformanceMetrics healthMetric = allMetrics.getData().stream()
-                .filter(metric -> metric.getTestName().contains("GET /api/health"))
-                .filter(metric -> metric.getTestType().equals("API_REQUEST"))
-                .findFirst()
-                .orElse(null);
+            PerformanceMetrics healthMetric = allMetrics.getData().stream()
+                    .filter(metric -> metric.getTestName().contains("GET /api/health"))
+                    .filter(metric -> metric.getTestType().equals("API_REQUEST"))
+                    .findFirst()
+                    .orElse(null);
 
-        assertThat(healthMetric).isNotNull();
+            assertThat(healthMetric).isNotNull();
 
-        // Verify memory metrics are included (based on test configuration)
-        assertThat(healthMetric.getMemoryUsageBytes()).isNotNull();
-        assertThat(healthMetric.getMemoryUsageBytes()).isGreaterThan(0);
+            // Verify memory metrics are included (based on test configuration)
+            assertThat(healthMetric.getMemoryUsageBytes()).isNotNull();
+            assertThat(healthMetric.getMemoryUsageBytes()).isGreaterThan(0);
+        });
     }
 
     @Test
-    void testMetricsAdditionalData() throws IOException, InterruptedException {
-        // Make an API request to an endpoint that exists
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/health"))
-                .GET()
-                .timeout(Duration.ofSeconds(30))
-                .build();
+    void testMetricsAdditionalData() {
+        Javalin app = application.getApp();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        // Status code doesn't matter for this test
+        JavalinTest.test(app, (server, client) -> {
+            // Make an API request to an endpoint that exists
+            client.get("/api/health");
 
-        // Wait for metrics to be saved
-        Thread.sleep(1000);
+            // Wait for metrics to be saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
-        // Find the metric in the database
-        var allMetrics = metricsService.getAllMetrics(0, 100);
+            // Find the metric in the database
+            var allMetrics = metricsService.getAllMetrics(0, 100);
 
-        PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/health"))
-                .filter(m -> m.getTestType().equals("API_REQUEST"))
-                .findFirst()
-                .orElse(null);
+            PerformanceMetrics metric = allMetrics.getData().stream()
+                    .filter(m -> m.getTestName().contains("GET /api/health"))
+                    .filter(m -> m.getTestType().equals("API_REQUEST"))
+                    .findFirst()
+                    .orElse(null);
 
-        assertThat(metric).isNotNull();
-        
-        // Verify additional metrics JSON contains endpoint information
-        String additionalMetrics = metric.getAdditionalMetrics();
-        assertThat(additionalMetrics).isNotNull();
-        assertThat(additionalMetrics).contains("endpoint");
-        assertThat(additionalMetrics).contains("method");
-        assertThat(additionalMetrics).contains("path");
-        assertThat(additionalMetrics).contains("statusCode");
+            assertThat(metric).isNotNull();
+
+            // Verify additional metrics JSON contains endpoint information
+            String additionalMetrics = metric.getAdditionalMetrics();
+            assertThat(additionalMetrics).isNotNull();
+            assertThat(additionalMetrics).contains("endpoint");
+            assertThat(additionalMetrics).contains("method");
+            assertThat(additionalMetrics).contains("path");
+            assertThat(additionalMetrics).contains("statusCode");
+        });
     }
 
     @Test
-    void testMetricsForErrorResponses() throws IOException, InterruptedException {
-        // Make a request that will likely result in an error (non-existent ID)
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/generic/stock-trades/999999"))
-                .GET()
-                .timeout(Duration.ofSeconds(30))
-                .build();
+    void testMetricsForErrorResponses() {
+        Javalin app = application.getApp();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        // The response might be 404 or 200 depending on how the app handles missing resources
+        JavalinTest.test(app, (server, client) -> {
+            // Make a request that will likely result in an error (non-existent endpoint)
+            var response = client.get("/api/nonexistent/endpoint");
+            // The response might be 404 or other error code
 
-        // Wait for metrics to be saved
-        Thread.sleep(1000);
+            // Wait for metrics to be saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
-        // Find the metric in the database
-        var allMetrics = metricsService.getAllMetrics(0, 100);
-        
-        PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/generic/stock-trades/{id}"))
-                .filter(m -> m.getTestType().equals("API_REQUEST"))
-                .findFirst()
-                .orElse(null);
+            // Find the metric in the database
+            var allMetrics = metricsService.getAllMetrics(0, 100);
 
-        assertThat(metric).isNotNull();
-        
-        // Verify the metric was recorded regardless of the response status
-        assertThat(metric.getTotalRequests()).isEqualTo(1);
-        assertThat(metric.getAverageResponseTimeMs()).isGreaterThan(0);
-        
-        // The testPassed field should reflect the HTTP status code
-        if (response.statusCode() >= 400) {
-            assertThat(metric.getTestPassed()).isFalse();
-        } else {
-            assertThat(metric.getTestPassed()).isTrue();
-        }
+            PerformanceMetrics metric = allMetrics.getData().stream()
+                    .filter(m -> m.getTestName().contains("GET /api/nonexistent/endpoint"))
+                    .filter(m -> m.getTestType().equals("API_REQUEST"))
+                    .findFirst()
+                    .orElse(null);
+
+            assertThat(metric).isNotNull();
+
+            // Verify the metric was recorded regardless of the response status
+            assertThat(metric.getTotalRequests()).isEqualTo(1);
+            assertThat(metric.getAverageResponseTimeMs()).isGreaterThan(0);
+
+            // The testPassed field should reflect the HTTP status code
+            if (response.code() >= 400) {
+                assertThat(metric.getTestPassed()).isFalse();
+            } else {
+                assertThat(metric.getTestPassed()).isTrue();
+            }
+        });
     }
 
     @Test
-    void testMetricsTimestampAccuracy() throws IOException, InterruptedException {
-        long beforeRequest = System.currentTimeMillis();
-        
-        // Make an API request
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/api/health"))
-                .GET()
-                .timeout(Duration.ofSeconds(30))
-                .build();
+    void testMetricsTimestampAccuracy() {
+        Javalin app = application.getApp();
 
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        
-        long afterRequest = System.currentTimeMillis();
+        JavalinTest.test(app, (server, client) -> {
+            long beforeRequest = System.currentTimeMillis();
 
-        // Wait for metrics to be saved
-        Thread.sleep(1000);
+            // Make an API request
+            client.get("/api/health");
 
-        // Find the metric in the database
-        var allMetrics = metricsService.getAllMetrics(0, 100);
-        
-        PerformanceMetrics metric = allMetrics.getData().stream()
-                .filter(m -> m.getTestName().contains("GET /api/health"))
-                .filter(m -> m.getTestType().equals("API_REQUEST"))
-                .findFirst()
-                .orElse(null);
+            long afterRequest = System.currentTimeMillis();
 
-        assertThat(metric).isNotNull();
-        
-        // Verify timestamp is within reasonable range
-        long metricTimestamp = java.sql.Timestamp.valueOf(metric.getTimestamp()).getTime();
-        assertThat(metricTimestamp).isBetween(beforeRequest, afterRequest + 5000); // Allow 5 second buffer
+            // Wait for metrics to be saved (since async is disabled, this should be quick)
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            // Find the metric in the database
+            var allMetrics = metricsService.getAllMetrics(0, 100);
+
+            PerformanceMetrics metric = allMetrics.getData().stream()
+                    .filter(m -> m.getTestName().contains("GET /api/health"))
+                    .filter(m -> m.getTestType().equals("API_REQUEST"))
+                    .findFirst()
+                    .orElse(null);
+
+            assertThat(metric).isNotNull();
+
+            // Verify timestamp is within reasonable range
+            long metricTimestamp = java.sql.Timestamp.valueOf(metric.getTimestamp()).getTime();
+            assertThat(metricTimestamp).isBetween(beforeRequest, afterRequest + 5000); // Allow 5 second buffer
+        });
     }
 }

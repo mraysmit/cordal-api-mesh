@@ -1110,6 +1110,86 @@ public class SwaggerConfig {
                     <div class="description">Validate configuration relationships and integrity</div>
                 </div>
 
+                <h2>🔍 Granular Configuration APIs</h2>
+
+                <h3>📋 Endpoint Configuration Details</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/endpoints/schema</span>
+                    <span class="badge">Schema</span>
+                    <div class="description">Get endpoint configuration schema (field names and data types)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/endpoints/parameters</span>
+                    <span class="badge">Parameters</span>
+                    <div class="description">Get only parameters from all endpoint configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/endpoints/database-connections</span>
+                    <span class="badge">Connections</span>
+                    <div class="description">Get database connections referenced by endpoints (via queries)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/endpoints/summary</span>
+                    <span class="badge">Summary</span>
+                    <div class="description">Get endpoint configuration summary with statistics</div>
+                </div>
+
+                <h3>📝 Query Configuration Details</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries/schema</span>
+                    <span class="badge">Schema</span>
+                    <div class="description">Get query configuration schema (field names and data types)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries/parameters</span>
+                    <span class="badge">Parameters</span>
+                    <div class="description">Get only parameters from all query configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries/database-connections</span>
+                    <span class="badge">Connections</span>
+                    <div class="description">Get database connections referenced by queries</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/queries/summary</span>
+                    <span class="badge">Summary</span>
+                    <div class="description">Get query configuration summary with statistics</div>
+                </div>
+
+                <h3>🗄️ Database Configuration Details</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases/schema</span>
+                    <span class="badge">Schema</span>
+                    <div class="description">Get database configuration schema (field names and data types)</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases/parameters</span>
+                    <span class="badge">Parameters</span>
+                    <div class="description">Get only connection parameters (pool settings) from database configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases/connections</span>
+                    <span class="badge">Connections</span>
+                    <div class="description">Get only connection details from database configurations</div>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="url">%s/api/generic/config/databases/summary</span>
+                    <span class="badge">Summary</span>
+                    <div class="description">Get database configuration summary with statistics</div>
+                </div>
+
                 <h2>📱 Dashboards & Documentation</h2>
                 <div class="endpoint">
                     <span class="method get">GET</span>
@@ -1129,7 +1209,7 @@ public class SwaggerConfig {
             </div>
         </body>
         </html>
-        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
+        """.formatted(baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl, baseUrl);
     }
 
     /**

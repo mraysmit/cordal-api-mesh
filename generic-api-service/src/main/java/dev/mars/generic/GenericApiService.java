@@ -1,7 +1,7 @@
 package dev.mars.generic;
 
 import dev.mars.dto.PagedResponse;
-import dev.mars.exception.ApiException;
+import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.EndpointConfigurationManager;
@@ -267,6 +267,387 @@ public class GenericApiService {
      */
     public Optional<DatabaseConfig> getDatabaseConfiguration(String databaseName) {
         return configurationManager.getDatabaseConfig(databaseName);
+    }
+
+    // ========== GRANULAR CONFIGURATION APIS ==========
+
+    /**
+     * Get endpoint configuration schema (field names and data types)
+     */
+    public Map<String, Object> getEndpointConfigurationSchema() {
+        Map<String, Object> schema = new HashMap<>();
+        schema.put("configType", "endpoints");
+
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fields.add(createFieldInfo("path", "String", true, "API endpoint path"));
+        fields.add(createFieldInfo("method", "String", true, "HTTP method (GET, POST, etc.)"));
+        fields.add(createFieldInfo("description", "String", false, "Endpoint description"));
+        fields.add(createFieldInfo("query", "String", true, "Reference to query configuration"));
+        fields.add(createFieldInfo("countQuery", "String", false, "Reference to count query for pagination"));
+        fields.add(createFieldInfo("pagination", "PaginationConfig", false, "Pagination configuration"));
+        fields.add(createFieldInfo("parameters", "List<EndpointParameter>", false, "Endpoint parameters"));
+        fields.add(createFieldInfo("response", "ResponseConfig", false, "Response configuration"));
+
+        schema.put("fields", fields);
+        schema.put("timestamp", System.currentTimeMillis());
+
+        return schema;
+    }
+
+    /**
+     * Get only parameters from all endpoint configurations
+     */
+    public Map<String, Object> getEndpointParameters() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "endpoints");
+
+        Map<String, List<ApiEndpointConfig.EndpointParameter>> parameters = new HashMap<>();
+
+        for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig config = entry.getValue();
+
+            if (config.getParameters() != null && !config.getParameters().isEmpty()) {
+                parameters.put(endpointName, config.getParameters());
+            }
+        }
+
+        response.put("parameters", parameters);
+        response.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
+        response.put("endpointsWithParameters", parameters.size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get database connections referenced by endpoints (via queries)
+     */
+    public Map<String, Object> getEndpointDatabaseConnections() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "endpoints");
+
+        Map<String, String> endpointToDatabases = new HashMap<>();
+        Set<String> referencedDatabases = new HashSet<>();
+
+        for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig config = entry.getValue();
+
+            // Get the database through the query reference
+            if (config.getQuery() != null) {
+                Optional<QueryConfig> queryConfig = configurationManager.getQueryConfig(config.getQuery());
+                if (queryConfig.isPresent() && queryConfig.get().getDatabase() != null) {
+                    String database = queryConfig.get().getDatabase();
+                    endpointToDatabases.put(endpointName, database);
+                    referencedDatabases.add(database);
+                }
+            }
+        }
+
+        response.put("endpointDatabases", endpointToDatabases);
+        response.put("referencedDatabases", new ArrayList<>(referencedDatabases));
+        response.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
+        response.put("endpointsWithDatabases", endpointToDatabases.size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get endpoint configuration summary
+     */
+    public Map<String, Object> getEndpointConfigurationSummary() {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("configType", "endpoints");
+
+        Map<String, ApiEndpointConfig> endpoints = configurationManager.getAllEndpointConfigurations();
+
+        // Count by method
+        Map<String, Integer> byMethod = new HashMap<>();
+        int withPagination = 0;
+        int withParameters = 0;
+        Set<String> referencedQueries = new HashSet<>();
+        Set<String> referencedDatabases = new HashSet<>();
+
+        for (ApiEndpointConfig config : endpoints.values()) {
+            // Count by method
+            String method = config.getMethod();
+            byMethod.put(method, byMethod.getOrDefault(method, 0) + 1);
+
+            // Count pagination
+            if (config.getPagination() != null && config.getPagination().isEnabled()) {
+                withPagination++;
+            }
+
+            // Count parameters
+            if (config.getParameters() != null && !config.getParameters().isEmpty()) {
+                withParameters++;
+            }
+
+            // Collect referenced queries
+            if (config.getQuery() != null) {
+                referencedQueries.add(config.getQuery());
+
+                // Get database through query
+                Optional<QueryConfig> queryConfig = configurationManager.getQueryConfig(config.getQuery());
+                if (queryConfig.isPresent() && queryConfig.get().getDatabase() != null) {
+                    referencedDatabases.add(queryConfig.get().getDatabase());
+                }
+            }
+
+            if (config.getCountQuery() != null) {
+                referencedQueries.add(config.getCountQuery());
+            }
+        }
+
+        summary.put("totalCount", endpoints.size());
+        summary.put("byMethod", byMethod);
+        summary.put("withPagination", withPagination);
+        summary.put("withParameters", withParameters);
+        summary.put("referencedQueries", new ArrayList<>(referencedQueries));
+        summary.put("referencedDatabases", new ArrayList<>(referencedDatabases));
+        summary.put("timestamp", System.currentTimeMillis());
+
+        return summary;
+    }
+
+    /**
+     * Get query configuration schema (field names and data types)
+     */
+    public Map<String, Object> getQueryConfigurationSchema() {
+        Map<String, Object> schema = new HashMap<>();
+        schema.put("configType", "queries");
+
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fields.add(createFieldInfo("name", "String", true, "Query name"));
+        fields.add(createFieldInfo("description", "String", false, "Query description"));
+        fields.add(createFieldInfo("sql", "String", true, "SQL query statement"));
+        fields.add(createFieldInfo("database", "String", true, "Reference to database configuration"));
+        fields.add(createFieldInfo("parameters", "List<QueryParameter>", false, "Query parameters"));
+
+        schema.put("fields", fields);
+        schema.put("timestamp", System.currentTimeMillis());
+
+        return schema;
+    }
+
+    /**
+     * Get only parameters from all query configurations
+     */
+    public Map<String, Object> getQueryParameters() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "queries");
+
+        Map<String, List<QueryConfig.QueryParameter>> parameters = new HashMap<>();
+
+        for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig config = entry.getValue();
+
+            if (config.getParameters() != null && !config.getParameters().isEmpty()) {
+                parameters.put(queryName, config.getParameters());
+            }
+        }
+
+        response.put("parameters", parameters);
+        response.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
+        response.put("queriesWithParameters", parameters.size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get database connections referenced by queries
+     */
+    public Map<String, Object> getQueryDatabaseConnections() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "queries");
+
+        Map<String, String> queryToDatabases = new HashMap<>();
+        Set<String> referencedDatabases = new HashSet<>();
+
+        for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
+            String queryName = entry.getKey();
+            QueryConfig config = entry.getValue();
+
+            if (config.getDatabase() != null) {
+                queryToDatabases.put(queryName, config.getDatabase());
+                referencedDatabases.add(config.getDatabase());
+            }
+        }
+
+        response.put("queryDatabases", queryToDatabases);
+        response.put("referencedDatabases", new ArrayList<>(referencedDatabases));
+        response.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
+        response.put("queriesWithDatabases", queryToDatabases.size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get query configuration summary
+     */
+    public Map<String, Object> getQueryConfigurationSummary() {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("configType", "queries");
+
+        Map<String, QueryConfig> queries = configurationManager.getAllQueryConfigurations();
+
+        int withParameters = 0;
+        Set<String> referencedDatabases = new HashSet<>();
+        Map<String, Integer> parameterCounts = new HashMap<>();
+
+        for (QueryConfig config : queries.values()) {
+            // Count parameters
+            if (config.getParameters() != null && !config.getParameters().isEmpty()) {
+                withParameters++;
+                int paramCount = config.getParameters().size();
+                parameterCounts.put(config.getName(), paramCount);
+            }
+
+            // Collect referenced databases
+            if (config.getDatabase() != null) {
+                referencedDatabases.add(config.getDatabase());
+            }
+        }
+
+        summary.put("totalCount", queries.size());
+        summary.put("withParameters", withParameters);
+        summary.put("referencedDatabases", new ArrayList<>(referencedDatabases));
+        summary.put("parameterCounts", parameterCounts);
+        summary.put("timestamp", System.currentTimeMillis());
+
+        return summary;
+    }
+
+    /**
+     * Get database configuration schema (field names and data types)
+     */
+    public Map<String, Object> getDatabaseConfigurationSchema() {
+        Map<String, Object> schema = new HashMap<>();
+        schema.put("configType", "databases");
+
+        List<Map<String, Object>> fields = new ArrayList<>();
+        fields.add(createFieldInfo("name", "String", true, "Database name"));
+        fields.add(createFieldInfo("description", "String", false, "Database description"));
+        fields.add(createFieldInfo("url", "String", true, "Database connection URL"));
+        fields.add(createFieldInfo("username", "String", true, "Database username"));
+        fields.add(createFieldInfo("password", "String", true, "Database password"));
+        fields.add(createFieldInfo("driver", "String", true, "Database driver class"));
+        fields.add(createFieldInfo("pool", "PoolConfig", false, "Connection pool configuration"));
+
+        schema.put("fields", fields);
+        schema.put("timestamp", System.currentTimeMillis());
+
+        return schema;
+    }
+
+    /**
+     * Get only connection parameters (pool settings) from database configurations
+     */
+    public Map<String, Object> getDatabaseParameters() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "databases");
+
+        Map<String, DatabaseConfig.PoolConfig> parameters = new HashMap<>();
+
+        for (Map.Entry<String, DatabaseConfig> entry : configurationManager.getAllDatabaseConfigurations().entrySet()) {
+            String databaseName = entry.getKey();
+            DatabaseConfig config = entry.getValue();
+
+            if (config.getPool() != null) {
+                parameters.put(databaseName, config.getPool());
+            }
+        }
+
+        response.put("poolConfigurations", parameters);
+        response.put("totalDatabases", configurationManager.getAllDatabaseConfigurations().size());
+        response.put("databasesWithPoolConfig", parameters.size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get only connection details from database configurations
+     */
+    public Map<String, Object> getDatabaseConnections() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("configType", "databases");
+
+        Map<String, Map<String, Object>> connections = new HashMap<>();
+
+        for (Map.Entry<String, DatabaseConfig> entry : configurationManager.getAllDatabaseConfigurations().entrySet()) {
+            String databaseName = entry.getKey();
+            DatabaseConfig config = entry.getValue();
+
+            Map<String, Object> connectionInfo = new HashMap<>();
+            connectionInfo.put("url", config.getUrl());
+            connectionInfo.put("username", config.getUsername());
+            connectionInfo.put("driver", config.getDriver());
+            connectionInfo.put("description", config.getDescription());
+
+            connections.put(databaseName, connectionInfo);
+        }
+
+        response.put("connections", connections);
+        response.put("totalDatabases", configurationManager.getAllDatabaseConfigurations().size());
+        response.put("timestamp", System.currentTimeMillis());
+
+        return response;
+    }
+
+    /**
+     * Get database configuration summary
+     */
+    public Map<String, Object> getDatabaseConfigurationSummary() {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("configType", "databases");
+
+        Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
+
+        int withPoolConfig = 0;
+        Map<String, String> driverTypes = new HashMap<>();
+        Set<String> uniqueDrivers = new HashSet<>();
+
+        for (Map.Entry<String, DatabaseConfig> entry : databases.entrySet()) {
+            String databaseName = entry.getKey();
+            DatabaseConfig config = entry.getValue();
+
+            // Count pool configurations
+            if (config.getPool() != null) {
+                withPoolConfig++;
+            }
+
+            // Collect driver information
+            if (config.getDriver() != null) {
+                driverTypes.put(databaseName, config.getDriver());
+                uniqueDrivers.add(config.getDriver());
+            }
+        }
+
+        summary.put("totalCount", databases.size());
+        summary.put("withPoolConfig", withPoolConfig);
+        summary.put("driverTypes", driverTypes);
+        summary.put("uniqueDrivers", new ArrayList<>(uniqueDrivers));
+        summary.put("timestamp", System.currentTimeMillis());
+
+        return summary;
+    }
+
+    /**
+     * Helper method to create field information for schema APIs
+     */
+    private Map<String, Object> createFieldInfo(String name, String type, boolean required, String description) {
+        Map<String, Object> fieldInfo = new HashMap<>();
+        fieldInfo.put("name", name);
+        fieldInfo.put("type", type);
+        fieldInfo.put("required", required);
+        fieldInfo.put("description", description);
+        return fieldInfo;
     }
 
     /**

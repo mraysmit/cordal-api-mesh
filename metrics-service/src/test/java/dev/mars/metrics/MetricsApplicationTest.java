@@ -42,8 +42,8 @@ class MetricsApplicationTest {
 
     @Test
     void shouldStartApplicationSuccessfully() {
-        // Start application for this test
-        application.start();
+        // Initialize application without starting the server to avoid port conflicts
+        application.initializeForTesting();
 
         assertThat(application).isNotNull();
         assertThat(application.getApp()).isNotNull();

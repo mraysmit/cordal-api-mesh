@@ -25,6 +25,12 @@ public class ConfigurationLoader {
     public ConfigurationLoader(GenericApiConfig genericApiConfig) {
         this.yamlMapper = new ObjectMapper(new YAMLFactory());
         this.genericApiConfig = genericApiConfig;
+
+        // Log the configuration paths that will be used
+        logger.info("ConfigurationLoader initialized with paths:");
+        logger.info("  - Databases config path: {}", genericApiConfig.getDatabasesConfigPath());
+        logger.info("  - Queries config path: {}", genericApiConfig.getQueriesConfigPath());
+        logger.info("  - Endpoints config path: {}", genericApiConfig.getEndpointsConfigPath());
     }
     
     /**
@@ -32,25 +38,26 @@ public class ConfigurationLoader {
      */
     public Map<String, QueryConfig> loadQueryConfigurations() {
         String configPath = genericApiConfig.getQueriesConfigPath();
-        logger.info("Loading query configurations from {}", configPath);
+        logger.info("Loading query configurations from path: {}", configPath);
 
         try (InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream(configPath)) {
 
             if (inputStream == null) {
+                logger.error("Configuration file not found: {}", configPath);
                 throw new RuntimeException(configPath + " not found in classpath");
             }
-            
+
             QueriesWrapper wrapper = yamlMapper.readValue(inputStream, QueriesWrapper.class);
             Map<String, QueryConfig> queries = wrapper.getQueries();
-            
-            logger.info("Loaded {} query configurations", queries.size());
-            
+
+            logger.info("Successfully loaded {} query configurations from {}", queries.size(), configPath);
+
             // Log each query for debugging
             queries.forEach((key, config) -> {
-                logger.debug("Loaded query '{}': {}", key, config.getName());
+                logger.info("  - Query '{}': {} (database: {})", key, config.getName(), config.getDatabase());
             });
-            
+
             return queries;
             
         } catch (Exception e) {
@@ -64,23 +71,24 @@ public class ConfigurationLoader {
      */
     public Map<String, DatabaseConfig> loadDatabaseConfigurations() {
         String configPath = genericApiConfig.getDatabasesConfigPath();
-        logger.info("Loading database configurations from {}", configPath);
+        logger.info("Loading database configurations from path: {}", configPath);
 
         try (InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream(configPath)) {
 
             if (inputStream == null) {
+                logger.error("Configuration file not found: {}", configPath);
                 throw new RuntimeException(configPath + " not found in classpath");
             }
 
             DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
             Map<String, DatabaseConfig> databases = wrapper.getDatabases();
 
-            logger.info("Loaded {} database configurations", databases.size());
+            logger.info("Successfully loaded {} database configurations from {}", databases.size(), configPath);
 
             // Log each database for debugging
             databases.forEach((key, config) -> {
-                logger.debug("Loaded database '{}': {}", key, config.getName());
+                logger.info("  - Database '{}': {} (url: {})", key, config.getName(), config.getUrl());
             });
 
             return databases;
@@ -96,25 +104,26 @@ public class ConfigurationLoader {
      */
     public Map<String, ApiEndpointConfig> loadEndpointConfigurations() {
         String configPath = genericApiConfig.getEndpointsConfigPath();
-        logger.info("Loading endpoint configurations from {}", configPath);
+        logger.info("Loading endpoint configurations from path: {}", configPath);
 
         try (InputStream inputStream = getClass().getClassLoader()
                 .getResourceAsStream(configPath)) {
 
             if (inputStream == null) {
+                logger.error("Configuration file not found: {}", configPath);
                 throw new RuntimeException(configPath + " not found in classpath");
             }
-            
+
             EndpointsWrapper wrapper = yamlMapper.readValue(inputStream, EndpointsWrapper.class);
             Map<String, ApiEndpointConfig> endpoints = wrapper.getEndpoints();
-            
-            logger.info("Loaded {} endpoint configurations", endpoints.size());
-            
+
+            logger.info("Successfully loaded {} endpoint configurations from {}", endpoints.size(), configPath);
+
             // Log each endpoint for debugging
             endpoints.forEach((key, config) -> {
-                logger.debug("Loaded endpoint '{}': {} {}", key, config.getMethod(), config.getPath());
+                logger.info("  - Endpoint '{}': {} {} (query: {})", key, config.getMethod(), config.getPath(), config.getQuery());
             });
-            
+
             return endpoints;
             
         } catch (Exception e) {

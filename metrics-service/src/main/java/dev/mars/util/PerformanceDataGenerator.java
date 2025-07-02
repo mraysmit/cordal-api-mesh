@@ -1,7 +1,7 @@
 package dev.mars.util;
 
 import dev.mars.metrics.MetricsApplication;
-import dev.mars.model.PerformanceMetrics;
+import dev.mars.common.model.PerformanceMetrics;
 import dev.mars.service.PerformanceMetricsService;
 
 import java.time.LocalDateTime;

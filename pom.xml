@@ -13,6 +13,7 @@
     <description>Parent POM for modular Javalin API Mesh project</description>
 
     <modules>
+        <module>common-library</module>
         <module>generic-api-service</module>
         <module>metrics-service</module>
         <module>integration-tests</module>

@@ -1,7 +1,7 @@
 package dev.mars.controller;
 
-import dev.mars.dto.PagedResponse;
-import dev.mars.model.PerformanceMetrics;
+import dev.mars.common.dto.PagedResponse;
+import dev.mars.common.model.PerformanceMetrics;
 import dev.mars.service.PerformanceMetricsService;
 import io.javalin.http.Context;
 import org.slf4j.Logger;

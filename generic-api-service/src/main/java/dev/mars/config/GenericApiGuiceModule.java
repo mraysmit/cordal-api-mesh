@@ -11,6 +11,10 @@ import dev.mars.generic.GenericRepository;
 import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.database.DatabaseConnectionManager;
+import dev.mars.generic.management.ConfigurationMetadataService;
+import dev.mars.generic.management.UsageStatisticsService;
+import dev.mars.generic.management.HealthMonitoringService;
+import dev.mars.generic.management.ManagementController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,8 +118,43 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public GenericApiController provideGenericApiController(GenericApiService genericApiService) {
+    public GenericApiController provideGenericApiController(GenericApiService genericApiService,
+                                                           UsageStatisticsService statisticsService) {
         logger.info("Creating GenericApiController instance");
-        return new GenericApiController(genericApiService);
+        return new GenericApiController(genericApiService, statisticsService);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationMetadataService provideConfigurationMetadataService(GenericApiConfig genericApiConfig) {
+        logger.info("Creating ConfigurationMetadataService instance");
+        return new ConfigurationMetadataService(genericApiConfig);
+    }
+
+    @Provides
+    @Singleton
+    public UsageStatisticsService provideUsageStatisticsService() {
+        logger.info("Creating UsageStatisticsService instance");
+        return new UsageStatisticsService();
+    }
+
+    @Provides
+    @Singleton
+    public HealthMonitoringService provideHealthMonitoringService(DatabaseConnectionManager databaseConnectionManager,
+                                                                EndpointConfigurationManager configurationManager) {
+        logger.info("Creating HealthMonitoringService instance");
+        return new HealthMonitoringService(databaseConnectionManager, configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public ManagementController provideManagementController(ConfigurationMetadataService metadataService,
+                                                          UsageStatisticsService statisticsService,
+                                                          HealthMonitoringService healthService,
+                                                          GenericApiService genericApiService,
+                                                          EndpointConfigurationManager configurationManager) {
+        logger.info("Creating ManagementController instance");
+        return new ManagementController(metadataService, statisticsService, healthService,
+                                      genericApiService, configurationManager);
     }
 }

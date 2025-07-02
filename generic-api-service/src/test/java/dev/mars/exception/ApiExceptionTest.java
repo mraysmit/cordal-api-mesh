@@ -1,5 +1,6 @@
 package dev.mars.exception;
 
+import dev.mars.common.exception.ApiException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -10,56 +11,27 @@ import static org.assertj.core.api.Assertions.*;
 class ApiExceptionTest {
 
     @Test
-    void testDefaultConstructor() {
-        ApiException exception = new ApiException("Test message");
-        
+    void testConstructorWithAllParameters() {
+        ApiException exception = new ApiException("TEST_ERROR", "Test message", 500);
+
         assertThat(exception.getMessage()).isEqualTo("Test message");
         assertThat(exception.getStatusCode()).isEqualTo(500);
-        assertThat(exception.getErrorCode()).isEqualTo("INTERNAL_ERROR");
-        assertThat(exception.getCause()).isNull();
-    }
-
-    @Test
-    void testConstructorWithStatusCode() {
-        ApiException exception = new ApiException("Bad request", 400);
-        
-        assertThat(exception.getMessage()).isEqualTo("Bad request");
-        assertThat(exception.getStatusCode()).isEqualTo(400);
-        assertThat(exception.getErrorCode()).isEqualTo("API_ERROR");
-        assertThat(exception.getCause()).isNull();
-    }
-
-    @Test
-    void testConstructorWithStatusCodeAndErrorCode() {
-        ApiException exception = new ApiException("Not found", 404, "RESOURCE_NOT_FOUND");
-        
-        assertThat(exception.getMessage()).isEqualTo("Not found");
-        assertThat(exception.getStatusCode()).isEqualTo(404);
-        assertThat(exception.getErrorCode()).isEqualTo("RESOURCE_NOT_FOUND");
+        assertThat(exception.getErrorCode()).isEqualTo("TEST_ERROR");
         assertThat(exception.getCause()).isNull();
     }
 
     @Test
     void testConstructorWithCause() {
         RuntimeException cause = new RuntimeException("Root cause");
-        ApiException exception = new ApiException("Wrapper message", cause);
-        
-        assertThat(exception.getMessage()).isEqualTo("Wrapper message");
-        assertThat(exception.getStatusCode()).isEqualTo(500);
-        assertThat(exception.getErrorCode()).isEqualTo("INTERNAL_ERROR");
+        ApiException exception = new ApiException("TEST_ERROR", "Test message", 400, cause);
+
+        assertThat(exception.getMessage()).isEqualTo("Test message");
+        assertThat(exception.getStatusCode()).isEqualTo(400);
+        assertThat(exception.getErrorCode()).isEqualTo("TEST_ERROR");
         assertThat(exception.getCause()).isEqualTo(cause);
     }
 
-    @Test
-    void testConstructorWithCauseStatusCodeAndErrorCode() {
-        RuntimeException cause = new RuntimeException("Root cause");
-        ApiException exception = new ApiException("Wrapper message", cause, 503, "SERVICE_UNAVAILABLE");
-        
-        assertThat(exception.getMessage()).isEqualTo("Wrapper message");
-        assertThat(exception.getStatusCode()).isEqualTo(503);
-        assertThat(exception.getErrorCode()).isEqualTo("SERVICE_UNAVAILABLE");
-        assertThat(exception.getCause()).isEqualTo(cause);
-    }
+
 
     @Test
     void testNotFoundStaticMethod() {
@@ -104,8 +76,8 @@ class ApiExceptionTest {
 
     @Test
     void testExceptionInheritance() {
-        ApiException exception = new ApiException("Test");
-        
+        ApiException exception = new ApiException("TEST_ERROR", "Test message", 500);
+
         assertThat(exception).isInstanceOf(RuntimeException.class);
         assertThat(exception).isInstanceOf(Exception.class);
         assertThat(exception).isInstanceOf(Throwable.class);
