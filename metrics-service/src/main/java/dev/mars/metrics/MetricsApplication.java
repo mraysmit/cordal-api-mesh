@@ -3,7 +3,7 @@ package dev.mars.metrics;
 import com.google.inject.Module;
 import dev.mars.common.application.BaseJavalinApplication;
 import dev.mars.common.config.ServerConfig;
-import dev.mars.common.database.MetricsDatabaseManager;
+import dev.mars.database.MetricsDatabaseManager;
 import dev.mars.config.MetricsConfig;
 import dev.mars.config.MetricsGuiceModule;
 import dev.mars.controller.PerformanceMetricsController;

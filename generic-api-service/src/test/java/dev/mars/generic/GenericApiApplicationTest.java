@@ -1,6 +1,9 @@
 package dev.mars.generic;
 
 import dev.mars.config.GenericApiConfig;
+import dev.mars.generic.database.DatabaseConnectionManager;
+import dev.mars.test.TestDataInitializer;
+import dev.mars.test.TestDatabaseManager;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.*;
@@ -35,6 +38,30 @@ class GenericApiApplicationTest {
             // Don't start the server here - let individual tests handle it
         } catch (Exception e) {
             throw new RuntimeException("Failed to create Generic API Application", e);
+        }
+    }
+
+    /**
+     * Helper method to initialize test data for tests that need stock trades data
+     */
+    private void initializeTestDataForStockTrades(GenericApiApplication testApp) {
+        try {
+            // Initialize the application first
+            testApp.initializeForTesting();
+
+            // Get required services from the injector
+            DatabaseConnectionManager databaseConnectionManager = testApp.getInjector().getInstance(DatabaseConnectionManager.class);
+            GenericApiConfig genericApiConfig = testApp.getInjector().getInstance(GenericApiConfig.class);
+
+            // Create TestDatabaseManager manually (like other tests do)
+            TestDatabaseManager testDatabaseManager = new TestDatabaseManager(genericApiConfig);
+
+            // Initialize test data
+            TestDataInitializer testDataInitializer = new TestDataInitializer(databaseConnectionManager, testDatabaseManager);
+            testDataInitializer.initializeAllTestData();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize test data", e);
         }
     }
 
@@ -93,7 +120,7 @@ class GenericApiApplicationTest {
     @Test
     void shouldHaveStockTradesEndpoint() {
         GenericApiApplication testApp = new GenericApiApplication();
-        testApp.initializeForTesting();
+        initializeTestDataForStockTrades(testApp);
 
         Javalin app = testApp.getApp();
 
@@ -152,7 +179,7 @@ class GenericApiApplicationTest {
     @Test
     void shouldHandleStockTradesBySymbol() {
         // Use the shared application instance that already has test configuration
-        application.initializeForTesting();
+        initializeTestDataForStockTrades(application);
 
         Javalin app = application.getApp();
 
@@ -168,7 +195,7 @@ class GenericApiApplicationTest {
     @Test
     void shouldHandleStockTradesByDateRange() {
         // Use the shared application instance that already has test configuration
-        application.initializeForTesting();
+        initializeTestDataForStockTrades(application);
 
         Javalin app = application.getApp();
 

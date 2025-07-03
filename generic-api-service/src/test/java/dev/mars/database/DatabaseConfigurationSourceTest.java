@@ -84,7 +84,6 @@ public class DatabaseConfigurationSourceTest {
                  ResultSet resultSet = statement.executeQuery()) {
 
                 boolean foundApiServiceConfig = false;
-                boolean foundMetricsDb = false;
 
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
@@ -97,16 +96,11 @@ public class DatabaseConfigurationSourceTest {
                         assertThat(description).contains("API service configuration");
                         assertThat(url).contains("api-service-config");
                         assertThat(driver).isEqualTo("org.h2.Driver");
-                    } else if ("metrics-db".equals(name)) {
-                        foundMetricsDb = true;
-                        assertThat(description).contains("metrics");
-                        assertThat(url).contains("metrics");
-                        assertThat(driver).isEqualTo("org.h2.Driver");
                     }
                 }
 
                 assertThat(foundApiServiceConfig).isTrue();
-                assertThat(foundMetricsDb).isTrue();
+                // metrics-db should NOT be present (it's managed by metrics-service)
             }
         }).doesNotThrowAnyException();
     }

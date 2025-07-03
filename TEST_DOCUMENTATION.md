@@ -107,7 +107,6 @@ The test suite is organized into several categories:
 
 ### Test Dependencies
 - **JUnit 5**: Testing framework
-- **Mockito**: Mocking framework
 - **AssertJ**: Fluent assertions
 - **Javalin TestTools**: HTTP testing utilities
 - **TestContainers**: Container-based testing (available but not used)

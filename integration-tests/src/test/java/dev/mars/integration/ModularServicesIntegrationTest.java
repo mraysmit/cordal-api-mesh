@@ -66,11 +66,13 @@ class ModularServicesIntegrationTest {
         // Start Generic API Service first
         Thread genericApiThread = new Thread(() -> {
             System.setProperty("generic.config.file", "application-generic-api.yml");
+            System.setProperty("test.data.loading.enabled", "true");
             try {
                 genericApiApp = new GenericApiApplication();
                 genericApiApp.start();
             } finally {
                 System.clearProperty("generic.config.file");
+                System.clearProperty("test.data.loading.enabled");
             }
         });
         genericApiThread.start();

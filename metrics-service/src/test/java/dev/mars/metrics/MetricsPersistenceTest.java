@@ -33,8 +33,8 @@ class MetricsPersistenceTest {
 
         // Clear any existing metrics to ensure clean state for each test
         try {
-            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.common.database.MetricsDatabaseManager.class);
-            metricsDatabaseManager.cleanMetricsData();
+            var metricsDatabaseManager = application.getInjector().getInstance(dev.mars.database.MetricsDatabaseManager.class);
+            metricsDatabaseManager.cleanDatabase();
             Thread.sleep(500); // Wait for deletion to complete
         } catch (Exception e) {
             // Ignore cleanup errors during setup

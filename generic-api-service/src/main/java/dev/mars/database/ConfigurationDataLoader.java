@@ -115,21 +115,7 @@ public class ConfigurationDataLoader {
             statement.setString(13, "SELECT 1");
             statement.executeUpdate();
             
-            // Metrics database configuration
-            statement.setString(1, "metrics-db");
-            statement.setString(2, "Database for performance metrics and monitoring data");
-            statement.setString(3, "jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
-            statement.setString(4, "sa");
-            statement.setString(5, "");
-            statement.setString(6, "org.h2.Driver");
-            statement.setInt(7, 5);
-            statement.setInt(8, 1);
-            statement.setLong(9, 30000);
-            statement.setLong(10, 600000);
-            statement.setLong(11, 1800000);
-            statement.setLong(12, 60000);
-            statement.setString(13, "SELECT 1");
-            statement.executeUpdate();
+
             
             logger.info("Loaded sample database configurations");
         }

@@ -35,6 +35,7 @@ public class DatabaseManager extends BaseDatabaseManager {
     }
 
     /**
+     * TODO: depends on H2 database needs to extend to at least PG
      * Ensure the database directory exists and database can be created
      */
     private void ensureDatabaseCanBeCreated() {
@@ -151,50 +152,9 @@ public class DatabaseManager extends BaseDatabaseManager {
         String createIndexSql5 = "CREATE INDEX IF NOT EXISTS idx_config_endpoints_path ON config_endpoints(path)";
         String createIndexSql6 = "CREATE INDEX IF NOT EXISTS idx_config_endpoints_query ON config_endpoints(query_name)";
 
-        // Stock trades table for demo data
-        String createStockTradesTableSql = """
-            CREATE TABLE IF NOT EXISTS stock_trades (
-                id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                symbol VARCHAR(10) NOT NULL,
-                trade_type VARCHAR(4) NOT NULL CHECK (trade_type IN ('BUY', 'SELL')),
-                quantity INTEGER NOT NULL CHECK (quantity > 0),
-                price DECIMAL(10,2) NOT NULL CHECK (price > 0),
-                total_value DECIMAL(15,2) NOT NULL,
-                trade_date_time TIMESTAMP NOT NULL,
-                trader_id VARCHAR(50) NOT NULL,
-                exchange VARCHAR(20) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-            """;
 
-        // Performance metrics table for demo data
-        String createPerformanceMetricsTableSql = """
-            CREATE TABLE IF NOT EXISTS performance_metrics (
-                id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                test_name VARCHAR(255) NOT NULL,
-                test_type VARCHAR(100) NOT NULL,
-                timestamp TIMESTAMP NOT NULL,
-                total_requests INTEGER NOT NULL,
-                total_time_ms BIGINT NOT NULL,
-                average_response_time_ms DOUBLE NOT NULL,
-                concurrent_threads INTEGER NOT NULL,
-                requests_per_thread INTEGER NOT NULL,
-                page_size INTEGER NOT NULL,
-                memory_usage_bytes BIGINT,
-                memory_increase_bytes BIGINT,
-                test_passed BOOLEAN NOT NULL,
-                additional_metrics TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """;
 
-        // Additional indexes for demo tables
-        String createStockTradesIndexes1 = "CREATE INDEX IF NOT EXISTS idx_stock_trades_symbol ON stock_trades(symbol)";
-        String createStockTradesIndexes2 = "CREATE INDEX IF NOT EXISTS idx_stock_trades_trader ON stock_trades(trader_id)";
-        String createStockTradesIndexes3 = "CREATE INDEX IF NOT EXISTS idx_stock_trades_date ON stock_trades(trade_date_time)";
-        String createPerformanceMetricsIndexes1 = "CREATE INDEX IF NOT EXISTS idx_performance_metrics_timestamp ON performance_metrics(timestamp)";
-        String createPerformanceMetricsIndexes2 = "CREATE INDEX IF NOT EXISTS idx_performance_metrics_test_name ON performance_metrics(test_name)";
+
 
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
@@ -209,14 +169,7 @@ public class DatabaseManager extends BaseDatabaseManager {
             statement.execute(createConfigEndpointsTableSql);
             logger.info("Configuration endpoints table created/verified");
 
-            // Create demo data tables
-            statement.execute(createStockTradesTableSql);
-            logger.info("Stock trades table created/verified");
-
-            statement.execute(createPerformanceMetricsTableSql);
-            logger.info("Performance metrics table created/verified");
-
-            // Create indexes
+            // Create configuration table indexes
             statement.execute(createIndexSql1);
             statement.execute(createIndexSql2);
             statement.execute(createIndexSql3);
@@ -224,14 +177,6 @@ public class DatabaseManager extends BaseDatabaseManager {
             statement.execute(createIndexSql5);
             statement.execute(createIndexSql6);
             logger.info("Configuration table indexes created/verified");
-
-            // Create demo table indexes
-            statement.execute(createStockTradesIndexes1);
-            statement.execute(createStockTradesIndexes2);
-            statement.execute(createStockTradesIndexes3);
-            statement.execute(createPerformanceMetricsIndexes1);
-            statement.execute(createPerformanceMetricsIndexes2);
-            logger.info("Demo table indexes created/verified");
 
         } catch (SQLException e) {
             logger.error("Failed to initialize database schema", e);
@@ -243,125 +188,14 @@ public class DatabaseManager extends BaseDatabaseManager {
             throw new RuntimeException("Failed to initialize database schema", e);
         }
 
-        // Insert sample data if tables are empty
-        insertSampleDataIfNeeded();
-
         logger.info("API service configuration database schema initialized successfully");
     }
 
-    /**
-     * Insert sample data if the tables are empty
-     */
-    private void insertSampleDataIfNeeded() {
-        try (Connection connection = dataSource.getConnection()) {
-            // Check if stock_trades table has data
-            try (Statement statement = connection.createStatement();
-                 ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM stock_trades")) {
 
-                if (rs.next() && rs.getInt(1) == 0) {
-                    logger.info("Inserting sample stock trades data");
-                    insertSampleStockTrades(connection);
-                }
-            }
 
-            // Check if performance_metrics table has data
-            try (Statement statement = connection.createStatement();
-                 ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM performance_metrics")) {
 
-                if (rs.next() && rs.getInt(1) == 0) {
-                    logger.info("Inserting sample performance metrics data");
-                    insertSamplePerformanceMetrics(connection);
-                }
-            }
 
-        } catch (SQLException e) {
-            logger.warn("Failed to insert sample data", e);
-        }
-    }
 
-    /**
-     * Insert sample stock trades data
-     */
-    private void insertSampleStockTrades(Connection connection) throws SQLException {
-        String insertSql = """
-            INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-            // Sample data
-            Object[][] sampleData = {
-                {"AAPL", "BUY", 100, 150.25, 15025.00, "2024-01-15 09:30:00", "TRADER001", "NASDAQ"},
-                {"GOOGL", "SELL", 50, 2800.50, 140025.00, "2024-01-15 10:15:00", "TRADER002", "NASDAQ"},
-                {"MSFT", "BUY", 200, 375.75, 75150.00, "2024-01-15 11:00:00", "TRADER001", "NASDAQ"},
-                {"TSLA", "BUY", 75, 220.30, 16522.50, "2024-01-15 14:30:00", "TRADER003", "NASDAQ"},
-                {"AMZN", "SELL", 25, 3200.00, 80000.00, "2024-01-15 15:45:00", "TRADER002", "NASDAQ"},
-                {"NVDA", "BUY", 150, 450.80, 67620.00, "2024-01-16 09:45:00", "TRADER004", "NASDAQ"},
-                {"META", "SELL", 80, 325.60, 26048.00, "2024-01-16 11:30:00", "TRADER001", "NASDAQ"},
-                {"NFLX", "BUY", 60, 480.25, 28815.00, "2024-01-16 13:15:00", "TRADER003", "NASDAQ"},
-                {"AMD", "BUY", 300, 125.40, 37620.00, "2024-01-16 14:00:00", "TRADER005", "NASDAQ"},
-                {"ORCL", "SELL", 120, 95.75, 11490.00, "2024-01-16 16:00:00", "TRADER002", "NASDAQ"}
-            };
-
-            for (Object[] row : sampleData) {
-                stmt.setString(1, (String) row[0]);
-                stmt.setString(2, (String) row[1]);
-                stmt.setInt(3, (Integer) row[2]);
-                stmt.setBigDecimal(4, new java.math.BigDecimal(row[3].toString()));
-                stmt.setBigDecimal(5, new java.math.BigDecimal(row[4].toString()));
-                stmt.setTimestamp(6, java.sql.Timestamp.valueOf((String) row[5]));
-                stmt.setString(7, (String) row[6]);
-                stmt.setString(8, (String) row[7]);
-                stmt.addBatch();
-            }
-
-            int[] results = stmt.executeBatch();
-            logger.info("Inserted {} sample stock trades", results.length);
-        }
-    }
-
-    /**
-     * Insert sample performance metrics data
-     */
-    private void insertSamplePerformanceMetrics(Connection connection) throws SQLException {
-        String insertSql = """
-            INSERT INTO performance_metrics (test_name, test_type, timestamp, total_requests, total_time_ms,
-                                           average_response_time_ms, concurrent_threads, requests_per_thread,
-                                           page_size, memory_usage_bytes, memory_increase_bytes, test_passed, additional_metrics)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(insertSql)) {
-            // Sample data
-            Object[][] sampleData = {
-                {"API Load Test", "LOAD", "2024-01-15 10:00:00", 1000, 5000L, 5.0, 10, 100, 20, 512000000L, 50000000L, true, "{'success_rate': 99.5}"},
-                {"Stress Test", "STRESS", "2024-01-15 11:00:00", 5000, 25000L, 5.0, 50, 100, 20, 1024000000L, 200000000L, true, "{'max_concurrent': 50}"},
-                {"Endurance Test", "ENDURANCE", "2024-01-15 12:00:00", 10000, 60000L, 6.0, 20, 500, 50, 768000000L, 100000000L, true, "{'duration_hours': 1}"},
-                {"Spike Test", "SPIKE", "2024-01-15 13:00:00", 2000, 8000L, 4.0, 100, 20, 10, 1536000000L, 300000000L, false, "{'peak_rps': 500}"},
-                {"Volume Test", "VOLUME", "2024-01-15 14:00:00", 50000, 120000L, 2.4, 25, 2000, 100, 2048000000L, 500000000L, true, "{'data_volume_gb': 10}"}
-            };
-
-            for (Object[] row : sampleData) {
-                stmt.setString(1, (String) row[0]);
-                stmt.setString(2, (String) row[1]);
-                stmt.setTimestamp(3, java.sql.Timestamp.valueOf((String) row[2]));
-                stmt.setInt(4, (Integer) row[3]);
-                stmt.setLong(5, (Long) row[4]);
-                stmt.setDouble(6, (Double) row[5]);
-                stmt.setInt(7, (Integer) row[6]);
-                stmt.setInt(8, (Integer) row[7]);
-                stmt.setInt(9, (Integer) row[8]);
-                stmt.setLong(10, (Long) row[9]);
-                stmt.setLong(11, (Long) row[10]);
-                stmt.setBoolean(12, (Boolean) row[11]);
-                stmt.setString(13, (String) row[12]);
-                stmt.addBatch();
-            }
-
-            int[] results = stmt.executeBatch();
-            logger.info("Inserted {} sample performance metrics", results.length);
-        }
-    }
 
     /**
      * Get a connection from the data source

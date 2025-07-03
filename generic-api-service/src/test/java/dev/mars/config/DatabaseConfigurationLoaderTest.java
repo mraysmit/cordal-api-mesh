@@ -58,7 +58,7 @@ public class DatabaseConfigurationLoaderTest {
 
         // Assert
         assertThat(databaseConfigs).isNotEmpty();
-        assertThat(databaseConfigs).hasSize(2); // api-service-config-db and metrics-db
+        assertThat(databaseConfigs).hasSize(1); // only api-service-config-db (metrics-db is managed by metrics-service)
         
         // Verify api-service-config-db
         DatabaseConfig apiServiceConfig = databaseConfigs.get("api-service-config-db");
@@ -68,12 +68,9 @@ public class DatabaseConfigurationLoaderTest {
         assertThat(apiServiceConfig.getUrl()).contains("api-service-config");
         assertThat(apiServiceConfig.getDriver()).isEqualTo("org.h2.Driver");
         
-        // Verify metrics-db
+        // Verify metrics-db is NOT present (it's managed by metrics-service)
         DatabaseConfig metricsConfig = databaseConfigs.get("metrics-db");
-        assertThat(metricsConfig).isNotNull();
-        assertThat(metricsConfig.getName()).isEqualTo("metrics-db");
-        assertThat(metricsConfig.getDescription()).contains("metrics");
-        assertThat(metricsConfig.getUrl()).contains("metrics");
+        assertThat(metricsConfig).isNull(); // Should not be present in generic-api-service
     }
 
     @Test

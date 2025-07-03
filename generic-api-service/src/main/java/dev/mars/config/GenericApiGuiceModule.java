@@ -74,6 +74,8 @@ public class GenericApiGuiceModule extends AbstractModule {
         return new DatabaseConnectionManager(configurationManager);
     }
 
+
+
     @Provides
     @Singleton
     public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager) {

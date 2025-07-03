@@ -71,12 +71,14 @@ class PerformanceIntegrationTest {
         // Start Generic API Service first
         Thread genericApiThread = new Thread(() -> {
             System.setProperty("generic.config.file", "application-generic-api.yml");
+            System.setProperty("test.data.loading.enabled", "true");
             System.out.println("DEBUG: Set generic.config.file = " + System.getProperty("generic.config.file"));
             try {
                 genericApiApp = new GenericApiApplication();
                 genericApiApp.start();
             } finally {
                 System.clearProperty("generic.config.file");
+                System.clearProperty("test.data.loading.enabled");
             }
         });
         genericApiThread.start();

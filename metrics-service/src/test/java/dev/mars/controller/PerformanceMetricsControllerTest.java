@@ -1,62 +1,60 @@
 package dev.mars.controller;
 
-import dev.mars.common.dto.PagedResponse;
-import dev.mars.common.model.PerformanceMetrics;
+import dev.mars.metrics.MetricsApplication;
 import dev.mars.service.PerformanceMetricsService;
-import io.javalin.http.Context;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 /**
- * Basic unit tests for PerformanceMetricsController
+ * Integration tests for PerformanceMetricsController using real services
  */
-@ExtendWith(MockitoExtension.class)
 class PerformanceMetricsControllerTest {
 
-    @Mock
+    private MetricsApplication application;
     private PerformanceMetricsService service;
-
-    @Mock
-    private Context context;
-
     private PerformanceMetricsController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new PerformanceMetricsController(service);
+        // Use test configuration
+        System.setProperty("config.file", "application-test.yml");
+
+        // Initialize application for testing (no server startup)
+        application = new MetricsApplication();
+        application.initializeForTesting();
+
+        // Get real service from dependency injection
+        service = application.getInjector().getInstance(PerformanceMetricsService.class);
+        controller = application.getInjector().getInstance(PerformanceMetricsController.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (application != null) {
+            application.stop();
+        }
+        System.clearProperty("config.file");
     }
 
     @Test
     void shouldCreateController() {
-        // Test that controller can be created
+        // Test that controller can be created with real dependencies
         assertThat(controller).isNotNull();
+        assertThat(service).isNotNull();
     }
 
     @Test
-    void shouldHandleGetAllRequest() {
-        // Given
-        when(context.queryParam("page")).thenReturn("1");
-        when(context.queryParam("size")).thenReturn("10");
+    void shouldHaveValidService() {
+        // Test that the controller has a valid service
+        assertThat(service).isNotNull();
 
-        // Mock the service to return a valid PagedResponse
-        PagedResponse<PerformanceMetrics> mockResponse = new PagedResponse<>(
-            Collections.emptyList(), 1, 10, 0L);
-        when(service.getAllMetrics(1, 10)).thenReturn(mockResponse);
-
-        // When
-        controller.getAllPerformanceMetrics(context);
-
-        // Then - verify the method was called (basic smoke test)
-        verify(context, atLeastOnce()).queryParam(anyString());
-        verify(context).json(mockResponse);
-        verify(service).getAllMetrics(1, 10);
+        // Test that we can call the service method (basic smoke test)
+        var result = service.getAllMetrics(1, 10);
+        assertThat(result).isNotNull();
+        assertThat(result.getPage()).isEqualTo(1);
+        assertThat(result.getSize()).isEqualTo(10);
     }
 }

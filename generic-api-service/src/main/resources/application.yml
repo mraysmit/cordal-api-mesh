@@ -1,3 +1,7 @@
+# Generic API Service Configuration
+
+application:
+  name: generic-api-service
 
 server:
   host: localhost

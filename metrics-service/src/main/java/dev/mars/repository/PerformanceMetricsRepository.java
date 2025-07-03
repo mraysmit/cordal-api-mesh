@@ -1,6 +1,6 @@
 package dev.mars.repository;
 
-import dev.mars.common.database.MetricsDatabaseManager;
+import dev.mars.database.MetricsDatabaseManager;
 import dev.mars.common.model.PerformanceMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
