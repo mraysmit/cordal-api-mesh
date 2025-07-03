@@ -1,8 +1,8 @@
 databases:
-  stock-trades-db:
-    name: "stock-trades-db"
-    description: "Main database for stock trading data"
-    url: "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  api-service-config-db:
+    name: "api-service-config-db"
+    description: "Main database for API service configuration data"
+    url: "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
     username: "sa"
     password: ""
     driver: "org.h2.Driver"

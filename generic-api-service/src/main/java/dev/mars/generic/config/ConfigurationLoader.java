@@ -8,6 +8,10 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Singleton;
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.HashMap;
 import dev.mars.config.GenericApiConfig;
@@ -40,21 +44,52 @@ public class ConfigurationLoader {
     private InputStream resolveConfigResource(String configPath) {
         logger.debug("Attempting to load resource: {}", configPath);
 
-        // Try direct path first
+        // First, try to load as external file if path contains relative or absolute indicators
+        if (configPath.startsWith("./") || configPath.startsWith("../") || configPath.startsWith("/") ||
+            (configPath.length() > 1 && configPath.charAt(1) == ':')) {
+            try {
+                // Resolve the path relative to the current working directory
+                Path filePath = Paths.get(configPath).toAbsolutePath().normalize();
+                logger.debug("Trying to load external file: {}", filePath);
+
+                if (Files.exists(filePath)) {
+                    logger.info("Successfully loading external file: {}", filePath);
+                    return new FileInputStream(filePath.toFile());
+                } else {
+                    logger.debug("External file not found: {}", filePath);
+                }
+            } catch (Exception e) {
+                logger.debug("Failed to load external file: {}", configPath, e);
+            }
+        }
+
+        // Try direct classpath path
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configPath);
+        if (inputStream != null) {
+            logger.debug("Loaded from classpath: {}", configPath);
+            return inputStream;
+        }
 
         // Try with config/ prefix if not found
-        if (inputStream == null && !configPath.startsWith("config/")) {
+        if (!configPath.startsWith("config/")) {
             String altPath = "config/" + configPath;
-            logger.debug("Resource not found, trying alternative path: {}", altPath);
+            logger.debug("Resource not found, trying alternative classpath path: {}", altPath);
             inputStream = getClass().getClassLoader().getResourceAsStream(altPath);
+            if (inputStream != null) {
+                logger.debug("Loaded from classpath with config/ prefix: {}", altPath);
+                return inputStream;
+            }
         }
 
         // Try without config/ prefix if not found
-        if (inputStream == null && configPath.startsWith("config/")) {
+        if (configPath.startsWith("config/")) {
             String altPath = configPath.substring(7);
-            logger.debug("Resource not found, trying alternative path: {}", altPath);
+            logger.debug("Resource not found, trying alternative classpath path: {}", altPath);
             inputStream = getClass().getClassLoader().getResourceAsStream(altPath);
+            if (inputStream != null) {
+                logger.debug("Loaded from classpath without config/ prefix: {}", altPath);
+                return inputStream;
+            }
         }
 
         return inputStream;

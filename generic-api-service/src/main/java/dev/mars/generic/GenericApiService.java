@@ -1,6 +1,5 @@
 package dev.mars.generic;
 
-import dev.mars.dto.PagedResponse;
 import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.DatabaseConfig;

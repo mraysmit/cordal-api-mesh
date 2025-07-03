@@ -3,8 +3,7 @@ package dev.mars.config;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import dev.mars.database.DataLoader;
-import dev.mars.database.DatabaseManager;
+
 import dev.mars.generic.GenericApiController;
 import dev.mars.generic.GenericApiService;
 import dev.mars.generic.GenericRepository;
@@ -15,6 +14,8 @@ import dev.mars.generic.management.ConfigurationMetadataService;
 import dev.mars.generic.management.UsageStatisticsService;
 import dev.mars.generic.management.HealthMonitoringService;
 import dev.mars.generic.management.ManagementController;
+import dev.mars.database.DatabaseManager;
+import dev.mars.database.ConfigurationDataLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,36 +38,8 @@ public class GenericApiGuiceModule extends AbstractModule {
         return GenericApiConfig.loadFromFile();
     }
     
-    @Provides
-    @Singleton
-    public DatabaseConfig provideDatabaseConfig(GenericApiConfig genericApiConfig) {
-        logger.info("Creating DatabaseConfig instance");
-        return new DatabaseConfig(genericApiConfig);
-    }
-    
-    @Provides
-    @Singleton
-    public DatabaseManager provideDatabaseManager(DatabaseConfig databaseConfig) {
-        logger.info("Creating DatabaseManager instance");
-        DatabaseManager databaseManager = new DatabaseManager(databaseConfig);
-        
-        // Initialize database schema
-        databaseManager.initializeSchema();
-        
-        return databaseManager;
-    }
-    
-    @Provides
-    @Singleton
-    public DataLoader provideDataLoader(DatabaseManager databaseManager, GenericApiConfig genericApiConfig) {
-        logger.info("Creating DataLoader instance");
-        DataLoader dataLoader = new DataLoader(databaseManager, genericApiConfig);
-        
-        // Load sample data if configured
-        dataLoader.loadSampleDataIfNeeded();
-        
-        return dataLoader;
-    }
+
+
 
     @Provides
     @Singleton
@@ -156,5 +129,32 @@ public class GenericApiGuiceModule extends AbstractModule {
         logger.info("Creating ManagementController instance");
         return new ManagementController(metadataService, statisticsService, healthService,
                                       genericApiService, configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public DatabaseManager provideDatabaseManager(GenericApiConfig genericApiConfig) {
+        logger.info("Creating DatabaseManager instance");
+        DatabaseManager databaseManager = new DatabaseManager(genericApiConfig);
+
+        // Initialize schema on startup
+        logger.info("Initializing database schema");
+        databaseManager.initializeSchema();
+
+        return databaseManager;
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationDataLoader provideConfigurationDataLoader(DatabaseManager databaseManager,
+                                                                GenericApiConfig genericApiConfig) {
+        logger.info("Creating ConfigurationDataLoader instance");
+        ConfigurationDataLoader dataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig);
+
+        // Load sample configuration data if needed
+        logger.info("Loading sample configuration data if needed");
+        dataLoader.loadSampleConfigurationDataIfNeeded();
+
+        return dataLoader;
     }
 }

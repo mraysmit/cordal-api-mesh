@@ -12,8 +12,9 @@ swagger:
   enabled: true
   path: /swagger
 
-# Configuration file paths for testing
+# Configuration source and file paths for testing
 config:
+  source: yaml  # Options: yaml, database
   paths:
     databases: "test-databases.yml"
     queries: "test-queries.yml"

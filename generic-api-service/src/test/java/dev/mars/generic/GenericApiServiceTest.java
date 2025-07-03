@@ -1,6 +1,6 @@
 package dev.mars.generic;
 
-import dev.mars.database.DatabaseManager;
+import dev.mars.test.TestDatabaseManager;
 import dev.mars.common.exception.ApiException;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.ConfigurationLoader;
@@ -29,7 +29,7 @@ class GenericApiServiceTest {
     private GenericApiService service;
     private GenericRepository genericRepository;
     private EndpointConfigurationManager configurationManager;
-    private DatabaseManager databaseManager;
+    private TestDatabaseManager databaseManager;
 
     @BeforeEach
     void setUp() throws SQLException {
@@ -38,8 +38,7 @@ class GenericApiServiceTest {
 
         // Create components manually to avoid Guice module complexity in tests
         var genericApiConfig = new dev.mars.config.GenericApiConfig();
-        var databaseConfig = new dev.mars.config.DatabaseConfig(genericApiConfig);
-        databaseManager = new DatabaseManager(databaseConfig);
+        databaseManager = new TestDatabaseManager(genericApiConfig);
         databaseManager.initializeSchema();
         databaseManager.cleanDatabase();
 

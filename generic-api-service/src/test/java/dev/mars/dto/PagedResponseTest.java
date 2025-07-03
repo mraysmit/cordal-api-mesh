@@ -1,5 +1,6 @@
 package dev.mars.dto;
 
+import dev.mars.generic.model.PagedResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

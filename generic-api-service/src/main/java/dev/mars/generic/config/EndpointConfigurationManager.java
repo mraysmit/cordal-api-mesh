@@ -30,10 +30,9 @@ public class EndpointConfigurationManager {
         logger.info("Configuration manager initialized with {} databases, {} queries and {} endpoints",
                    databaseConfigurations.size(), queryConfigurations.size(), endpointConfigurations.size());
 
-        // Add default configurations if empty
-        if (databaseConfigurations.isEmpty()) {
-            addDefaultDatabaseConfiguration();
-        }
+        // Note: We don't add default database configurations anymore
+        // The configuration database is separate and managed by DatabaseManager
+        // API endpoint databases should be explicitly configured in YAML files
 
         // Validate configurations
         validateConfigurations();
@@ -196,22 +195,5 @@ public class EndpointConfigurationManager {
         logger.info("Configuration validation completed successfully");
     }
 
-    /**
-     * Add a default database configuration if none were loaded
-     */
-    private void addDefaultDatabaseConfiguration() {
-        logger.warn("No database configurations found, adding default H2 database");
 
-        DatabaseConfig defaultDb = new DatabaseConfig();
-        defaultDb.setName("default-db");
-        defaultDb.setUrl("jdbc:h2:./data/default;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
-        defaultDb.setUsername("sa");
-        defaultDb.setPassword("");
-        defaultDb.setDriver("org.h2.Driver");
-        defaultDb.setDescription("Default database created when no configuration was found");
-
-        databaseConfigurations.put("default-db", defaultDb);
-
-        logger.info("Added default database configuration: {}", defaultDb);
-    }
 }

@@ -1,4 +1,4 @@
-# Javalin API Mesh
+# Javalin API Mesh 😍
 
 A highly modularized, YAML-configured REST API mesh with automatic performance monitoring and dynamic endpoint creation.
 
@@ -15,7 +15,7 @@ javalin-api-mesh/
 ├── javalin-api-mesh/config/ # ⚙️ Shared YAML configuration files
 └── pom.xml                 # 📦 Parent POM with shared dependencies
 ```
-
+😊
 ## ✨ **Key Features**
 
 ### **🌐 Generic API Service**
@@ -51,7 +51,10 @@ javalin-api-mesh/
 
 The Generic API Service provides YAML-configured REST endpoints for data access:
 
-#### **Stock Trades API**
+#### **Dynamic API Endpoints**
+The Generic API Service provides YAML or database-configured REST endpoints. Available endpoints depend on your configuration source:
+
+**When using YAML configuration:**
 - `GET /api/generic/stock-trades` - Get all stock trades with pagination
   - Query parameters: `page` (default: 1), `size` (default: 20), `async` (default: false)
 - `GET /api/generic/stock-trades/{id}` - Get stock trade by ID
@@ -59,6 +62,11 @@ The Generic API Service provides YAML-configured REST endpoints for data access:
 - `GET /api/generic/stock-trades/trader/{trader_id}` - Get stock trades by trader ID
 - `GET /api/generic/stock-trades/date-range` - Get stock trades by date range
   - Query parameters: `start_date`, `end_date`, `page`, `size`
+
+**When using database configuration:**
+- `GET /api/config/databases` - List all database configurations
+- `GET /api/config/queries` - List all query configurations
+- `GET /api/config/endpoints` - List all endpoint configurations
 
 #### **Configuration Management API**
 - `GET /api/generic/config/validate` - Validate all configurations
@@ -93,15 +101,34 @@ The Metrics Service provides performance monitoring and analytics:
 
 ## ⚙️ **Configuration System**
 
+The system supports two configuration sources: **YAML files** (default) and **database storage**. This flexible approach allows you to choose the configuration method that best fits your deployment and management needs.
+
+### **Configuration Source Selection**
+
+Configure the source in `application.yml`:
+```yaml
+config:
+  source: yaml      # Options: yaml, database
+  paths:            # YAML file paths (used when source=yaml)
+    databases: "config/databases.yml"
+    queries: "config/queries.yml"
+    endpoints: "config/api-endpoints.yml"
+```
+
+- **`yaml`** (default) - Load configurations from YAML files
+- **`database`** - Load configurations from database tables
+
+### **YAML Configuration (Traditional Approach)**
+
 The system uses a sophisticated YAML-based configuration approach with three main configuration files:
 
-### **1. Database Connections** (`javalin-api-mesh/config/databases.yml`)
+#### **1. Database Connections** (`javalin-api-mesh/config/databases.yml`)
 ```yaml
 databases:
-  stock-trades-db:
-    name: "stock-trades-db"
-    description: "Main database for stock trading data"
-    url: "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  api-service-config-db:
+    name: "api-service-config-db"
+    description: "Main database for API service configuration data"
+    url: "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
     username: "sa"
     password: ""
     driver: "org.h2.Driver"
@@ -113,7 +140,7 @@ databases:
       maxLifetime: 1800000
 ```
 
-### **2. SQL Queries** (`javalin-api-mesh/config/queries.yml`)
+#### **2. SQL Queries** (`javalin-api-mesh/config/queries.yml`)
 ```yaml
 queries:
   stock-trades-all:
@@ -130,7 +157,7 @@ queries:
         required: true
 ```
 
-### **3. API Endpoints** (`javalin-api-mesh/config/api-endpoints.yml`)
+#### **3. API Endpoints** (`javalin-api-mesh/config/api-endpoints.yml`)
 ```yaml
 endpoints:
   stock-trades-list:
@@ -151,12 +178,121 @@ endpoints:
         defaultValue: "1"
 ```
 
+### **Database Configuration (New Approach)**
+
+When `config.source: database`, configurations are stored in database tables instead of YAML files. This approach provides:
+
+- **Centralized Management** - All configurations in one database
+- **Runtime Updates** - Modify configurations without file system access
+- **Version Control** - Database-level configuration versioning
+- **Multi-Environment** - Environment-specific configuration management
+
+#### **Database Schema**
+
+The system automatically creates these tables in the `api-service-config` database:
+
+**`config_databases`** - Database connection configurations
+```sql
+CREATE TABLE config_databases (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    url VARCHAR(500) NOT NULL,
+    username VARCHAR(255),
+    password VARCHAR(255),
+    driver VARCHAR(255) NOT NULL,
+    maximum_pool_size INTEGER DEFAULT 10,
+    minimum_idle INTEGER DEFAULT 2,
+    connection_timeout BIGINT DEFAULT 30000,
+    idle_timeout BIGINT DEFAULT 600000,
+    max_lifetime BIGINT DEFAULT 1800000,
+    leak_detection_threshold BIGINT DEFAULT 60000,
+    connection_test_query VARCHAR(255) DEFAULT 'SELECT 1',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**`config_queries`** - SQL query definitions
+```sql
+CREATE TABLE config_queries (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    database_name VARCHAR(255) NOT NULL,
+    sql_query TEXT NOT NULL,
+    query_type VARCHAR(50) DEFAULT 'SELECT',
+    timeout_seconds INTEGER DEFAULT 30,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**`config_endpoints`** - API endpoint configurations
+```sql
+CREATE TABLE config_endpoints (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    path VARCHAR(500) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    query_name VARCHAR(255) NOT NULL,
+    response_format VARCHAR(50) DEFAULT 'json',
+    cache_enabled BOOLEAN DEFAULT false,
+    cache_ttl_seconds INTEGER DEFAULT 300,
+    rate_limit_enabled BOOLEAN DEFAULT false,
+    rate_limit_requests INTEGER DEFAULT 100,
+    rate_limit_window_seconds INTEGER DEFAULT 60,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+#### **Sample Configuration Data**
+
+When using database source, the system loads sample configurations:
+
+**Database Configurations:**
+- `api-service-config-db` - Main configuration database
+- `metrics-db` - Performance metrics database
+
+**Query Configurations:**
+- `get-all-databases` - Retrieve all database configurations
+- `get-all-queries` - Retrieve all query configurations
+- `get-all-endpoints` - Retrieve all endpoint configurations
+
+**Endpoint Configurations:**
+- `GET /api/config/databases` - List database configurations
+- `GET /api/config/queries` - List query configurations
+- `GET /api/config/endpoints` - List endpoint configurations
+
+#### **Configuration Management APIs**
+
+When using database source, these APIs provide access to stored configurations:
+
+- `GET /api/config/databases` - List all database configurations
+- `GET /api/config/queries` - List all query configurations
+- `GET /api/config/endpoints` - List all endpoint configurations
+
 ### **Configuration Benefits**
+
+**YAML Configuration:**
 - ✅ **Zero-Code API Creation** - Add new endpoints without programming
 - ✅ **Multi-Database Support** - Different endpoints can use different databases
 - ✅ **Automatic Validation** - Configuration integrity checks at startup
 - ✅ **Runtime Inspection** - APIs to view and validate configurations
 - ✅ **Environment Flexibility** - Easy configuration changes per environment
+- ✅ **Version Control** - Track configuration changes in Git
+- ✅ **File-Based Management** - Simple text file editing
+
+**Database Configuration:**
+- ✅ **Centralized Storage** - All configurations in one database
+- ✅ **Runtime Updates** - Modify configurations without file system access
+- ✅ **Multi-Environment Support** - Environment-specific configuration management
+- ✅ **Database-Level Security** - Leverage database access controls
+- ✅ **Audit Trail** - Track configuration changes with timestamps
+- ✅ **Scalable Management** - Handle large numbers of configurations efficiently
+- ✅ **API-Driven Updates** - Programmatic configuration management
 
 ## 🚀 **Getting Started**
 

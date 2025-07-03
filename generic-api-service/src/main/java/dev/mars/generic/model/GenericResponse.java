@@ -1,7 +1,6 @@
 package dev.mars.generic.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import dev.mars.dto.PagedResponse;
 
 import java.util.List;
 import java.util.Map;

@@ -1,8 +1,6 @@
 package dev.mars.database;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import dev.mars.config.GenericApiGuiceModule;
+import dev.mars.test.TestDatabaseManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -13,12 +11,11 @@ import java.sql.SQLException;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Integration tests for DatabaseManager using real components
+ * Integration tests for TestDatabaseManager using real components
  */
 public class DatabaseManagerTest {
 
-    private Injector injector;
-    private DatabaseManager databaseManager;
+    private TestDatabaseManager databaseManager;
 
     @BeforeEach
     void setUp() {
@@ -27,8 +24,7 @@ public class DatabaseManagerTest {
 
         // Create components manually to avoid Guice module complexity in tests
         var genericApiConfig = new dev.mars.config.GenericApiConfig();
-        var databaseConfig = new dev.mars.config.DatabaseConfig(genericApiConfig);
-        databaseManager = new DatabaseManager(databaseConfig);
+        databaseManager = new TestDatabaseManager(genericApiConfig);
         // Initialize schema explicitly since we're not using the Guice module
         databaseManager.initializeSchema();
         // Clean database before each test

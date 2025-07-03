@@ -1,6 +1,5 @@
 package dev.mars.generic.model;
 
-import dev.mars.dto.PagedResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

@@ -39,7 +39,7 @@ public class DatabaseConfig {
             config.setMaxLifetime(1800000);
             
             // Additional HikariCP settings
-            config.setPoolName("StockTradePool");
+            config.setPoolName("ApiServiceConfigPool");
             config.setLeakDetectionThreshold(60000);
             config.setConnectionTestQuery("SELECT 1");
             

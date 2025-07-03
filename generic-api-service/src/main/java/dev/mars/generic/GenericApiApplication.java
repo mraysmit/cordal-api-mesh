@@ -6,7 +6,7 @@ import dev.mars.common.config.ServerConfig;
 import dev.mars.config.GenericApiConfig;
 import dev.mars.config.GenericApiGuiceModule;
 import dev.mars.config.SwaggerConfig;
-import dev.mars.database.DataLoader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,13 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
     @Override
     protected void performPreStartupInitialization() {
-        // Initialize data loader (this will create schema and load sample data)
-        injector.getInstance(DataLoader.class);
+        // Initialize configuration database
+        logger.info("Initializing configuration database");
+        dev.mars.database.DatabaseManager dbManager = injector.getInstance(dev.mars.database.DatabaseManager.class);
+        logger.info("Configuration database initialized successfully");
+
+        // No data loading in production - this is handled in tests only
+        logger.info("Production startup - no data loading performed");
     }
 
     @Override
@@ -266,7 +271,19 @@ public class GenericApiApplication extends BaseJavalinApplication {
         logger.info("   └─ Main Database:    {}", config.getDatabaseUrl());
         logger.info("");
 
+        // Configuration Information
+        logger.info("⚙️  CONFIGURATION:");
+        logger.info("   ├─ Source:           {}", config.getConfigSource());
+        if ("yaml".equals(config.getConfigSource())) {
+            logger.info("   ├─ Databases:        {}", config.getDatabasesConfigPath());
+            logger.info("   ├─ Queries:          {}", config.getQueriesConfigPath());
+            logger.info("   └─ Endpoints:        {}", config.getEndpointsConfigPath());
+        } else {
+            logger.info("   └─ Database Tables:  config_databases, config_queries, config_endpoints");
+        }
+        logger.info("");
+
         logger.info("🎯 Generic API Service ready to accept requests!");
-        logger.info("💡 APIs are dynamically configured via YAML files");
+        logger.info("💡 APIs are dynamically configured via {} source", config.getConfigSource().toUpperCase());
     }
 }

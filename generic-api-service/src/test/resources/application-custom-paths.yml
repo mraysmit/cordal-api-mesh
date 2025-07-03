@@ -3,7 +3,7 @@ server:
   port: 8080
 
 database:
-  url: jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+  url: jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
   username: sa
   password: ""
   driver: org.h2.Driver

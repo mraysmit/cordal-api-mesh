@@ -1,7 +1,7 @@
 package dev.mars.util;
 
 import dev.mars.generic.GenericApiApplication;
-import dev.mars.database.DatabaseManager;
+import dev.mars.test.TestDatabaseManager;
 
 /**
  * Utility class to help with test isolation and cleanup
@@ -10,6 +10,8 @@ public class TestIsolationHelper {
 
     /**
      * Ensures clean state for database-related tests
+     * Note: DatabaseManager is no longer available in production,
+     * so this method now only provides a delay for cleanup
      */
     public static void cleanDatabaseState(GenericApiApplication application) {
         if (application == null) {
@@ -17,14 +19,13 @@ public class TestIsolationHelper {
         }
 
         try {
-            // Clean main database
-            var databaseManager = application.getInjector().getInstance(DatabaseManager.class);
-            databaseManager.cleanDatabase();
+            // DatabaseManager is no longer available in production
+            // Tests should handle their own database cleanup using TestDatabaseManager
 
-            // Small delay to ensure cleanup completes
+            // Small delay to ensure any background cleanup completes
             Thread.sleep(200);
         } catch (Exception e) {
-            // Ignore cleanup errors - test may not have metrics database manager
+            // Ignore cleanup errors
         }
     }
     

@@ -1,18 +1,44 @@
 # Configuration Schema Reference
 
-This document provides a comprehensive reference for all YAML configuration files used in the Javalin API Mesh project.
+This document provides a comprehensive reference for all configuration options used in the Javalin API Mesh project.
 
-## 📋 **Configuration File Overview**
+## 📋 **Configuration Sources Overview**
 
-The system uses three main configuration files located in `javalin-api-mesh/config/`:
+The system supports two configuration sources:
 
-1. **`databases.yml`** - Database connection configurations
-2. **`queries.yml`** - SQL query definitions with parameters
-3. **`api-endpoints.yml`** - REST API endpoint configurations
+### **1. YAML Files** (Default)
+Located in `javalin-api-mesh/config/`:
+- **`databases.yml`** - Database connection configurations
+- **`queries.yml`** - SQL query definitions with parameters
+- **`api-endpoints.yml`** - REST API endpoint configurations
 
-## 🗄️ **Database Configuration Schema** (`databases.yml`)
+### **2. Database Tables** (New)
+Stored in the `api-service-config` database:
+- **`config_databases`** - Database connection configurations
+- **`config_queries`** - SQL query definitions with parameters
+- **`config_endpoints`** - REST API endpoint configurations
 
-### **Structure**
+## ⚙️ **Configuration Source Selection**
+
+Configure the source in `application.yml`:
+
+```yaml
+config:
+  source: yaml      # Options: yaml, database
+  paths:            # YAML file paths (used when source=yaml)
+    databases: "config/databases.yml"
+    queries: "config/queries.yml"
+    endpoints: "config/api-endpoints.yml"
+```
+
+- **`yaml`** (default) - Load configurations from YAML files
+- **`database`** - Load configurations from database tables
+
+## 🗄️ **Database Configuration Schema**
+
+### **YAML Configuration** (`databases.yml`)
+
+#### **Structure**
 ```yaml
 databases:
   <database-key>:

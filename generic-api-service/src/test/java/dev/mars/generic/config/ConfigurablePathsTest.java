@@ -28,10 +28,10 @@ class ConfigurablePathsTest {
     void testDefaultConfigurationPaths() {
         // Test that default paths are used when no custom configuration is provided
         GenericApiConfig config = new GenericApiConfig();
-        
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("config/databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("config/queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("config/api-endpoints.yml");
+
+        assertThat(config.getDatabasesConfigPath()).isEqualTo("../generic-config/databases.yml");
+        assertThat(config.getQueriesConfigPath()).isEqualTo("../generic-config/queries.yml");
+        assertThat(config.getEndpointsConfigPath()).isEqualTo("../generic-config/api-endpoints.yml");
     }
 
     @Test

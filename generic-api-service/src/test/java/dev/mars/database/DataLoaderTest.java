@@ -1,9 +1,8 @@
 package dev.mars.database;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import dev.mars.test.TestDatabaseManager;
+import dev.mars.test.TestDataLoader;
 import dev.mars.config.GenericApiConfig;
-import dev.mars.config.GenericApiGuiceModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -16,13 +15,12 @@ import java.sql.SQLException;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Integration tests for DataLoader using real components
+ * Integration tests for TestDataLoader using real components
  */
 public class DataLoaderTest {
 
-    private Injector injector;
-    private DataLoader dataLoader;
-    private DatabaseManager databaseManager;
+    private TestDataLoader dataLoader;
+    private TestDatabaseManager databaseManager;
     private GenericApiConfig genericApiConfig;
 
     @BeforeEach
@@ -32,13 +30,12 @@ public class DataLoaderTest {
 
         // Create components manually to avoid Guice module complexity in tests
         genericApiConfig = new GenericApiConfig();
-        var databaseConfig = new dev.mars.config.DatabaseConfig(genericApiConfig);
-        databaseManager = new DatabaseManager(databaseConfig);
+        databaseManager = new TestDatabaseManager(genericApiConfig);
         // Initialize schema explicitly since we're not using the Guice module
         databaseManager.initializeSchema();
         // Clean database before each test
         databaseManager.cleanDatabase();
-        dataLoader = new DataLoader(databaseManager, genericApiConfig);
+        dataLoader = new TestDataLoader(databaseManager, genericApiConfig);
     }
 
     @AfterEach

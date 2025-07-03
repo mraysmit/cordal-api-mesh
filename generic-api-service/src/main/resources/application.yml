@@ -1,20 +1,23 @@
+
 server:
   host: localhost
   port: 8080
 
 database:
-  url: jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+  url: jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
   username: sa
   password: ""
   driver: org.h2.Driver
+  createIfMissing: true  # Create database if it doesn't exist
 
 swagger:
   enabled: true
   path: /swagger
 
-# Configuration file paths
+# Configuration source and file paths
 config:
+  source: yaml  # Options: yaml, database
   paths:
-    databases: "config/databases.yml"
-    queries: "config/queries.yml"
-    endpoints: "config/api-endpoints.yml"
+    databases: "../generic-config/databases.yml"
+    queries: "../generic-config/queries.yml"
+    endpoints: "../generic-config/api-endpoints.yml"

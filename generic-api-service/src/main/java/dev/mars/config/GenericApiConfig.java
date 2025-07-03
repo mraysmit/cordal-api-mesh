@@ -37,15 +37,17 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     private void loadDatabaseConfig() {
-        String url = getString("database.url", "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
+        String url = getString("database.url", "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
         String username = getString("database.username", "sa");
         String password = getString("database.password", "");
         String driver = getString("database.driver", "org.h2.Driver");
+        Boolean createIfMissing = getBoolean("database.createIfMissing", true);
 
         database.url = url;
         database.username = username;
         database.password = password;
         database.driver = driver;
+        database.createIfMissing = createIfMissing;
     }
 
     private void loadSwaggerConfig() {
@@ -57,6 +59,10 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     private void loadConfigPaths() {
+        // Load configuration source option
+        String configSource = getString("config.source", "yaml");
+        config.setSource(configSource);
+
         // Try to load from config.paths first (new structure)
         String databasesPath = getString("config.paths.databases", null);
         String queriesPath = getString("config.paths.queries", null);
@@ -64,15 +70,15 @@ public class GenericApiConfig extends BaseConfig {
 
         // Fall back to old structure if not found
         if (databasesPath == null) {
-            databasesPath = getString("config.databasesPath", "config/databases.yml");
+            databasesPath = getString("config.databasesPath", "../generic-config/databases.yml");
         }
 
         if (queriesPath == null) {
-            queriesPath = getString("config.queriesPath", "config/queries.yml");
+            queriesPath = getString("config.queriesPath", "../generic-config/queries.yml");
         }
 
         if (endpointsPath == null) {
-            endpointsPath = getString("config.endpointsPath", "config/api-endpoints.yml");
+            endpointsPath = getString("config.endpointsPath", "../generic-config/api-endpoints.yml");
         }
 
         config.setDatabasesPath(databasesPath);
@@ -81,6 +87,7 @@ public class GenericApiConfig extends BaseConfig {
 
         logger.info("Configured paths: databases={}, queries={}, endpoints={}",
                     databasesPath, queriesPath, endpointsPath);
+        logger.info("Configuration source: {}", configSource);
     }
 
     @Override
@@ -152,6 +159,10 @@ public class GenericApiConfig extends BaseConfig {
     public String getDatabaseDriver() {
         return database.driver;
     }
+
+    public boolean isDatabaseCreateIfMissing() {
+        return database.createIfMissing;
+    }
     
     public boolean isSwaggerEnabled() {
         return swagger.enabled;
@@ -172,14 +183,19 @@ public class GenericApiConfig extends BaseConfig {
     public String getEndpointsConfigPath() {
         return config.endpointsPath;
     }
+
+    public String getConfigSource() {
+        return config.source;
+    }
     
     // Inner classes for configuration structure
     public static class DatabaseSettings {
-        private String url = "jdbc:h2:./data/stocktrades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
+        private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
         private String username = "sa";
         private String password = "";
         private String driver = "org.h2.Driver";
-        
+        private boolean createIfMissing = true;
+
         // Getters and setters
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }
@@ -189,6 +205,8 @@ public class GenericApiConfig extends BaseConfig {
         public void setPassword(String password) { this.password = password; }
         public String getDriver() { return driver; }
         public void setDriver(String driver) { this.driver = driver; }
+        public boolean isCreateIfMissing() { return createIfMissing; }
+        public void setCreateIfMissing(boolean createIfMissing) { this.createIfMissing = createIfMissing; }
     }
     
     public static class SwaggerSettings {
@@ -203,11 +221,14 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     public static class ConfigPaths {
-        private String databasesPath = "config/databases.yml";
-        private String queriesPath = "config/queries.yml";
-        private String endpointsPath = "config/api-endpoints.yml";
+        private String source = "yaml";
+        private String databasesPath = "../generic-config/databases.yml";
+        private String queriesPath = "../generic-config/queries.yml";
+        private String endpointsPath = "../generic-config/api-endpoints.yml";
 
         // Getters and setters
+        public String getSource() { return source; }
+        public void setSource(String source) { this.source = source; }
         public String getDatabasesPath() { return databasesPath; }
         public void setDatabasesPath(String databasesPath) { this.databasesPath = databasesPath; }
         public String getQueriesPath() { return queriesPath; }
