@@ -4,6 +4,8 @@ import dev.mars.test.TestDatabaseManager;
 import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.database.DatabaseConnectionManager;
+import io.javalin.Javalin;
+import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -13,14 +15,12 @@ import java.sql.SQLException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test class for granular configuration APIs
+ * Integration test class for granular configuration APIs
+ * Tests actual HTTP endpoints to catch routing issues like 404 errors
  */
 public class GranularConfigurationApiTest {
 
-    private GenericApiController controller;
-    private GenericApiService genericApiService;
-    private GenericRepository genericRepository;
-    private EndpointConfigurationManager configurationManager;
+    private GenericApiApplication application;
     private TestDatabaseManager databaseManager;
 
     @BeforeEach
@@ -28,24 +28,15 @@ public class GranularConfigurationApiTest {
         // Use test configuration
         System.setProperty("generic.config.file", "application-test.yml");
 
-        // Create components manually to avoid Guice module complexity in tests
+        // Create the full application to test actual HTTP routing
+        application = new GenericApiApplication();
+        application.initializeForTesting(); // Initialize without starting server
+
+        // Initialize test database
         var genericApiConfig = new dev.mars.config.GenericApiConfig();
         databaseManager = new TestDatabaseManager(genericApiConfig);
         databaseManager.initializeSchema();
         databaseManager.cleanDatabase();
-
-        // Create configuration components
-        ConfigurationLoader configurationLoader = new TestConfigurationLoader(genericApiConfig);
-        configurationManager = new EndpointConfigurationManager(configurationLoader);
-
-        // Create database connection manager, repository and service
-        DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
-        genericRepository = new GenericRepository(databaseConnectionManager);
-        genericApiService = new GenericApiService(genericRepository, configurationManager);
-
-        // Create controller
-        dev.mars.generic.management.UsageStatisticsService statisticsService = new dev.mars.generic.management.UsageStatisticsService();
-        controller = new GenericApiController(genericApiService, statisticsService);
     }
 
     @AfterEach
@@ -57,157 +48,207 @@ public class GranularConfigurationApiTest {
 
     @Test
     void testEndpointConfigurationSchema() {
-        var schema = genericApiService.getEndpointConfigurationSchema();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/endpoints/schema");
 
-        assertThat(schema).isNotNull();
-        assertThat(schema.get("configType")).isEqualTo("endpoints");
-        assertThat(schema.get("fields")).isNotNull();
+            // Verify HTTP status is 200, not 404
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
 
-        @SuppressWarnings("unchecked")
-        var fields = (java.util.List<java.util.Map<String, Object>>) schema.get("fields");
-        assertThat(fields).isNotEmpty();
-
-        // Check that essential fields are present
-        var fieldNames = fields.stream()
-            .map(field -> (String) field.get("name"))
-            .toList();
-        assertThat(fieldNames).contains("path", "method", "query");
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"endpoints\"");
+            assertThat(responseBody).contains("\"fields\":");
+        });
     }
 
     @Test
     void testEndpointParameters() {
-        var parameters = genericApiService.getEndpointParameters();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/endpoints/parameters");
 
-        assertThat(parameters).isNotNull();
-        assertThat(parameters.get("configType")).isEqualTo("endpoints");
-        assertThat(parameters.get("parameters")).isNotNull();
-        assertThat(parameters.get("totalEndpoints")).isNotNull();
-        assertThat(parameters.get("endpointsWithParameters")).isNotNull();
+            // Verify HTTP status is 200, not 404
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"endpoints\"");
+            assertThat(responseBody).contains("\"parameters\":");
+        });
     }
 
     @Test
     void testEndpointDatabaseConnections() {
-        var connections = genericApiService.getEndpointDatabaseConnections();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/endpoints/database-connections");
 
-        assertThat(connections).isNotNull();
-        assertThat(connections.get("configType")).isEqualTo("endpoints");
-        assertThat(connections.get("endpointDatabases")).isNotNull();
-        assertThat(connections.get("referencedDatabases")).isNotNull();
-        assertThat(connections.get("totalEndpoints")).isNotNull();
+            // Verify HTTP status is 200, not 404
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"endpoints\"");
+            assertThat(responseBody).contains("\"endpointDatabases\":");
+        });
     }
 
     @Test
     void testEndpointConfigurationSummary() {
-        var summary = genericApiService.getEndpointConfigurationSummary();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/endpoints/summary");
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.get("configType")).isEqualTo("endpoints");
-        assertThat(summary.get("totalCount")).isNotNull();
-        assertThat(summary.get("byMethod")).isNotNull();
-        assertThat(summary.get("referencedQueries")).isNotNull();
-        assertThat(summary.get("referencedDatabases")).isNotNull();
+            // Verify HTTP status is 200, not 404
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"endpoints\"");
+            assertThat(responseBody).contains("\"totalCount\":");
+        });
     }
 
     @Test
     void testQueryConfigurationSchema() {
-        var schema = genericApiService.getQueryConfigurationSchema();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/queries/schema");
 
-        assertThat(schema).isNotNull();
-        assertThat(schema.get("configType")).isEqualTo("queries");
-        assertThat(schema.get("fields")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
 
-        @SuppressWarnings("unchecked")
-        var fields = (java.util.List<java.util.Map<String, Object>>) schema.get("fields");
-        assertThat(fields).isNotEmpty();
-
-        // Check that essential fields are present
-        var fieldNames = fields.stream()
-            .map(field -> (String) field.get("name"))
-            .toList();
-        assertThat(fieldNames).contains("name", "sql", "database");
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"queries\"");
+            assertThat(responseBody).contains("\"fields\":");
+        });
     }
 
     @Test
     void testQueryParameters() {
-        var parameters = genericApiService.getQueryParameters();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/queries/parameters");
 
-        assertThat(parameters).isNotNull();
-        assertThat(parameters.get("configType")).isEqualTo("queries");
-        assertThat(parameters.get("parameters")).isNotNull();
-        assertThat(parameters.get("totalQueries")).isNotNull();
-        assertThat(parameters.get("queriesWithParameters")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"queries\"");
+            assertThat(responseBody).contains("\"parameters\":");
+        });
     }
 
     @Test
     void testQueryDatabaseConnections() {
-        var connections = genericApiService.getQueryDatabaseConnections();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/queries/database-connections");
 
-        assertThat(connections).isNotNull();
-        assertThat(connections.get("configType")).isEqualTo("queries");
-        assertThat(connections.get("queryDatabases")).isNotNull();
-        assertThat(connections.get("referencedDatabases")).isNotNull();
-        assertThat(connections.get("totalQueries")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"queries\"");
+            assertThat(responseBody).contains("\"queryDatabases\":");
+        });
     }
 
     @Test
     void testQueryConfigurationSummary() {
-        var summary = genericApiService.getQueryConfigurationSummary();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/queries/summary");
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.get("configType")).isEqualTo("queries");
-        assertThat(summary.get("totalCount")).isNotNull();
-        assertThat(summary.get("referencedDatabases")).isNotNull();
-        assertThat(summary.get("parameterCounts")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"queries\"");
+            assertThat(responseBody).contains("\"totalCount\":");
+        });
     }
 
     @Test
     void testDatabaseConfigurationSchema() {
-        var schema = genericApiService.getDatabaseConfigurationSchema();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/databases/schema");
 
-        assertThat(schema).isNotNull();
-        assertThat(schema.get("configType")).isEqualTo("databases");
-        assertThat(schema.get("fields")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
 
-        @SuppressWarnings("unchecked")
-        var fields = (java.util.List<java.util.Map<String, Object>>) schema.get("fields");
-        assertThat(fields).isNotEmpty();
-
-        // Check that essential fields are present
-        var fieldNames = fields.stream()
-            .map(field -> (String) field.get("name"))
-            .toList();
-        assertThat(fieldNames).contains("name", "url", "driver");
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"databases\"");
+            assertThat(responseBody).contains("\"fields\":");
+        });
     }
 
     @Test
     void testDatabaseParameters() {
-        var parameters = genericApiService.getDatabaseParameters();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/databases/parameters");
 
-        assertThat(parameters).isNotNull();
-        assertThat(parameters.get("configType")).isEqualTo("databases");
-        assertThat(parameters.get("poolConfigurations")).isNotNull();
-        assertThat(parameters.get("totalDatabases")).isNotNull();
-        assertThat(parameters.get("databasesWithPoolConfig")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"databases\"");
+            assertThat(responseBody).contains("\"poolConfigurations\":");
+        });
     }
 
     @Test
     void testDatabaseConnections() {
-        var connections = genericApiService.getDatabaseConnections();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/databases/connections");
 
-        assertThat(connections).isNotNull();
-        assertThat(connections.get("configType")).isEqualTo("databases");
-        assertThat(connections.get("connections")).isNotNull();
-        assertThat(connections.get("totalDatabases")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"databases\"");
+            assertThat(responseBody).contains("\"connections\":");
+        });
     }
 
     @Test
     void testDatabaseConfigurationSummary() {
-        var summary = genericApiService.getDatabaseConfigurationSummary();
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/databases/summary");
 
-        assertThat(summary).isNotNull();
-        assertThat(summary.get("configType")).isEqualTo("databases");
-        assertThat(summary.get("totalCount")).isNotNull();
-        assertThat(summary.get("uniqueDrivers")).isNotNull();
-        assertThat(summary.get("driverTypes")).isNotNull();
+            // Verify HTTP status is 200, not 404 - THIS IS THE CRITICAL TEST!
+            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.body()).isNotNull();
+
+            // Read response body once and verify it contains expected JSON structure
+            String responseBody = response.body().string();
+            assertThat(responseBody).contains("\"configType\":\"databases\"");
+            assertThat(responseBody).contains("\"totalCount\":");
+        });
+    }
+
+    /**
+     * Test to verify that the tests can actually catch 404 errors
+     * This test should fail if there's a routing issue
+     */
+    @Test
+    void testNonExistentEndpointReturns404() {
+        JavalinTest.test(application.getApp(), (server, client) -> {
+            var response = client.get("/api/generic/config/nonexistent/endpoint");
+
+            // This should return 404 - proving our tests can catch routing issues
+            assertThat(response.code()).isEqualTo(404);
+        });
     }
 }

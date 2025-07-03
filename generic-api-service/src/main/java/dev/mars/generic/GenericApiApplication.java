@@ -183,18 +183,8 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         // Configuration endpoints
         app.get("/api/generic/config", genericApiController::getCompleteConfiguration);
-        app.get("/api/generic/config/queries", genericApiController::getQueryConfigurations);
-        app.get("/api/generic/config/queries/{queryName}", genericApiController::getQueryConfiguration);
-        app.get("/api/generic/config/databases", genericApiController::getDatabaseConfigurations);
-        app.get("/api/generic/config/databases/{databaseName}", genericApiController::getDatabaseConfiguration);
-        app.get("/api/generic/config/relationships", genericApiController::getConfigurationRelationships);
 
-        // Configuration validation endpoints
-        app.get("/api/generic/config/validate", genericApiController::validateConfigurations);
-        app.get("/api/generic/config/validate/endpoints", genericApiController::validateEndpointConfigurations);
-        app.get("/api/generic/config/validate/queries", genericApiController::validateQueryConfigurations);
-        app.get("/api/generic/config/validate/databases", genericApiController::validateDatabaseConfigurations);
-        app.get("/api/generic/config/validate/relationships", genericApiController::validateConfigurationRelationships);
+        // ========== GRANULAR CONFIGURATION ENDPOINTS (MUST BE BEFORE PARAMETERIZED ROUTES) ==========
 
         // Granular configuration endpoints - Endpoints
         app.get("/api/generic/config/endpoints/schema", genericApiController::getEndpointConfigurationSchema);
@@ -213,6 +203,21 @@ public class GenericApiApplication extends BaseJavalinApplication {
         app.get("/api/generic/config/databases/parameters", genericApiController::getDatabaseParameters);
         app.get("/api/generic/config/databases/connections", genericApiController::getDatabaseConnections);
         app.get("/api/generic/config/databases/summary", genericApiController::getDatabaseConfigurationSummary);
+
+        // ========== PARAMETERIZED CONFIGURATION ENDPOINTS (MUST BE AFTER SPECIFIC ROUTES) ==========
+
+        app.get("/api/generic/config/queries", genericApiController::getQueryConfigurations);
+        app.get("/api/generic/config/queries/{queryName}", genericApiController::getQueryConfiguration);
+        app.get("/api/generic/config/databases", genericApiController::getDatabaseConfigurations);
+        app.get("/api/generic/config/databases/{databaseName}", genericApiController::getDatabaseConfiguration);
+        app.get("/api/generic/config/relationships", genericApiController::getConfigurationRelationships);
+
+        // Configuration validation endpoints
+        app.get("/api/generic/config/validate", genericApiController::validateConfigurations);
+        app.get("/api/generic/config/validate/endpoints", genericApiController::validateEndpointConfigurations);
+        app.get("/api/generic/config/validate/queries", genericApiController::validateQueryConfigurations);
+        app.get("/api/generic/config/validate/databases", genericApiController::validateDatabaseConfigurations);
+        app.get("/api/generic/config/validate/relationships", genericApiController::validateConfigurationRelationships);
 
         // ========== COMPREHENSIVE MANAGEMENT ENDPOINTS ==========
 
