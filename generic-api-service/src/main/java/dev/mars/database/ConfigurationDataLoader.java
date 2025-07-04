@@ -1,6 +1,10 @@
 package dev.mars.database;
 
 import dev.mars.config.GenericApiConfig;
+import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.ApiEndpointConfig;
+import dev.mars.generic.config.DatabaseConfig;
+import dev.mars.generic.config.QueryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,44 +12,52 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
- * Data loader for populating the database with sample configuration data
- * This is used when config.source is set to "database"
+ * Data loader for populating the database with configuration data from YAML files
+ * This is used when config.source is set to "database" and config.loadFromYaml is true
  */
 public class ConfigurationDataLoader {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationDataLoader.class);
-    
+
     private final DatabaseManager databaseManager;
     private final GenericApiConfig genericApiConfig;
-    
-    public ConfigurationDataLoader(DatabaseManager databaseManager, GenericApiConfig genericApiConfig) {
+    private final ConfigurationLoader configurationLoader;
+
+    public ConfigurationDataLoader(DatabaseManager databaseManager, GenericApiConfig genericApiConfig, ConfigurationLoader configurationLoader) {
         this.databaseManager = databaseManager;
         this.genericApiConfig = genericApiConfig;
+        this.configurationLoader = configurationLoader;
     }
     
     /**
-     * Load sample configuration data if needed and if config source is database
+     * Load configuration data from YAML files if needed and if configured to do so
      */
-    public void loadSampleConfigurationDataIfNeeded() {
+    public void loadConfigurationDataIfNeeded() {
         if (!"database".equals(genericApiConfig.getConfigSource())) {
             logger.info("Configuration source is not database, skipping configuration data loading");
             return;
         }
-        
-        logger.info("Loading sample configuration data for API service");
-        
+
+        if (!genericApiConfig.isLoadConfigFromYaml()) {
+            logger.info("Loading configuration from YAML is disabled, skipping configuration data loading");
+            return;
+        }
+
+        logger.info("Loading configuration data from YAML files for API service");
+
         try {
             if (isConfigurationDataAlreadyLoaded()) {
                 logger.info("Configuration data already exists, skipping data loading");
                 return;
             }
-            
-            loadSampleConfigurationData();
-            
+
+            loadConfigurationDataFromYaml();
+
         } catch (Exception e) {
-            logger.error("Failed to load sample configuration data", e);
-            throw new RuntimeException("Failed to load sample configuration data", e);
+            logger.error("Failed to load configuration data from YAML files", e);
+            throw new RuntimeException("Failed to load configuration data from YAML files", e);
         }
     }
     
@@ -65,148 +77,148 @@ public class ConfigurationDataLoader {
         }
     }
     
-    private void loadSampleConfigurationData() throws SQLException {
-        logger.info("Loading sample configuration data");
-        
+    private void loadConfigurationDataFromYaml() throws SQLException {
+        logger.info("Loading configuration data from YAML files");
+
         try (Connection connection = databaseManager.getConnection()) {
             connection.setAutoCommit(false);
-            
-            // Load sample database configurations
-            loadSampleDatabaseConfigurations(connection);
-            
-            // Load sample query configurations
-            loadSampleQueryConfigurations(connection);
-            
-            // Load sample endpoint configurations
-            loadSampleEndpointConfigurations(connection);
-            
+
+            // Load database configurations from YAML
+            loadDatabaseConfigurationsFromYaml(connection);
+
+            // Load query configurations from YAML
+            loadQueryConfigurationsFromYaml(connection);
+
+            // Load endpoint configurations from YAML
+            loadEndpointConfigurationsFromYaml(connection);
+
             connection.commit();
-            logger.info("Successfully loaded sample configuration data");
-            
+            logger.info("Successfully loaded configuration data from YAML files");
+
         } catch (SQLException e) {
-            logger.error("Failed to load sample configuration data", e);
+            logger.error("Failed to load configuration data from YAML files", e);
             throw e;
         }
     }
     
-    private void loadSampleDatabaseConfigurations(Connection connection) throws SQLException {
+    private void loadDatabaseConfigurationsFromYaml(Connection connection) throws SQLException {
+        logger.info("Loading database configurations from YAML");
+
+        Map<String, DatabaseConfig> databases = configurationLoader.loadDatabaseConfigurations();
+
         String insertSql = """
             INSERT INTO config_databases (name, description, url, username, password, driver,
                                         maximum_pool_size, minimum_idle, connection_timeout,
                                         idle_timeout, max_lifetime, leak_detection_threshold,
-                                        connection_test_query) 
+                                        connection_test_query)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
-        
-        try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
-            // Sample database configuration
-            statement.setString(1, "api-service-config-db");
-            statement.setString(2, "Main database for API service configuration data");
-            statement.setString(3, "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
-            statement.setString(4, "sa");
-            statement.setString(5, "");
-            statement.setString(6, "org.h2.Driver");
-            statement.setInt(7, 10);
-            statement.setInt(8, 2);
-            statement.setLong(9, 30000);
-            statement.setLong(10, 600000);
-            statement.setLong(11, 1800000);
-            statement.setLong(12, 60000);
-            statement.setString(13, "SELECT 1");
-            statement.executeUpdate();
-            
 
-            
-            logger.info("Loaded sample database configurations");
+        try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
+            for (Map.Entry<String, DatabaseConfig> entry : databases.entrySet()) {
+                String key = entry.getKey();
+                DatabaseConfig config = entry.getValue();
+
+                statement.setString(1, key);
+                statement.setString(2, config.getDescription());
+                statement.setString(3, config.getUrl());
+                statement.setString(4, config.getUsername());
+                statement.setString(5, config.getPassword());
+                statement.setString(6, config.getDriver());
+
+                // Handle pool configuration - use defaults if pool is null
+                DatabaseConfig.PoolConfig pool = config.getPool();
+                if (pool != null) {
+                    statement.setInt(7, pool.getMaximumPoolSize());
+                    statement.setInt(8, pool.getMinimumIdle());
+                    statement.setLong(9, pool.getConnectionTimeout());
+                    statement.setLong(10, pool.getIdleTimeout());
+                    statement.setLong(11, pool.getMaxLifetime());
+                    statement.setLong(12, pool.getLeakDetectionThreshold());
+                    statement.setString(13, pool.getConnectionTestQuery());
+                } else {
+                    // Use default values if pool config is not provided
+                    statement.setInt(7, 10);
+                    statement.setInt(8, 2);
+                    statement.setLong(9, 30000);
+                    statement.setLong(10, 600000);
+                    statement.setLong(11, 1800000);
+                    statement.setLong(12, 60000);
+                    statement.setString(13, "SELECT 1");
+                }
+                statement.executeUpdate();
+
+                logger.debug("Loaded database configuration: {}", key);
+            }
+
+            logger.info("Loaded {} database configurations from YAML", databases.size());
         }
     }
     
-    private void loadSampleQueryConfigurations(Connection connection) throws SQLException {
+    private void loadQueryConfigurationsFromYaml(Connection connection) throws SQLException {
+        logger.info("Loading query configurations from YAML");
+
+        Map<String, QueryConfig> queries = configurationLoader.loadQueryConfigurations();
+
         String insertSql = """
-            INSERT INTO config_queries (name, description, database_name, sql_query, query_type, timeout_seconds) 
+            INSERT INTO config_queries (name, description, database_name, sql_query, query_type, timeout_seconds)
             VALUES (?, ?, ?, ?, ?, ?)
             """;
-        
+
         try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
-            // Sample query configurations
-            statement.setString(1, "get-all-databases");
-            statement.setString(2, "Get all database configurations");
-            statement.setString(3, "api-service-config-db");
-            statement.setString(4, "SELECT * FROM config_databases ORDER BY name");
-            statement.setString(5, "SELECT");
-            statement.setInt(6, 30);
-            statement.executeUpdate();
-            
-            statement.setString(1, "get-all-queries");
-            statement.setString(2, "Get all query configurations");
-            statement.setString(3, "api-service-config-db");
-            statement.setString(4, "SELECT * FROM config_queries ORDER BY name");
-            statement.setString(5, "SELECT");
-            statement.setInt(6, 30);
-            statement.executeUpdate();
-            
-            statement.setString(1, "get-all-endpoints");
-            statement.setString(2, "Get all endpoint configurations");
-            statement.setString(3, "api-service-config-db");
-            statement.setString(4, "SELECT * FROM config_endpoints ORDER BY name");
-            statement.setString(5, "SELECT");
-            statement.setInt(6, 30);
-            statement.executeUpdate();
-            
-            logger.info("Loaded sample query configurations");
+            for (Map.Entry<String, QueryConfig> entry : queries.entrySet()) {
+                String key = entry.getKey();
+                QueryConfig config = entry.getValue();
+
+                statement.setString(1, key);
+                statement.setString(2, config.getDescription());
+                statement.setString(3, config.getDatabase());
+                statement.setString(4, config.getSql());
+                statement.setString(5, "SELECT"); // Default query type since QueryConfig doesn't have getType()
+                statement.setInt(6, 30); // Default timeout since QueryConfig doesn't have getTimeoutSeconds()
+                statement.executeUpdate();
+
+                logger.debug("Loaded query configuration: {}", key);
+            }
+
+            logger.info("Loaded {} query configurations from YAML", queries.size());
         }
     }
     
-    private void loadSampleEndpointConfigurations(Connection connection) throws SQLException {
+    private void loadEndpointConfigurationsFromYaml(Connection connection) throws SQLException {
+        logger.info("Loading endpoint configurations from YAML");
+
+        Map<String, ApiEndpointConfig> endpoints = configurationLoader.loadEndpointConfigurations();
+
         String insertSql = """
             INSERT INTO config_endpoints (name, description, path, method, query_name, response_format,
                                         cache_enabled, cache_ttl_seconds, rate_limit_enabled,
-                                        rate_limit_requests, rate_limit_window_seconds) 
+                                        rate_limit_requests, rate_limit_window_seconds)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
-        
+
         try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
-            // Sample endpoint configurations
-            statement.setString(1, "list-databases");
-            statement.setString(2, "List all database configurations");
-            statement.setString(3, "/api/config/databases");
-            statement.setString(4, "GET");
-            statement.setString(5, "get-all-databases");
-            statement.setString(6, "json");
-            statement.setBoolean(7, true);
-            statement.setInt(8, 300);
-            statement.setBoolean(9, true);
-            statement.setInt(10, 100);
-            statement.setInt(11, 60);
-            statement.executeUpdate();
-            
-            statement.setString(1, "list-queries");
-            statement.setString(2, "List all query configurations");
-            statement.setString(3, "/api/config/queries");
-            statement.setString(4, "GET");
-            statement.setString(5, "get-all-queries");
-            statement.setString(6, "json");
-            statement.setBoolean(7, true);
-            statement.setInt(8, 300);
-            statement.setBoolean(9, true);
-            statement.setInt(10, 100);
-            statement.setInt(11, 60);
-            statement.executeUpdate();
-            
-            statement.setString(1, "list-endpoints");
-            statement.setString(2, "List all endpoint configurations");
-            statement.setString(3, "/api/config/endpoints");
-            statement.setString(4, "GET");
-            statement.setString(5, "get-all-endpoints");
-            statement.setString(6, "json");
-            statement.setBoolean(7, true);
-            statement.setInt(8, 300);
-            statement.setBoolean(9, true);
-            statement.setInt(10, 100);
-            statement.setInt(11, 60);
-            statement.executeUpdate();
-            
-            logger.info("Loaded sample endpoint configurations");
+            for (Map.Entry<String, ApiEndpointConfig> entry : endpoints.entrySet()) {
+                String key = entry.getKey();
+                ApiEndpointConfig config = entry.getValue();
+
+                statement.setString(1, key);
+                statement.setString(2, config.getDescription());
+                statement.setString(3, config.getPath());
+                statement.setString(4, config.getMethod());
+                statement.setString(5, config.getQuery());
+                statement.setString(6, "json"); // Default response format since ApiEndpointConfig doesn't have getResponseFormat()
+                statement.setBoolean(7, false); // Default cache disabled since ApiEndpointConfig doesn't have isCacheEnabled()
+                statement.setInt(8, 300); // Default cache TTL since ApiEndpointConfig doesn't have getCacheTtlSeconds()
+                statement.setBoolean(9, false); // Default rate limit disabled since ApiEndpointConfig doesn't have isRateLimitEnabled()
+                statement.setInt(10, 100); // Default rate limit requests since ApiEndpointConfig doesn't have getRateLimitRequests()
+                statement.setInt(11, 60); // Default rate limit window since ApiEndpointConfig doesn't have getRateLimitWindowSeconds()
+                statement.executeUpdate();
+
+                logger.debug("Loaded endpoint configuration: {}", key);
+            }
+
+            logger.info("Loaded {} endpoint configurations from YAML", endpoints.size());
         }
     }
 }

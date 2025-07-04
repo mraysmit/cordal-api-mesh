@@ -116,10 +116,12 @@ public abstract class BaseJavalinApplication {
      */
     protected void createJavalinApp(ServerConfig serverConfig) {
         logger.info("Creating Javalin application");
-        
+
         // Configure Jackson for JSON serialization
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        // Configure to write dates as ISO-8601 strings instead of timestamps
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         
         app = Javalin.create(config -> {
             // Configure JSON mapper

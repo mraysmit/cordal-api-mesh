@@ -35,8 +35,11 @@ public class DatabaseConfigurationSourceTest {
         
         // Clean database before each test
         databaseManager.cleanDatabase();
-        
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig);
+
+        // Create ConfigurationLoader for the data loader
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(genericApiConfig);
+
+        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
     }
 
     @AfterEach
@@ -48,10 +51,11 @@ public class DatabaseConfigurationSourceTest {
     void testLoadConfigurationDataWhenSourceIsDatabase() {
         // Create a test configuration that sets config.source to database
         TestGenericApiConfig testConfig = new TestGenericApiConfig("database");
-        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig);
-        
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(testConfig);
+        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig, configurationLoader);
+
         // Act
-        testLoader.loadSampleConfigurationDataIfNeeded();
+        testLoader.loadConfigurationDataIfNeeded();
 
         // Assert - verify database configurations were loaded
         assertThatCode(() -> {
@@ -71,19 +75,21 @@ public class DatabaseConfigurationSourceTest {
     void testDatabaseConfigurationsContent() {
         // Create a test configuration that sets config.source to database
         TestGenericApiConfig testConfig = new TestGenericApiConfig("database");
-        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig);
-        
-        // Load sample data
-        testLoader.loadSampleConfigurationDataIfNeeded();
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(testConfig);
+        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig, configurationLoader);
 
-        // Verify specific database configurations
+        // Load configuration data
+        testLoader.loadConfigurationDataIfNeeded();
+
+        // Verify specific database configurations from YAML
         assertThatCode(() -> {
             try (Connection connection = databaseManager.getConnection();
                  PreparedStatement statement = connection.prepareStatement(
                      "SELECT name, description, url, driver FROM config_databases ORDER BY name");
                  ResultSet resultSet = statement.executeQuery()) {
 
-                boolean foundApiServiceConfig = false;
+                boolean foundStockTradesDb = false;
+                boolean foundMetricsDb = false;
 
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
@@ -91,16 +97,19 @@ public class DatabaseConfigurationSourceTest {
                     String url = resultSet.getString("url");
                     String driver = resultSet.getString("driver");
 
-                    if ("api-service-config-db".equals(name)) {
-                        foundApiServiceConfig = true;
-                        assertThat(description).contains("API service configuration");
-                        assertThat(url).contains("api-service-config");
+                    if ("stock-trades-db".equals(name)) {
+                        foundStockTradesDb = true;
+                        assertThat(url).contains("testdb");
+                        assertThat(driver).isEqualTo("org.h2.Driver");
+                    } else if ("metrics-db".equals(name)) {
+                        foundMetricsDb = true;
+                        assertThat(url).contains("testmetricsdb");
                         assertThat(driver).isEqualTo("org.h2.Driver");
                     }
                 }
 
-                assertThat(foundApiServiceConfig).isTrue();
-                // metrics-db should NOT be present (it's managed by metrics-service)
+                assertThat(foundStockTradesDb).isTrue();
+                assertThat(foundMetricsDb).isTrue();
             }
         }).doesNotThrowAnyException();
     }
@@ -109,10 +118,11 @@ public class DatabaseConfigurationSourceTest {
     void testQueryConfigurationsContent() {
         // Create a test configuration that sets config.source to database
         TestGenericApiConfig testConfig = new TestGenericApiConfig("database");
-        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig);
-        
-        // Load sample data
-        testLoader.loadSampleConfigurationDataIfNeeded();
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(testConfig);
+        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig, configurationLoader);
+
+        // Load configuration data
+        testLoader.loadConfigurationDataIfNeeded();
 
         // Verify query configurations
         assertThatCode(() -> {
@@ -121,9 +131,9 @@ public class DatabaseConfigurationSourceTest {
                      "SELECT name, database_name, sql_query, query_type FROM config_queries ORDER BY name");
                  ResultSet resultSet = statement.executeQuery()) {
 
-                boolean foundGetAllDatabases = false;
-                boolean foundGetAllQueries = false;
-                boolean foundGetAllEndpoints = false;
+                boolean foundTestQuery = false;
+                boolean foundTestCountQuery = false;
+                boolean foundStockTradesAll = false;
 
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
@@ -131,25 +141,25 @@ public class DatabaseConfigurationSourceTest {
                     String sqlQuery = resultSet.getString("sql_query");
                     String queryType = resultSet.getString("query_type");
 
-                    if ("get-all-databases".equals(name)) {
-                        foundGetAllDatabases = true;
-                        assertThat(databaseName).isEqualTo("api-service-config-db");
-                        assertThat(sqlQuery).contains("SELECT * FROM config_databases");
+                    if ("test-query".equals(name)) {
+                        foundTestQuery = true;
+                        assertThat(databaseName).isEqualTo("stock-trades-db");
+                        assertThat(sqlQuery).contains("stock_trades");
                         assertThat(queryType).isEqualTo("SELECT");
-                    } else if ("get-all-queries".equals(name)) {
-                        foundGetAllQueries = true;
-                        assertThat(databaseName).isEqualTo("api-service-config-db");
-                        assertThat(sqlQuery).contains("SELECT * FROM config_queries");
-                    } else if ("get-all-endpoints".equals(name)) {
-                        foundGetAllEndpoints = true;
-                        assertThat(databaseName).isEqualTo("api-service-config-db");
-                        assertThat(sqlQuery).contains("SELECT * FROM config_endpoints");
+                    } else if ("test-count-query".equals(name)) {
+                        foundTestCountQuery = true;
+                        assertThat(databaseName).isEqualTo("stock-trades-db");
+                        assertThat(sqlQuery).contains("COUNT(*)");
+                    } else if ("stock-trades-all".equals(name)) {
+                        foundStockTradesAll = true;
+                        assertThat(databaseName).isEqualTo("stock-trades-db");
+                        assertThat(sqlQuery).contains("stock_trades");
                     }
                 }
 
-                assertThat(foundGetAllDatabases).isTrue();
-                assertThat(foundGetAllQueries).isTrue();
-                assertThat(foundGetAllEndpoints).isTrue();
+                assertThat(foundTestQuery).isTrue();
+                assertThat(foundTestCountQuery).isTrue();
+                assertThat(foundStockTradesAll).isTrue();
             }
         }).doesNotThrowAnyException();
     }
@@ -158,10 +168,11 @@ public class DatabaseConfigurationSourceTest {
     void testEndpointConfigurationsContent() {
         // Create a test configuration that sets config.source to database
         TestGenericApiConfig testConfig = new TestGenericApiConfig("database");
-        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig);
-        
-        // Load sample data
-        testLoader.loadSampleConfigurationDataIfNeeded();
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(testConfig);
+        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig, configurationLoader);
+
+        // Load configuration data
+        testLoader.loadConfigurationDataIfNeeded();
 
         // Verify endpoint configurations
         assertThatCode(() -> {
@@ -170,9 +181,9 @@ public class DatabaseConfigurationSourceTest {
                      "SELECT name, path, method, query_name, response_format FROM config_endpoints ORDER BY name");
                  ResultSet resultSet = statement.executeQuery()) {
 
-                boolean foundListDatabases = false;
-                boolean foundListQueries = false;
-                boolean foundListEndpoints = false;
+                boolean foundTestEndpoint = false;
+                boolean foundStockTradesList = false;
+                boolean foundStockTradesBySymbol = false;
 
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
@@ -181,26 +192,26 @@ public class DatabaseConfigurationSourceTest {
                     String queryName = resultSet.getString("query_name");
                     String responseFormat = resultSet.getString("response_format");
 
-                    if ("list-databases".equals(name)) {
-                        foundListDatabases = true;
-                        assertThat(path).isEqualTo("/api/config/databases");
+                    if ("test-endpoint".equals(name)) {
+                        foundTestEndpoint = true;
+                        assertThat(path).isEqualTo("/api/test/endpoint");
                         assertThat(method).isEqualTo("GET");
-                        assertThat(queryName).isEqualTo("get-all-databases");
+                        assertThat(queryName).isEqualTo("test-query");
                         assertThat(responseFormat).isEqualTo("json");
-                    } else if ("list-queries".equals(name)) {
-                        foundListQueries = true;
-                        assertThat(path).isEqualTo("/api/config/queries");
-                        assertThat(queryName).isEqualTo("get-all-queries");
-                    } else if ("list-endpoints".equals(name)) {
-                        foundListEndpoints = true;
-                        assertThat(path).isEqualTo("/api/config/endpoints");
-                        assertThat(queryName).isEqualTo("get-all-endpoints");
+                    } else if ("stock-trades-list".equals(name)) {
+                        foundStockTradesList = true;
+                        assertThat(path).isEqualTo("/api/generic/stock-trades");
+                        assertThat(queryName).isEqualTo("stock-trades-all");
+                    } else if ("stock-trades-by-symbol".equals(name)) {
+                        foundStockTradesBySymbol = true;
+                        assertThat(path).isEqualTo("/api/generic/stock-trades/symbol/{symbol}");
+                        assertThat(queryName).isEqualTo("stock-trades-by-symbol");
                     }
                 }
 
-                assertThat(foundListDatabases).isTrue();
-                assertThat(foundListQueries).isTrue();
-                assertThat(foundListEndpoints).isTrue();
+                assertThat(foundTestEndpoint).isTrue();
+                assertThat(foundStockTradesList).isTrue();
+                assertThat(foundStockTradesBySymbol).isTrue();
             }
         }).doesNotThrowAnyException();
     }
@@ -213,10 +224,11 @@ public class DatabaseConfigurationSourceTest {
         freshDatabaseManager.initializeSchema();
         freshDatabaseManager.cleanDatabase();
 
-        ConfigurationDataLoader yamlDataLoader = new ConfigurationDataLoader(freshDatabaseManager, yamlConfig);
+        dev.mars.generic.config.ConfigurationLoader yamlConfigurationLoader = new dev.mars.generic.config.ConfigurationLoader(yamlConfig);
+        ConfigurationDataLoader yamlDataLoader = new ConfigurationDataLoader(freshDatabaseManager, yamlConfig, yamlConfigurationLoader);
 
         // Use YAML config which should not load data to database
-        yamlDataLoader.loadSampleConfigurationDataIfNeeded();
+        yamlDataLoader.loadConfigurationDataIfNeeded();
 
         // Assert - verify no data was loaded
         assertThatCode(() -> {
@@ -236,16 +248,17 @@ public class DatabaseConfigurationSourceTest {
     void testDataNotLoadedTwice() {
         // Create a test configuration that sets config.source to database
         TestGenericApiConfig testConfig = new TestGenericApiConfig("database");
-        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig);
-        
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(testConfig);
+        ConfigurationDataLoader testLoader = new ConfigurationDataLoader(databaseManager, testConfig, configurationLoader);
+
         // Load data first time
-        testLoader.loadSampleConfigurationDataIfNeeded();
-        
+        testLoader.loadConfigurationDataIfNeeded();
+
         // Get count after first load
         int firstCount = getConfigDatabasesCount();
-        
+
         // Load data second time
-        testLoader.loadSampleConfigurationDataIfNeeded();
+        testLoader.loadConfigurationDataIfNeeded();
         
         // Get count after second load
         int secondCount = getConfigDatabasesCount();
@@ -282,6 +295,12 @@ public class DatabaseConfigurationSourceTest {
         @Override
         public String getConfigSource() {
             return configSource;
+        }
+
+        @Override
+        public boolean isLoadConfigFromYaml() {
+            // Enable loading from YAML when config source is database for testing
+            return "database".equals(configSource);
         }
     }
 }

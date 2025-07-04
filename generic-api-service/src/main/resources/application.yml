@@ -21,7 +21,11 @@ swagger:
 # Configuration source and file paths
 config:
   source: yaml  # Options: yaml, database
+  # Load configuration data from YAML files into database (only when source is database)
+  loadFromYaml: false  # Set to true to populate database from YAML files on startup
   paths:
-    databases: "../generic-config/databases.yml"
-    queries: "../generic-config/queries.yml"
-    endpoints: "../generic-config/api-endpoints.yml"
+    # Configuration files are located in the generic-config folder at project root
+    # Using ./ prefix to indicate external files relative to working directory
+    databases: "./generic-config/databases.yml"
+    queries: "./generic-config/queries.yml"
+    endpoints: "./generic-config/api-endpoints.yml"

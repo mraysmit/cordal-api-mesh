@@ -149,13 +149,14 @@ public class GenericApiGuiceModule extends AbstractModule {
     @Provides
     @Singleton
     public ConfigurationDataLoader provideConfigurationDataLoader(DatabaseManager databaseManager,
-                                                                GenericApiConfig genericApiConfig) {
+                                                                GenericApiConfig genericApiConfig,
+                                                                dev.mars.generic.config.ConfigurationLoader configurationLoader) {
         logger.info("Creating ConfigurationDataLoader instance");
-        ConfigurationDataLoader dataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig);
+        ConfigurationDataLoader dataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
 
-        // Load sample configuration data if needed
-        logger.info("Loading sample configuration data if needed");
-        dataLoader.loadSampleConfigurationDataIfNeeded();
+        // Load configuration data from YAML if needed
+        logger.info("Loading configuration data from YAML if needed");
+        dataLoader.loadConfigurationDataIfNeeded();
 
         return dataLoader;
     }

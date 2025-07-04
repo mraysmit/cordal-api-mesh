@@ -3,12 +3,19 @@ package dev.mars.generic;
 import com.google.inject.Module;
 import dev.mars.common.application.BaseJavalinApplication;
 import dev.mars.common.config.ServerConfig;
+import dev.mars.common.util.StockTradesTestDataInitializer;
+
 import dev.mars.config.GenericApiConfig;
 import dev.mars.config.GenericApiGuiceModule;
 import dev.mars.config.SwaggerConfig;
 
+import dev.mars.generic.config.ApiEndpointConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Main application class for the Generic API Service
@@ -65,7 +72,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         if (testDataLoadingEnabled) {
             logger.info("Test data loading enabled - initializing stock trades data");
             try {
-                // Initialize stock trades data for testing using SQL directly
+                // Initialize stock trades data for testing using common library
                 initializeStockTradesForTesting();
                 logger.info("Stock trades data initialized successfully for testing");
             } catch (Exception e) {
@@ -86,7 +93,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
     }
 
     /**
-     * Initialize stock trades data for testing
+     * Initialize stock trades data for testing using common library
      */
     private void initializeStockTradesForTesting() throws Exception {
         logger.info("Initializing stock trades table and sample data for testing");
@@ -95,69 +102,9 @@ public class GenericApiApplication extends BaseJavalinApplication {
         dev.mars.generic.database.DatabaseConnectionManager dbConnectionManager =
             injector.getInstance(dev.mars.generic.database.DatabaseConnectionManager.class);
 
-        // Get connection to stocktrades database
-        try (java.sql.Connection connection = dbConnectionManager.getConnection("stocktrades");
-             java.sql.Statement statement = connection.createStatement()) {
-
-            // Create stock_trades table if it doesn't exist
-            String createTableSql = """
-                CREATE TABLE IF NOT EXISTS stock_trades (
-                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                    symbol VARCHAR(10) NOT NULL,
-                    trade_type VARCHAR(4) NOT NULL CHECK (trade_type IN ('BUY', 'SELL')),
-                    quantity INTEGER NOT NULL CHECK (quantity > 0),
-                    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
-                    total_value DECIMAL(15,2) NOT NULL,
-                    trade_date_time TIMESTAMP NOT NULL,
-                    trader_id VARCHAR(50) NOT NULL,
-                    exchange VARCHAR(20) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                )
-                """;
-
-            statement.execute(createTableSql);
-            logger.info("Stock trades table created/verified");
-
-            // Check if data already exists
-            try (java.sql.ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM stock_trades")) {
-                if (rs.next() && rs.getInt(1) > 0) {
-                    logger.info("Stock trades data already exists, skipping sample data loading");
-                    return;
-                }
-            }
-
-            // Insert sample data
-            String insertSql = """
-                INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                                        trade_date_time, trader_id, exchange)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-
-            try (java.sql.PreparedStatement preparedStatement = connection.prepareStatement(insertSql)) {
-                // Sample data
-                Object[][] sampleData = {
-                    {"AAPL", "BUY", 100, 150.50, 15050.00, "2024-01-15 10:30:00", "trader001", "NASDAQ"},
-                    {"GOOGL", "SELL", 50, 2800.75, 140037.50, "2024-01-15 11:15:00", "trader002", "NASDAQ"},
-                    {"MSFT", "BUY", 200, 380.25, 76050.00, "2024-01-15 14:20:00", "trader001", "NASDAQ"},
-                    {"TSLA", "BUY", 75, 220.80, 16560.00, "2024-01-16 09:45:00", "trader003", "NASDAQ"},
-                    {"AMZN", "SELL", 25, 3200.00, 80000.00, "2024-01-16 13:30:00", "trader002", "NASDAQ"}
-                };
-
-                for (Object[] row : sampleData) {
-                    preparedStatement.setString(1, (String) row[0]);
-                    preparedStatement.setString(2, (String) row[1]);
-                    preparedStatement.setInt(3, (Integer) row[2]);
-                    preparedStatement.setBigDecimal(4, new java.math.BigDecimal(row[3].toString()));
-                    preparedStatement.setBigDecimal(5, new java.math.BigDecimal(row[4].toString()));
-                    preparedStatement.setTimestamp(6, java.sql.Timestamp.valueOf((String) row[5]));
-                    preparedStatement.setString(7, (String) row[6]);
-                    preparedStatement.setString(8, (String) row[7]);
-                    preparedStatement.executeUpdate();
-                }
-
-                logger.info("Loaded {} sample stock trades", sampleData.length);
-            }
+        // Get connection to stocktrades database and use common library initializer
+        try (java.sql.Connection connection = dbConnectionManager.getConnection("stocktrades")) {
+            StockTradesTestDataInitializer.initializeStockTradesForTesting(connection);
         }
     }
     @Override
@@ -245,25 +192,187 @@ public class GenericApiApplication extends BaseJavalinApplication {
         // Comprehensive dashboard endpoint
         app.get("/api/management/dashboard", managementController::getManagementDashboard);
 
-        // Stock trades generic endpoints (configured via YAML)
-        // IMPORTANT: Specific routes must be registered before generic routes with path parameters
-        app.get("/api/generic/stock-trades", ctx ->
-            genericApiController.handleEndpointRequest(ctx, "stock-trades-list"));
+        // Register dynamic endpoints from YAML configuration
+        registerDynamicEndpoints(genericApiController);
 
-        app.get("/api/generic/stock-trades/symbol/{symbol}", ctx ->
-            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-symbol"));
-
-        app.get("/api/generic/stock-trades/trader/{trader_id}", ctx ->
-            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-trader"));
-
-        app.get("/api/generic/stock-trades/date-range", ctx ->
-            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-date-range"));
-
-        // Generic {id} route must be last to avoid catching specific routes
-        app.get("/api/generic/stock-trades/{id}", ctx ->
-            genericApiController.handleEndpointRequest(ctx, "stock-trades-by-id"));
-        
         logger.info("Routes configured");
+    }
+
+    /**
+     * Register dynamic endpoints from YAML configuration
+     */
+    private void registerDynamicEndpoints(GenericApiController genericApiController) {
+        logger.info("Registering dynamic endpoints from YAML configuration");
+
+        try {
+            // Get endpoint configurations
+            Map<String, dev.mars.generic.config.ApiEndpointConfig> endpoints =
+                genericApiController.getGenericApiService().getAvailableEndpoints();
+
+            if (endpoints.isEmpty()) {
+                logger.warn("No endpoint configurations found - no dynamic routes will be registered");
+                return;
+            }
+
+            // Sort endpoints by path specificity (more specific paths first)
+            // This ensures routes like /api/generic/stock-trades/symbol/{symbol}
+            // are registered before /api/generic/stock-trades/{id}
+            List<Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig>> sortedEndpoints =
+                endpoints.entrySet().stream()
+                    .sorted((e1, e2) -> comparePathSpecificity(e1.getValue().getPath(), e2.getValue().getPath()))
+                    .collect(java.util.stream.Collectors.toList());
+
+            // Register each endpoint
+            for (Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig> entry : sortedEndpoints) {
+                String endpointName = entry.getKey();
+                dev.mars.generic.config.ApiEndpointConfig config = entry.getValue();
+
+                registerSingleEndpoint(endpointName, config, genericApiController);
+            }
+
+            logger.info("Successfully registered {} dynamic endpoints", endpoints.size());
+
+        } catch (Exception e) {
+            logger.error("Failed to register dynamic endpoints", e);
+            throw new RuntimeException("Failed to register dynamic endpoints", e);
+        }
+    }
+
+    /**
+     * Register a single endpoint with Javalin
+     */
+    private void registerSingleEndpoint(String endpointName, ApiEndpointConfig config, GenericApiController genericApiController) {
+        String path = config.getPath();
+        String method = config.getMethod().toUpperCase();
+
+        logger.debug("Registering endpoint: {} {} -> {}", method, path, endpointName);
+
+        // Create the handler that calls the generic controller
+        io.javalin.http.Handler handler = ctx -> {
+            try {
+                genericApiController.handleEndpointRequest(ctx, endpointName);
+            } catch (Exception e) {
+                logger.error("Failed to handle endpoint request: {} {}", method, path, e);
+                ctx.status(500).json(java.util.Map.of(
+                    "error", "Internal server error",
+                    "endpoint", endpointName,
+                    "message", e.getMessage()
+                ));
+            }
+        };
+
+        // Register the route based on HTTP method
+        switch (method) {
+            case "GET":
+                app.get(path, handler);
+                break;
+            case "POST":
+                app.post(path, handler);
+                break;
+            case "PUT":
+                app.put(path, handler);
+                break;
+            case "DELETE":
+                app.delete(path, handler);
+                break;
+            case "PATCH":
+                app.patch(path, handler);
+                break;
+            default:
+                logger.warn("Unsupported HTTP method '{}' for endpoint: {} {}", method, path, endpointName);
+        }
+    }
+
+    /**
+     * Compare path specificity for sorting
+     * More specific paths (fewer path parameters) should be registered first
+     */
+    private int comparePathSpecificity(String path1, String path2) {
+        // Count path parameters (segments with {})
+        long params1 = path1.chars().filter(ch -> ch == '{').count();
+        long params2 = path2.chars().filter(ch -> ch == '{').count();
+
+        // Fewer parameters = more specific = should come first
+        int paramComparison = Long.compare(params1, params2);
+        if (paramComparison != 0) {
+            return paramComparison;
+        }
+
+        // If same number of parameters, longer path is more specific
+        int lengthComparison = Integer.compare(path2.length(), path1.length());
+        if (lengthComparison != 0) {
+            return lengthComparison;
+        }
+
+        // Finally, sort alphabetically for consistency
+        return path1.compareTo(path2);
+    }
+
+    /**
+     * Display dynamically registered endpoints
+     */
+    private void displayDynamicEndpoints(String baseUrl) {
+        try {
+            GenericApiController genericApiController = injector.getInstance(GenericApiController.class);
+            Map<String, dev.mars.generic.config.ApiEndpointConfig> endpoints =
+                genericApiController.getGenericApiService().getAvailableEndpoints();
+
+            if (endpoints.isEmpty()) {
+                logger.info("🔧 DYNAMIC API ENDPOINTS: None configured");
+                return;
+            }
+
+            logger.info("🔧 DYNAMIC API ENDPOINTS (from YAML configuration):");
+
+            // Group endpoints by category for better display
+            Map<String, List<Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig>>> groupedEndpoints =
+                endpoints.entrySet().stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                        entry -> extractEndpointCategory(entry.getKey())
+                    ));
+
+            // Display each category
+            for (Map.Entry<String, List<Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig>>> categoryEntry :
+                 groupedEndpoints.entrySet()) {
+                String category = categoryEntry.getKey();
+                List<Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig>> categoryEndpoints = categoryEntry.getValue();
+
+                logger.info("   📁 {}:", category.toUpperCase());
+
+                for (Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig> endpointEntry : categoryEndpoints) {
+                    String endpointName = endpointEntry.getKey();
+                    dev.mars.generic.config.ApiEndpointConfig config = endpointEntry.getValue();
+
+                    String method = config.getMethod().toUpperCase();
+                    String path = config.getPath();
+                    String description = config.getDescription() != null ? config.getDescription() : endpointName;
+
+                    logger.info("   ├─ {}: {} {}{}",
+                        description, method, baseUrl, path);
+                }
+            }
+
+            logger.info("   └─ Total: {} endpoints", endpoints.size());
+            logger.info("");
+
+        } catch (Exception e) {
+            logger.error("Failed to display dynamic endpoints", e);
+        }
+    }
+
+    /**
+     * Extract category from endpoint name for grouping
+     */
+    private String extractEndpointCategory(String endpointName) {
+        if (endpointName.startsWith("stock-trades")) {
+            return "Stock Trades";
+        } else if (endpointName.startsWith("user")) {
+            return "Users";
+        } else if (endpointName.startsWith("order")) {
+            return "Orders";
+        } else {
+            return "General";
+        }
     }
 
     /**
@@ -298,15 +407,8 @@ public class GenericApiApplication extends BaseJavalinApplication {
     protected void displayApplicationSpecificEndpoints(String baseUrl) {
         GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
 
-
-        // Generic API Endpoints
-        logger.info("🔧 GENERIC API SYSTEM:");
-        logger.info("   ├─ Stock Trades:     GET  {}/api/generic/stock-trades", baseUrl);
-        logger.info("   ├─ Trade by ID:      GET  {}/api/generic/stock-trades/{{id}}", baseUrl);
-        logger.info("   ├─ By Symbol:        GET  {}/api/generic/stock-trades/symbol/{{symbol}}", baseUrl);
-        logger.info("   ├─ By Trader:        GET  {}/api/generic/stock-trades/trader/{{trader_id}}", baseUrl);
-        logger.info("   └─ Date Range:       GET  {}/api/generic/stock-trades/date-range", baseUrl);
-        logger.info("");
+        // Display dynamically registered endpoints
+        displayDynamicEndpoints(baseUrl);
 
         // Configuration Management API
         logger.info("⚙️  CONFIGURATION MANAGEMENT:");

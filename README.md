@@ -506,4 +506,4 @@ CREATE TABLE performance_metrics (
 - [Performance Dashboard](PERFORMANCE_DASHBOARD.md) - Dashboard features and usage
 - [Test Documentation](TEST_DOCUMENTATION.md) - Testing guide and best practices
 - [Metrics Collection Tests](METRICS_COLLECTION_TESTS.md) - Metrics testing documentation
-- [Configuration Examples](javalin-api-mesh/config/) - YAML configuration samples
+- [Configuration Examples](config/) - YAML configuration samples

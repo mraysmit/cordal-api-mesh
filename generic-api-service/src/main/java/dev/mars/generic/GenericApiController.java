@@ -30,6 +30,13 @@ public class GenericApiController {
         this.genericApiService = genericApiService;
         this.statisticsService = statisticsService;
     }
+
+    /**
+     * Get the generic API service (for internal use)
+     */
+    public GenericApiService getGenericApiService() {
+        return genericApiService;
+    }
     
     /**
      * Handle generic endpoint requests

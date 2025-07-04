@@ -39,8 +39,11 @@ public class ConfigurationSourceIntegrationTest {
         databaseManager.initializeSchema();
         databaseManager.cleanDatabase();
         
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, databaseConfig);
-        configurationDataLoader.loadSampleConfigurationDataIfNeeded();
+        // Create ConfigurationLoader for the data loader
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(databaseConfig);
+
+        configurationDataLoader = new ConfigurationDataLoader(databaseManager, databaseConfig, configurationLoader);
+        configurationDataLoader.loadConfigurationDataIfNeeded();
     }
 
     @AfterEach
@@ -96,11 +99,12 @@ public class ConfigurationSourceIntegrationTest {
     @Test
     void testDatabaseConfigurationDataIntegrity() {
         // Verify that database contains the expected configuration data
-        ConfigurationDataLoader loader = new ConfigurationDataLoader(databaseManager, databaseConfig);
-        
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(databaseConfig);
+        ConfigurationDataLoader loader = new ConfigurationDataLoader(databaseManager, databaseConfig, configurationLoader);
+
         // Clean and reload to ensure fresh data
         databaseManager.cleanDatabase();
-        loader.loadSampleConfigurationDataIfNeeded();
+        loader.loadConfigurationDataIfNeeded();
         
         // Verify data was loaded correctly by checking the database directly
         assertThat(databaseManager.isHealthy()).isTrue();
@@ -137,18 +141,21 @@ public class ConfigurationSourceIntegrationTest {
         assertThat(validDatabase.getConfigSource()).isEqualTo("database");
         
         // Test that configuration data loader respects the source
-        ConfigurationDataLoader yamlDataLoader = new ConfigurationDataLoader(databaseManager, validYaml);
-        ConfigurationDataLoader dbDataLoader = new ConfigurationDataLoader(databaseManager, validDatabase);
-        
+        dev.mars.generic.config.ConfigurationLoader yamlConfigurationLoader = new dev.mars.generic.config.ConfigurationLoader(validYaml);
+        dev.mars.generic.config.ConfigurationLoader dbConfigurationLoader = new dev.mars.generic.config.ConfigurationLoader(validDatabase);
+
+        ConfigurationDataLoader yamlDataLoader = new ConfigurationDataLoader(databaseManager, validYaml, yamlConfigurationLoader);
+        ConfigurationDataLoader dbDataLoader = new ConfigurationDataLoader(databaseManager, validDatabase, dbConfigurationLoader);
+
         // Clean database first
         databaseManager.cleanDatabase();
-        
+
         // YAML source should not load data to database
-        yamlDataLoader.loadSampleConfigurationDataIfNeeded();
+        yamlDataLoader.loadConfigurationDataIfNeeded();
         // Database should be empty after YAML loader
-        
+
         // Database source should load data to database
-        dbDataLoader.loadSampleConfigurationDataIfNeeded();
+        dbDataLoader.loadConfigurationDataIfNeeded();
         // Database should have data after database loader
         
         assertThat(databaseManager.isHealthy()).isTrue();
@@ -181,6 +188,12 @@ public class ConfigurationSourceIntegrationTest {
         @Override
         public String getConfigSource() {
             return configSource;
+        }
+
+        @Override
+        public boolean isLoadConfigFromYaml() {
+            // Enable loading from YAML when config source is database for testing
+            return "database".equals(configSource);
         }
     }
 }

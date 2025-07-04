@@ -355,6 +355,6 @@ metrics:
 
 ## 📚 **Related Documentation**
 - [Architecture Guide](ARCHITECTURE_GUIDE.md)
-- [Configuration Examples](javalin-api-mesh/config/)
+- [Configuration Examples](config/)
 - [Dashboard Configuration](DASHBOARD_CONFIGURATION.md)
 - [Metrics Collection Architecture](METRICS_COLLECTION_ARCHITECTURE.md)

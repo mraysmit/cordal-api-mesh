@@ -272,9 +272,9 @@ public class ManagementController {
             // Configuration overview
             dashboard.put("configuration", Map.of(
                 "metadata", metadataService.getConfigurationMetadata(),
-                "endpoints", configurationManager.getAllEndpointConfigurations().size(),
-                "queries", configurationManager.getAllQueryConfigurations().size(),
-                "databases", configurationManager.getAllDatabaseConfigurations().size()
+                "endpoints", Map.of("count", configurationManager.getAllEndpointConfigurations().size()),
+                "queries", Map.of("count", configurationManager.getAllQueryConfigurations().size()),
+                "databases", Map.of("count", configurationManager.getAllDatabaseConfigurations().size())
             ));
             
             // Usage statistics

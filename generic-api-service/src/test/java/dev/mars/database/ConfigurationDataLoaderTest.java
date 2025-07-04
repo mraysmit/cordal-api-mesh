@@ -1,6 +1,7 @@
 package dev.mars.database;
 
 import dev.mars.config.GenericApiConfig;
+import dev.mars.generic.config.ConfigurationLoader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,14 +29,17 @@ public class ConfigurationDataLoaderTest {
         // Create components manually to avoid Guice module complexity in tests
         var genericApiConfig = new GenericApiConfig();
         databaseManager = new DatabaseManager(genericApiConfig);
-        
+
         // Initialize schema explicitly since we're not using the Guice module
         databaseManager.initializeSchema();
-        
+
         // Clean database before each test
         databaseManager.cleanDatabase();
-        
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig);
+
+        // Create ConfigurationLoader for the data loader
+        ConfigurationLoader configurationLoader = new ConfigurationLoader(genericApiConfig);
+
+        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
     }
 
     @AfterEach
@@ -44,11 +48,11 @@ public class ConfigurationDataLoaderTest {
     }
 
     @Test
-    void testLoadSampleConfigurationDataIfNeeded_WithYamlSource() {
+    void testLoadConfigurationDataIfNeeded_WithYamlSource() {
         // Test that no data is loaded when config source is yaml (default)
-        
+
         // Act
-        configurationDataLoader.loadSampleConfigurationDataIfNeeded();
+        configurationDataLoader.loadConfigurationDataIfNeeded();
 
         // Assert - verify no data was loaded
         assertThatCode(() -> {

@@ -40,10 +40,13 @@ public class DatabaseConfigurationLoaderTest {
         databaseManager.initializeSchema();
         databaseManager.cleanDatabase();
         
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig);
-        
-        // Load sample data for testing
-        configurationDataLoader.loadSampleConfigurationDataIfNeeded();
+        // Create ConfigurationLoader for the data loader
+        dev.mars.generic.config.ConfigurationLoader configurationLoader = new dev.mars.generic.config.ConfigurationLoader(genericApiConfig);
+
+        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
+
+        // Load configuration data for testing
+        configurationDataLoader.loadConfigurationDataIfNeeded();
     }
 
     @AfterEach
@@ -56,21 +59,22 @@ public class DatabaseConfigurationLoaderTest {
         // Act - simulate loading database configurations from database
         Map<String, DatabaseConfig> databaseConfigs = loadDatabaseConfigurationsFromDatabase();
 
-        // Assert
+        // Assert - now we have YAML data loaded
         assertThat(databaseConfigs).isNotEmpty();
-        assertThat(databaseConfigs).hasSize(1); // only api-service-config-db (metrics-db is managed by metrics-service)
-        
-        // Verify api-service-config-db
-        DatabaseConfig apiServiceConfig = databaseConfigs.get("api-service-config-db");
-        assertThat(apiServiceConfig).isNotNull();
-        assertThat(apiServiceConfig.getName()).isEqualTo("api-service-config-db");
-        assertThat(apiServiceConfig.getDescription()).contains("API service configuration");
-        assertThat(apiServiceConfig.getUrl()).contains("api-service-config");
-        assertThat(apiServiceConfig.getDriver()).isEqualTo("org.h2.Driver");
-        
-        // Verify metrics-db is NOT present (it's managed by metrics-service)
+        assertThat(databaseConfigs).hasSize(2); // stock-trades-db and metrics-db from YAML
+
+        // Verify stock-trades-db
+        DatabaseConfig stockTradesConfig = databaseConfigs.get("stock-trades-db");
+        assertThat(stockTradesConfig).isNotNull();
+        assertThat(stockTradesConfig.getName()).isEqualTo("stock-trades-db");
+        assertThat(stockTradesConfig.getUrl()).contains("testdb");
+        assertThat(stockTradesConfig.getDriver()).isEqualTo("org.h2.Driver");
+
+        // Verify metrics-db is present (from YAML test data)
         DatabaseConfig metricsConfig = databaseConfigs.get("metrics-db");
-        assertThat(metricsConfig).isNull(); // Should not be present in generic-api-service
+        assertThat(metricsConfig).isNotNull();
+        assertThat(metricsConfig.getName()).isEqualTo("metrics-db");
+        assertThat(metricsConfig.getUrl()).contains("testmetricsdb");
     }
 
     @Test
@@ -78,23 +82,23 @@ public class DatabaseConfigurationLoaderTest {
         // Act - simulate loading query configurations from database
         Map<String, QueryConfig> queryConfigs = loadQueryConfigurationsFromDatabase();
 
-        // Assert
+        // Assert - now we have YAML data loaded
         assertThat(queryConfigs).isNotEmpty();
-        assertThat(queryConfigs).hasSize(3); // get-all-databases, get-all-queries, get-all-endpoints
-        
-        // Verify get-all-databases query
-        QueryConfig getAllDatabases = queryConfigs.get("get-all-databases");
-        assertThat(getAllDatabases).isNotNull();
-        assertThat(getAllDatabases.getName()).isEqualTo("get-all-databases");
-        assertThat(getAllDatabases.getDatabase()).isEqualTo("api-service-config-db");
-        assertThat(getAllDatabases.getSql()).contains("SELECT * FROM config_databases");
-        
-        // Verify get-all-queries query
-        QueryConfig getAllQueries = queryConfigs.get("get-all-queries");
-        assertThat(getAllQueries).isNotNull();
-        assertThat(getAllQueries.getName()).isEqualTo("get-all-queries");
-        assertThat(getAllQueries.getDatabase()).isEqualTo("api-service-config-db");
-        assertThat(getAllQueries.getSql()).contains("SELECT * FROM config_queries");
+        assertThat(queryConfigs).hasSize(12); // All queries from test-queries.yml
+
+        // Verify test-query
+        QueryConfig testQuery = queryConfigs.get("test-query");
+        assertThat(testQuery).isNotNull();
+        assertThat(testQuery.getName()).isEqualTo("test-query");
+        assertThat(testQuery.getDatabase()).isEqualTo("stock-trades-db");
+        assertThat(testQuery.getSql()).contains("stock_trades");
+
+        // Verify stock-trades-all query
+        QueryConfig stockTradesAll = queryConfigs.get("stock-trades-all");
+        assertThat(stockTradesAll).isNotNull();
+        assertThat(stockTradesAll.getName()).isEqualTo("stock-trades-all");
+        assertThat(stockTradesAll.getDatabase()).isEqualTo("stock-trades-db");
+        assertThat(stockTradesAll.getSql()).contains("stock_trades");
     }
 
     @Test
@@ -102,22 +106,22 @@ public class DatabaseConfigurationLoaderTest {
         // Act - simulate loading endpoint configurations from database
         Map<String, ApiEndpointConfig> endpointConfigs = loadEndpointConfigurationsFromDatabase();
 
-        // Assert
+        // Assert - now we have YAML data loaded
         assertThat(endpointConfigs).isNotEmpty();
-        assertThat(endpointConfigs).hasSize(3); // list-databases, list-queries, list-endpoints
-        
-        // Verify list-databases endpoint
-        ApiEndpointConfig listDatabases = endpointConfigs.get("list-databases");
-        assertThat(listDatabases).isNotNull();
-        assertThat(listDatabases.getPath()).isEqualTo("/api/config/databases");
-        assertThat(listDatabases.getMethod()).isEqualTo("GET");
-        assertThat(listDatabases.getQuery()).isEqualTo("get-all-databases");
+        assertThat(endpointConfigs).hasSize(6); // All endpoints from test-api-endpoints.yml
 
-        // Verify list-queries endpoint
-        ApiEndpointConfig listQueries = endpointConfigs.get("list-queries");
-        assertThat(listQueries).isNotNull();
-        assertThat(listQueries.getPath()).isEqualTo("/api/config/queries");
-        assertThat(listQueries.getQuery()).isEqualTo("get-all-queries");
+        // Verify test-endpoint
+        ApiEndpointConfig testEndpoint = endpointConfigs.get("test-endpoint");
+        assertThat(testEndpoint).isNotNull();
+        assertThat(testEndpoint.getPath()).isEqualTo("/api/test/endpoint");
+        assertThat(testEndpoint.getMethod()).isEqualTo("GET");
+        assertThat(testEndpoint.getQuery()).isEqualTo("test-query");
+
+        // Verify stock-trades-list endpoint
+        ApiEndpointConfig stockTradesList = endpointConfigs.get("stock-trades-list");
+        assertThat(stockTradesList).isNotNull();
+        assertThat(stockTradesList.getPath()).isEqualTo("/api/generic/stock-trades");
+        assertThat(stockTradesList.getQuery()).isEqualTo("stock-trades-all");
     }
 
     @Test
@@ -146,13 +150,14 @@ public class DatabaseConfigurationLoaderTest {
         
         // Test that data loader respects the config source
         TestGenericApiConfig yamlConfig = new TestGenericApiConfig("yaml");
-        ConfigurationDataLoader yamlLoader = new ConfigurationDataLoader(databaseManager, yamlConfig);
-        
+        dev.mars.generic.config.ConfigurationLoader yamlConfigurationLoader = new dev.mars.generic.config.ConfigurationLoader(yamlConfig);
+        ConfigurationDataLoader yamlLoader = new ConfigurationDataLoader(databaseManager, yamlConfig, yamlConfigurationLoader);
+
         // Clean database
         databaseManager.cleanDatabase();
-        
+
         // Try to load with yaml config - should not load anything
-        yamlLoader.loadSampleConfigurationDataIfNeeded();
+        yamlLoader.loadConfigurationDataIfNeeded();
         
         // Verify no data was loaded
         Map<String, DatabaseConfig> configs = loadDatabaseConfigurationsFromDatabase();
@@ -249,6 +254,12 @@ public class DatabaseConfigurationLoaderTest {
         @Override
         public String getConfigSource() {
             return configSource;
+        }
+
+        @Override
+        public boolean isLoadConfigFromYaml() {
+            // Enable loading from YAML when config source is database for testing
+            return "database".equals(configSource);
         }
     }
 }

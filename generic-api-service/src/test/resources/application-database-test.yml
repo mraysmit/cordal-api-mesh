@@ -15,6 +15,7 @@ swagger:
 # Configuration source set to database for testing
 config:
   source: database  # Options: yaml, database
+  loadFromYaml: true  # Load configuration data from YAML files into database
   paths:
     databases: "test-databases.yml"
     queries: "test-queries.yml"

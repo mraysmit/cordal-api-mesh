@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.HashMap;
 import dev.mars.config.GenericApiConfig;
 
+
+
 /**
  * Loads YAML configuration files for queries and API endpoints
  */
@@ -104,14 +106,28 @@ public class ConfigurationLoader {
 
         try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
-                logger.error("Configuration file not found: {}", configPath);
-                // Return empty map instead of throwing exception
-                logger.warn("Returning empty query configuration map");
-                return new HashMap<>();
+                logger.error("FATAL CONFIGURATION ERROR: Required configuration file not found");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Query configurations");
+                logger.error("  Impact: Application cannot start without query configurations");
+                logger.error("  Action: Ensure the query configuration file exists and is accessible");
+                logger.error("Application startup aborted due to missing configuration file");
+                System.exit(1);
             }
 
             QueriesWrapper wrapper = yamlMapper.readValue(inputStream, QueriesWrapper.class);
             Map<String, QueryConfig> queries = wrapper.getQueries();
+
+            if (queries == null || queries.isEmpty()) {
+                logger.error("FATAL CONFIGURATION ERROR: No query configurations found in file");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Query configurations");
+                logger.error("  Issue: File exists but contains no valid query definitions");
+                logger.error("  Impact: Application cannot start without query configurations");
+                logger.error("  Action: Verify the file contains valid YAML with query definitions");
+                logger.error("Application startup aborted due to empty configuration file");
+                System.exit(1);
+            }
 
             logger.info("Successfully loaded {} query configurations from {}", queries.size(), configPath);
 
@@ -123,10 +139,15 @@ public class ConfigurationLoader {
             return queries;
 
         } catch (Exception e) {
-            logger.error("Failed to load query configurations", e);
-            // Return empty map instead of throwing exception
-            logger.warn("Returning empty query configuration map due to error");
-            return new HashMap<>();
+            logger.error("FATAL CONFIGURATION ERROR: Failed to load query configurations");
+            logger.error("  File: {}", configPath);
+            logger.error("  Type: Query configurations");
+            logger.error("  Error: {}", e.getMessage());
+            logger.error("  Impact: Application cannot start without valid query configurations");
+            logger.error("  Action: Check file format, syntax, and accessibility");
+            logger.error("Application startup aborted due to configuration loading failure", e);
+            System.exit(1);
+            return null; // Never reached, but needed for compilation
         }
     }
     
@@ -139,14 +160,28 @@ public class ConfigurationLoader {
 
         try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
-                logger.error("Configuration file not found: {}", configPath);
-                // Return empty map instead of throwing exception
-                logger.warn("Returning empty database configuration map");
-                return new HashMap<>();
+                logger.error("FATAL CONFIGURATION ERROR: Required configuration file not found");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Database configurations");
+                logger.error("  Impact: Application cannot start without database configurations");
+                logger.error("  Action: Ensure the database configuration file exists and is accessible");
+                logger.error("Application startup aborted due to missing configuration file");
+                System.exit(1);
             }
 
             DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
             Map<String, DatabaseConfig> databases = wrapper.getDatabases();
+
+            if (databases == null || databases.isEmpty()) {
+                logger.error("FATAL CONFIGURATION ERROR: No database configurations found in file");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Database configurations");
+                logger.error("  Issue: File exists but contains no valid database definitions");
+                logger.error("  Impact: Application cannot start without database configurations");
+                logger.error("  Action: Verify the file contains valid YAML with database definitions");
+                logger.error("Application startup aborted due to empty configuration file");
+                System.exit(1);
+            }
 
             logger.info("Successfully loaded {} database configurations from {}", databases.size(), configPath);
 
@@ -158,10 +193,15 @@ public class ConfigurationLoader {
             return databases;
 
         } catch (Exception e) {
-            logger.error("Failed to load database configurations", e);
-            // Return empty map instead of throwing exception
-            logger.warn("Returning empty database configuration map due to error");
-            return new HashMap<>();
+            logger.error("FATAL CONFIGURATION ERROR: Failed to load database configurations");
+            logger.error("  File: {}", configPath);
+            logger.error("  Type: Database configurations");
+            logger.error("  Error: {}", e.getMessage());
+            logger.error("  Impact: Application cannot start without valid database configurations");
+            logger.error("  Action: Check file format, syntax, and accessibility");
+            logger.error("Application startup aborted due to configuration loading failure", e);
+            System.exit(1);
+            return null; // Never reached, but needed for compilation
         }
     }
 
@@ -174,14 +214,28 @@ public class ConfigurationLoader {
 
         try (InputStream inputStream = resolveConfigResource(configPath)) {
             if (inputStream == null) {
-                logger.error("Configuration file not found: {}", configPath);
-                // Return empty map instead of throwing exception
-                logger.warn("Returning empty endpoint configuration map");
-                return new HashMap<>();
+                logger.error("FATAL CONFIGURATION ERROR: Required configuration file not found");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Endpoint configurations");
+                logger.error("  Impact: Application cannot start without endpoint configurations");
+                logger.error("  Action: Ensure the endpoint configuration file exists and is accessible");
+                logger.error("Application startup aborted due to missing configuration file");
+                System.exit(1);
             }
 
             EndpointsWrapper wrapper = yamlMapper.readValue(inputStream, EndpointsWrapper.class);
             Map<String, ApiEndpointConfig> endpoints = wrapper.getEndpoints();
+
+            if (endpoints == null || endpoints.isEmpty()) {
+                logger.error("FATAL CONFIGURATION ERROR: No endpoint configurations found in file");
+                logger.error("  File: {}", configPath);
+                logger.error("  Type: Endpoint configurations");
+                logger.error("  Issue: File exists but contains no valid endpoint definitions");
+                logger.error("  Impact: Application cannot start without endpoint configurations");
+                logger.error("  Action: Verify the file contains valid YAML with endpoint definitions");
+                logger.error("Application startup aborted due to empty configuration file");
+                System.exit(1);
+            }
 
             logger.info("Successfully loaded {} endpoint configurations from {}", endpoints.size(), configPath);
 
@@ -193,10 +247,15 @@ public class ConfigurationLoader {
             return endpoints;
 
         } catch (Exception e) {
-            logger.error("Failed to load endpoint configurations", e);
-            // Return empty map instead of throwing exception
-            logger.warn("Returning empty endpoint configuration map due to error");
-            return new HashMap<>();
+            logger.error("FATAL CONFIGURATION ERROR: Failed to load endpoint configurations");
+            logger.error("  File: {}", configPath);
+            logger.error("  Type: Endpoint configurations");
+            logger.error("  Error: {}", e.getMessage());
+            logger.error("  Impact: Application cannot start without valid endpoint configurations");
+            logger.error("  Action: Check file format, syntax, and accessibility");
+            logger.error("Application startup aborted due to configuration loading failure", e);
+            System.exit(1);
+            return null; // Never reached, but needed for compilation
         }
     }
     

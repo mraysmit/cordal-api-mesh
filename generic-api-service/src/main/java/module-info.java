@@ -1,5 +1,6 @@
 module dev.mars.generic.api {
     // Export packages
+    exports dev.mars.bootstrap;
     exports dev.mars.config;
     exports dev.mars.generic;
     exports dev.mars.generic.config;
@@ -22,5 +23,6 @@ module dev.mars.generic.api {
     requires org.slf4j;
     requires java.sql;
     requires java.management;
+    requires java.net.http;
     requires swagger.ui;
 }

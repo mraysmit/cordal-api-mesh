@@ -63,6 +63,10 @@ public class GenericApiConfig extends BaseConfig {
         String configSource = getString("config.source", "yaml");
         config.setSource(configSource);
 
+        // Load configuration data loading flag
+        Boolean loadFromYaml = getBoolean("config.loadFromYaml", false);
+        config.setLoadFromYaml(loadFromYaml);
+
         // Try to load from config.paths first (new structure)
         String databasesPath = getString("config.paths.databases", null);
         String queriesPath = getString("config.paths.queries", null);
@@ -88,6 +92,7 @@ public class GenericApiConfig extends BaseConfig {
         logger.info("Configured paths: databases={}, queries={}, endpoints={}",
                     databasesPath, queriesPath, endpointsPath);
         logger.info("Configuration source: {}", configSource);
+        logger.info("Load configuration from YAML: {}", loadFromYaml);
     }
 
     @Override
@@ -187,6 +192,10 @@ public class GenericApiConfig extends BaseConfig {
     public String getConfigSource() {
         return config.source;
     }
+
+    public boolean isLoadConfigFromYaml() {
+        return config.loadFromYaml;
+    }
     
     // Inner classes for configuration structure
     public static class DatabaseSettings {
@@ -222,6 +231,7 @@ public class GenericApiConfig extends BaseConfig {
 
     public static class ConfigPaths {
         private String source = "yaml";
+        private boolean loadFromYaml = false;
         private String databasesPath = "../generic-config/databases.yml";
         private String queriesPath = "../generic-config/queries.yml";
         private String endpointsPath = "../generic-config/api-endpoints.yml";
@@ -229,6 +239,8 @@ public class GenericApiConfig extends BaseConfig {
         // Getters and setters
         public String getSource() { return source; }
         public void setSource(String source) { this.source = source; }
+        public boolean isLoadFromYaml() { return loadFromYaml; }
+        public void setLoadFromYaml(boolean loadFromYaml) { this.loadFromYaml = loadFromYaml; }
         public String getDatabasesPath() { return databasesPath; }
         public void setDatabasesPath(String databasesPath) { this.databasesPath = databasesPath; }
         public String getQueriesPath() { return queriesPath; }
