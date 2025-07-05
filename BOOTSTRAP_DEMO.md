@@ -33,6 +33,13 @@ The System Bootstrap Demonstration (`SystemBootstrapDemo`) is a comprehensive te
 - **Parameter Validation**: Ensures SQL placeholders match defined parameters
 - **Comprehensive Reporting**: Detailed validation results with success/error counts
 
+### ✅ Standalone Configuration Validation
+- **Startup Validation**: Optional validation during normal application startup
+- **Validate-Only Mode**: Run validation checks and exit without starting server
+- **Command Line Validation**: Override configuration with `--validate-only` flag
+- **CI/CD Integration**: Perfect for deployment pipeline validation
+- **Error Reporting**: Detailed error messages with ASCII table formatting
+
 ### 📊 Results Display
 - **Formatted Tables**: ASCII tables showing endpoint status, response times, and success rates
 - **Summary Statistics**: Overall success rates and average response times
@@ -87,6 +94,40 @@ Tests all 13 management endpoints:
 - **Column Validation**: Checks that all columns referenced in queries exist in tables
 - **Parameter Mapping**: Ensures SQL parameter placeholders match defined parameters
 - **Field Type Validation**: Validates data types and constraints
+
+### 🆕 Standalone Configuration Validation
+
+In addition to the bootstrap demo validation, the system now supports standalone validation modes:
+
+#### Validation During Startup
+```yaml
+# application.yml
+validation:
+  runOnStartup: true   # Run validation during normal startup
+  validateOnly: false  # Continue with server startup after validation
+```
+
+#### Validation Only Mode
+```yaml
+# application.yml
+validation:
+  runOnStartup: false  # Not needed when validateOnly is true
+  validateOnly: true   # Run validation and exit (no server startup)
+```
+
+#### Command Line Validation
+```bash
+# Run validation only and exit
+java -jar generic-api-service.jar --validate-only
+
+# With Maven
+mvn exec:java -Dexec.mainClass="dev.mars.generic.GenericApiApplication" -Dexec.args="--validate-only"
+```
+
+**Use Cases:**
+- **CI/CD Pipelines**: Validate configurations before deployment
+- **Development**: Quick configuration verification during development
+- **Production**: Pre-startup validation to catch issues early
 
 ### 4. Metrics Service Detection
 - Checks if Metrics Service is running on port 8081
@@ -308,18 +349,18 @@ The bootstrap demo is implemented in `dev.mars.bootstrap.SystemBootstrapDemo` wi
 The bootstrap demo validates these configuration relationships:
 
 ```yaml
-# api-endpoints.yml
+# stocktrades-api-endpoints.yml
 endpoints:
   stock-trades-list:
-    query: stock-trades-all  # Must exist in queries.yml
+    query: stock-trades-all  # Must exist in stocktrades-queries.yml
 
-# queries.yml
+# stocktrades-queries.yml
 queries:
   stock-trades-all:
-    database: stocktrades    # Must exist in databases.yml
+    database: stocktrades    # Must exist in stocktrades-databases.yml
     sql: "SELECT * FROM stock_trades"  # Table must exist in database
 
-# databases.yml
+# stocktrades-databases.yml
 databases:
   stocktrades:
     url: "jdbc:h2:./data/stocktrades"  # Database must be accessible

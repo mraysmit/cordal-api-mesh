@@ -29,9 +29,9 @@ class ConfigurablePathsTest {
         // Test that default paths are used when no custom configuration is provided
         GenericApiConfig config = new GenericApiConfig();
 
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("../generic-config/databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("../generic-config/queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("../generic-config/api-endpoints.yml");
+        assertThat(config.getDatabasesConfigPath()).isEqualTo("./generic-config/stocktrades-databases.yml");
+        assertThat(config.getQueriesConfigPath()).isEqualTo("./generic-config/stocktrades-queries.yml");
+        assertThat(config.getEndpointsConfigPath()).isEqualTo("./generic-config/stocktrades-api-endpoints.yml");
     }
 
     @Test

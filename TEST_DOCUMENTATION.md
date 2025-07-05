@@ -70,6 +70,18 @@ The test suite is organized into several categories:
   - Async vs sync handling
   - Error scenarios
 
+#### Configuration Validation Tests (`src/test/java/dev/mars/generic/config/`)
+- **ValidationConfigurationTest.java**: Tests for validation configuration loading
+  - Default validation settings verification
+  - YAML configuration parsing for validation flags
+  - Validation settings accessors and consistency
+  - Configuration loading from different sources
+- **ValidationStartupTest.java**: Tests for validation startup logic
+  - Application startup with validation flags
+  - Command line argument parsing
+  - Configuration override behavior
+  - Validation mode selection logic
+
 ### 2. Integration Tests
 
 #### API Integration Tests (`src/test/java/dev/mars/integration/`)
@@ -130,6 +142,11 @@ mvn test -Dtest="dev.mars.model.*,dev.mars.dto.*,dev.mars.exception.*,dev.mars.c
 mvn test -Dtest="dev.mars.integration.*,dev.mars.ApplicationTest"
 ```
 
+#### Configuration Validation Tests
+```bash
+mvn test -Dtest="ValidationConfigurationTest,ValidationStartupTest"
+```
+
 #### Performance Tests (Disabled by Default)
 ```bash
 mvn test -Dtest="dev.mars.performance.*" -Dtest.performance.enabled=true
@@ -150,6 +167,7 @@ The test suite provides comprehensive coverage across all layers:
 - **Service Layer**: 95% - Business logic with validation and async operations
 - **Controller Layer**: 90% - REST endpoints with parameter validation
 - **Configuration Layer**: 85% - Configuration loading and defaults
+- **Validation Layer**: 95% - Configuration validation flags and startup logic
 - **Database Layer**: 90% - Schema management and data loading
 - **Integration**: 80% - End-to-end API functionality
 

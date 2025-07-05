@@ -24,6 +24,7 @@ javalin-api-mesh/
 - **Multi-Database Support** - Connect different endpoints to different databases
 - **Swagger Integration** - Auto-generated API documentation
 - **Configuration Management APIs** - Runtime configuration inspection and validation
+- **Configuration Validation** - Comprehensive startup and standalone validation modes
 
 ### **📊 Metrics Service**
 - **Automatic Metrics Collection** - Zero-code performance monitoring
@@ -110,9 +111,9 @@ Configure the source in `application.yml`:
 config:
   source: yaml      # Options: yaml, database
   paths:            # YAML file paths (used when source=yaml)
-    databases: "config/databases.yml"
-    queries: "config/queries.yml"
-    endpoints: "config/api-endpoints.yml"
+    databases: "config/stocktrades-databases.yml"
+    queries: "config/stocktrades-queries.yml"
+    endpoints: "config/stocktrades-api-endpoints.yml"
 ```
 
 - **`yaml`** (default) - Load configurations from YAML files
@@ -293,6 +294,52 @@ When using database source, these APIs provide access to stored configurations:
 - ✅ **Audit Trail** - Track configuration changes with timestamps
 - ✅ **Scalable Management** - Handle large numbers of configurations efficiently
 - ✅ **API-Driven Updates** - Programmatic configuration management
+
+## ✅ **Configuration Validation**
+
+The system provides comprehensive configuration validation to ensure all configurations are correct before deployment:
+
+### **Validation Modes**
+
+#### **1. Startup Validation**
+Run validation during normal application startup:
+```yaml
+# application.yml
+validation:
+  runOnStartup: true   # Enable validation on every startup
+  validateOnly: false  # Continue with normal startup after validation
+```
+
+#### **2. Standalone Validation**
+Run validation only and exit (perfect for CI/CD pipelines):
+```yaml
+# application.yml
+validation:
+  runOnStartup: false  # Not needed when validateOnly is true
+  validateOnly: true   # Run validation and exit without starting server
+```
+
+#### **3. Command Line Validation**
+Override configuration with command line arguments:
+```bash
+# Run validation only and exit
+java -jar generic-api-service.jar --validate-only
+
+# Alternative short form
+java -jar generic-api-service.jar --validate
+```
+
+### **Validation Process**
+- **Configuration Chain Validation** - Verifies endpoints → queries → databases relationships
+- **Database Schema Validation** - Checks table existence, field availability, and query compatibility
+- **Detailed Error Reporting** - ASCII tables with clear, readable validation results
+- **Fatal Error Handling** - Application exits with proper error codes on validation failure
+
+### **Use Cases**
+- **CI/CD Integration** - Validate configurations in deployment pipelines
+- **Development Verification** - Quickly check configuration setup during development
+- **Production Pre-checks** - Validate configurations before starting services
+- **Troubleshooting** - Identify configuration issues without full application startup
 
 ## 🚀 **Getting Started**
 
@@ -498,6 +545,7 @@ CREATE TABLE performance_metrics (
 
 - [Architecture Guide](ARCHITECTURE_GUIDE.md) - Detailed system architecture
 - [Configuration Schema Reference](CONFIGURATION_SCHEMA_REFERENCE.md) - Complete YAML configuration guide
+- [Configuration Validation](CONFIGURATION_VALIDATION.md) - Configuration validation guide and best practices
 - [Common Library Implementation](COMMON_LIBRARY_IMPLEMENTATION.md) - Shared utilities guide
 - [Metrics Collection Architecture](METRICS_COLLECTION_ARCHITECTURE.md) - Performance monitoring details
 - [Metrics Collection Implementation](METRICS_COLLECTION_IMPLEMENTATION.md) - Implementation guide

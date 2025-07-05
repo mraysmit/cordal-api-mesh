@@ -7,6 +7,7 @@ module dev.mars.generic.api {
     exports dev.mars.generic.database;
     exports dev.mars.generic.management;
     exports dev.mars.generic.model;
+    exports dev.mars.util;
     
     // Required modules
     requires dev.mars.common;

@@ -26,9 +26,9 @@ Configure the source in `application.yml`:
 config:
   source: yaml      # Options: yaml, database
   paths:            # YAML file paths (used when source=yaml)
-    databases: "config/databases.yml"
-    queries: "config/queries.yml"
-    endpoints: "config/api-endpoints.yml"
+    databases: "config/stocktrades-databases.yml"
+    queries: "config/stocktrades-queries.yml"
+    endpoints: "config/stocktrades-api-endpoints.yml"
 ```
 
 - **`yaml`** (default) - Load configurations from YAML files
@@ -292,9 +292,13 @@ swagger:
 
 config:
   paths:
-    databases: string               # Path to databases.yml
-    queries: string                 # Path to queries.yml
-    endpoints: string               # Path to api-endpoints.yml
+    databases: string               # Path to stocktrades-databases.yml
+    queries: string                 # Path to stocktrades-queries.yml
+    endpoints: string               # Path to stocktrades-api-endpoints.yml
+
+validation:
+  runOnStartup: boolean             # Run validation during normal startup (default: false)
+  validateOnly: boolean             # Run only validation and exit (default: false)
 
 data:
   loadSampleData: boolean           # Load sample data on startup
@@ -335,6 +339,127 @@ metrics:
         enabled: boolean            # Enable Prometheus metrics
         port: integer               # Prometheus port
         path: string                # Prometheus metrics path
+```
+
+## ✅ **Configuration Validation**
+
+The system provides comprehensive configuration validation to ensure all configurations are correct and consistent.
+
+### **Validation Configuration**
+
+Configure validation behavior in `application.yml`:
+
+```yaml
+validation:
+  runOnStartup: false             # Run validation during normal application startup
+  validateOnly: false             # Run only validation and exit (no server startup)
+```
+
+### **Validation Modes**
+
+#### **1. Startup Validation**
+```yaml
+validation:
+  runOnStartup: true              # Enable validation on every startup
+  validateOnly: false             # Continue with normal startup after validation
+```
+- Validates configurations during normal application startup
+- Continues with server startup if validation passes
+- Exits with error if validation fails
+
+#### **2. Standalone Validation**
+```yaml
+validation:
+  runOnStartup: false             # Not needed when validateOnly is true
+  validateOnly: true              # Run validation and exit
+```
+- Runs validation checks only
+- Exits immediately after validation (no server startup)
+- Perfect for CI/CD pipelines and configuration verification
+
+#### **3. Command Line Override**
+```bash
+# Override configuration with command line arguments
+java -jar generic-api-service.jar --validate-only
+java -jar generic-api-service.jar --validate        # Short form
+```
+- Command line arguments override YAML configuration
+- Useful for ad-hoc validation without changing configuration files
+
+### **Validation Process**
+
+The validation system performs comprehensive checks:
+
+#### **Configuration Chain Validation**
+- **Endpoint → Query Validation**: Verifies every endpoint references an existing query
+- **Query → Database Validation**: Verifies every query references an existing database
+- **Cross-Reference Integrity**: Ensures all configuration relationships are valid
+
+#### **Database Schema Validation**
+- **Table Existence**: Verifies all referenced database tables exist
+- **Column Validation**: Checks that query columns exist in target tables
+- **Parameter Validation**: Validates query parameters and their types
+- **Connection Testing**: Tests database connectivity for all configured databases
+
+#### **Validation Output**
+```
+================================================================================
+>>> CONFIGURATION VALIDATION MODE
+================================================================================
+[PART 1] Configuration Chain Validation
++------------------------------------------------------------------------------+
+| Type: Configuration Chain | Success:      15 | Errors:       0 |
++------------------------------------------------------------------------------+
+| SUCCESSES:
+| [OK] Endpoint 'stock-trades-list' -> query 'stock-trades-all' [OK]
+| [OK] Query 'stock-trades-all' -> database 'stocktrades' [OK]
++------------------------------------------------------------------------------+
+[SUCCESS] Configuration Chain validation passed
+
+[PART 2] Database Schema Validation
++------------------------------------------------------------------------------+
+| Type: Database Schema     | Success:       8 | Errors:       0 |
++------------------------------------------------------------------------------+
+| SUCCESSES:
+| [OK] Query 'stock-trades-all' -> table 'stock_trades' [EXISTS]
+| [OK] Database 'stocktrades' schema validation completed
++------------------------------------------------------------------------------+
+[SUCCESS] Database Schema validation passed
+================================================================================
+>>> VALIDATION COMPLETED - APPLICATION EXITING
+================================================================================
+```
+
+### **Error Handling**
+- **Fatal Errors**: Application exits with code 1 on validation failure
+- **Detailed Logging**: Comprehensive error messages with specific failure details
+- **ASCII Tables**: Clear, readable validation results
+- **Error Categories**: Distinguishes between configuration and schema errors
+
+### **Use Cases**
+
+#### **CI/CD Integration**
+```bash
+# In deployment pipeline
+java -jar generic-api-service.jar --validate-only
+if [ $? -ne 0 ]; then
+    echo "Configuration validation failed - aborting deployment"
+    exit 1
+fi
+```
+
+#### **Development Verification**
+```bash
+# Quick configuration check during development
+mvn exec:java -Dexec.mainClass="dev.mars.generic.GenericApiApplication" -Dexec.args="--validate-only"
+```
+
+#### **Production Pre-checks**
+```yaml
+# production-application.yml
+validation:
+  runOnStartup: true              # Always validate on production startup
+  validateOnly: false             # Continue with startup after validation
 ```
 
 ## 🔗 **Configuration Relationships**

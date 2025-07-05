@@ -25,7 +25,14 @@ config:
   loadFromYaml: false  # Set to true to populate database from YAML files on startup
   paths:
     # Configuration files are located in the generic-config folder at project root
-    # Using ./ prefix to indicate external files relative to working directory
-    databases: "./generic-config/databases.yml"
-    queries: "./generic-config/queries.yml"
-    endpoints: "./generic-config/api-endpoints.yml"
+    # Using ../ prefix to go up one level from generic-api-service to project root
+    databases: "./generic-config/stocktrades-databases.yml"
+    queries: "./generic-config/stocktrades-queries.yml"
+    endpoints: "./generic-config/stocktrades-api-endpoints.yml"
+
+# Configuration validation settings
+validation:
+  # Run validation during normal application startup
+  runOnStartup: false  # Set to true to validate configurations on every startup
+  # Run only validation and exit (for standalone configuration checking)
+  validateOnly: false  # Set to true to run validation checks and exit without starting server

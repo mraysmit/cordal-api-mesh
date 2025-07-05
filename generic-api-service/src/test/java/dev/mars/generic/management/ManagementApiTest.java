@@ -3,6 +3,7 @@ package dev.mars.generic.management;
 import dev.mars.generic.GenericApiApplication;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -11,6 +12,12 @@ import static org.assertj.core.api.Assertions.*;
  * Test the comprehensive management APIs
  */
 class ManagementApiTest {
+
+    @BeforeEach
+    void setUp() {
+        // Set test configuration for all tests in this class
+        System.setProperty("generic.config.file", "application-test.yml");
+    }
 
     @Test
     void shouldHaveManagementDashboard() {

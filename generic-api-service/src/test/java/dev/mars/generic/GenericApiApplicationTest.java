@@ -2,6 +2,7 @@ package dev.mars.generic;
 
 import dev.mars.config.GenericApiConfig;
 import dev.mars.generic.database.DatabaseConnectionManager;
+import dev.mars.test.StockTradesTestDataManager;
 import dev.mars.test.TestDataInitializer;
 import dev.mars.test.TestDatabaseManager;
 import io.javalin.Javalin;
@@ -56,9 +57,13 @@ class GenericApiApplicationTest {
             // Create TestDatabaseManager manually (like other tests do)
             TestDatabaseManager testDatabaseManager = new TestDatabaseManager(genericApiConfig);
 
-            // Initialize test data
+            // Initialize test data using TestDataInitializer for configuration database
             TestDataInitializer testDataInitializer = new TestDataInitializer(databaseConnectionManager, testDatabaseManager);
             testDataInitializer.initializeAllTestData();
+
+            // Initialize stock trades data using the new StockTradesTestDataManager
+            StockTradesTestDataManager stockTradesManager = new StockTradesTestDataManager(databaseConnectionManager);
+            stockTradesManager.initializeStockTradesDataSafely();
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize test data", e);

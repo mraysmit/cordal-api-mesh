@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Test data initializer for setting up test data in test databases
  * This class coordinates between TestDatabaseManager (for test database schema)
- * and StockTradesInitializer (for external database test data)
+ * and StockTradesTestDataManager (for external database test data)
  */
 public class TestDataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(TestDataInitializer.class);
@@ -54,12 +54,16 @@ public class TestDataInitializer {
      */
     public void initializeExternalStockTradesData() {
         logger.info("Initializing external stock trades data for testing");
-        
+
         try {
-            StockTradesInitializer stockTradesInitializer = new StockTradesInitializer(databaseConnectionManager);
-            stockTradesInitializer.initialize();
-            logger.info("External stock trades data initialized successfully");
-            
+            StockTradesTestDataManager stockTradesManager = new StockTradesTestDataManager(databaseConnectionManager);
+            boolean success = stockTradesManager.initializeStockTradesDataSafely();
+            if (success) {
+                logger.info("External stock trades data initialized successfully");
+            } else {
+                logger.warn("External stock trades data initialization failed, continuing with test database only");
+            }
+
         } catch (Exception e) {
             logger.error("Failed to initialize external stock trades data", e);
             // Don't throw exception - external databases might not be configured in tests
@@ -79,8 +83,8 @@ public class TestDataInitializer {
             
             // Clean external databases if they were initialized
             try {
-                StockTradesInitializer stockTradesInitializer = new StockTradesInitializer(databaseConnectionManager);
-                stockTradesInitializer.cleanStockTradesDatabase();
+                StockTradesTestDataManager stockTradesManager = new StockTradesTestDataManager(databaseConnectionManager);
+                stockTradesManager.cleanStockTradesData();
             } catch (Exception e) {
                 logger.debug("Could not clean external stock trades database (may not be configured): {}", e.getMessage());
             }

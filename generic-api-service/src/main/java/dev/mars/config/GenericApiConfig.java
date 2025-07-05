@@ -16,6 +16,7 @@ public class GenericApiConfig extends BaseConfig {
     private DatabaseSettings database = new DatabaseSettings();
     private SwaggerSettings swagger = new SwaggerSettings();
     private ConfigPaths config = new ConfigPaths();
+    private ValidationSettings validation = new ValidationSettings();
 
     public GenericApiConfig() {
         super();
@@ -34,6 +35,7 @@ public class GenericApiConfig extends BaseConfig {
         loadDatabaseConfig();
         loadSwaggerConfig();
         loadConfigPaths();
+        loadValidationConfig();
     }
 
     private void loadDatabaseConfig() {
@@ -93,6 +95,17 @@ public class GenericApiConfig extends BaseConfig {
                     databasesPath, queriesPath, endpointsPath);
         logger.info("Configuration source: {}", configSource);
         logger.info("Load configuration from YAML: {}", loadFromYaml);
+    }
+
+    private void loadValidationConfig() {
+        // Load validation configuration
+        Boolean runOnStartup = getBoolean("validation.runOnStartup", false);
+        Boolean validateOnly = getBoolean("validation.validateOnly", false);
+
+        validation.setRunOnStartup(runOnStartup);
+        validation.setValidateOnly(validateOnly);
+
+        logger.info("Validation configuration: runOnStartup={}, validateOnly={}", runOnStartup, validateOnly);
     }
 
     @Override
@@ -196,7 +209,19 @@ public class GenericApiConfig extends BaseConfig {
     public boolean isLoadConfigFromYaml() {
         return config.loadFromYaml;
     }
-    
+
+    public ValidationSettings getValidationSettings() {
+        return validation;
+    }
+
+    public boolean isValidationRunOnStartup() {
+        return validation.runOnStartup;
+    }
+
+    public boolean isValidationValidateOnly() {
+        return validation.validateOnly;
+    }
+
     // Inner classes for configuration structure
     public static class DatabaseSettings {
         private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
@@ -247,5 +272,16 @@ public class GenericApiConfig extends BaseConfig {
         public void setQueriesPath(String queriesPath) { this.queriesPath = queriesPath; }
         public String getEndpointsPath() { return endpointsPath; }
         public void setEndpointsPath(String endpointsPath) { this.endpointsPath = endpointsPath; }
+    }
+
+    public static class ValidationSettings {
+        private boolean runOnStartup = false;
+        private boolean validateOnly = false;
+
+        // Getters and setters
+        public boolean isRunOnStartup() { return runOnStartup; }
+        public void setRunOnStartup(boolean runOnStartup) { this.runOnStartup = runOnStartup; }
+        public boolean isValidateOnly() { return validateOnly; }
+        public void setValidateOnly(boolean validateOnly) { this.validateOnly = validateOnly; }
     }
 }

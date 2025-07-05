@@ -8,6 +8,7 @@ import dev.mars.generic.config.ConfigurationLoader;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.QueryConfig;
+import dev.mars.util.ApiEndpoints;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.Test;
@@ -32,8 +33,9 @@ public class ManagementApiDataVerificationTest {
     @BeforeEach
     public void setUp() {
         objectMapper = new ObjectMapper();
-        // Clear any existing system properties
-        System.clearProperty("generic.config.file");
+        // Set test configuration for all tests in this class
+        System.setProperty("generic.config.file", "application-test.yml");
+        logger.info("Test setup completed - using test configuration: application-test.yml");
     }
 
     @AfterEach
@@ -44,11 +46,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiReturnsLoadedDatabaseConfigurations() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-        
-        // Load configurations directly for comparison
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configurations directly for comparison (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
         ConfigurationLoader loader = new ConfigurationLoader(config);
         Map<String, DatabaseConfig> expectedDatabases = loader.loadDatabaseConfigurations();
         
@@ -59,7 +58,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call management API
-            var response = client.get("/api/management/config/databases");
+            var response = client.get(ApiEndpoints.Management.CONFIG_DATABASES);
             
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -95,11 +94,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiReturnsLoadedQueryConfigurations() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-        
-        // Load configurations directly for comparison
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configurations directly for comparison (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
         ConfigurationLoader loader = new ConfigurationLoader(config);
         Map<String, QueryConfig> expectedQueries = loader.loadQueryConfigurations();
         
@@ -110,7 +106,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call management API
-            var response = client.get("/api/management/config/queries");
+            var response = client.get(ApiEndpoints.Management.CONFIG_QUERIES);
             
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -149,11 +145,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiReturnsLoadedEndpointConfigurations() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-        
-        // Load configurations directly for comparison
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configurations directly for comparison (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
         ConfigurationLoader loader = new ConfigurationLoader(config);
         Map<String, ApiEndpointConfig> expectedEndpoints = loader.loadEndpointConfigurations();
         
@@ -164,7 +157,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call management API
-            var response = client.get("/api/management/config/endpoints");
+            var response = client.get(ApiEndpoints.Management.CONFIG_ENDPOINTS);
             
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -207,11 +200,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiConfigurationMetadata() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-        
-        // Load configuration for path verification
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configuration for path verification (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
         
         // Start application
         GenericApiApplication application = new GenericApiApplication();
@@ -220,7 +210,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call configuration metadata API
-            var response = client.get("/api/management/config/metadata");
+            var response = client.get(ApiEndpoints.Management.CONFIG_METADATA);
             
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -246,11 +236,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiConfigurationPaths() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-        
-        // Load configuration for path verification
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configuration for path verification (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
         
         // Start application
         GenericApiApplication application = new GenericApiApplication();
@@ -259,7 +246,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call configuration paths API
-            var response = client.get("/api/management/config/paths");
+            var response = client.get(ApiEndpoints.Management.CONFIG_PATHS);
             
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -278,11 +265,8 @@ public class ManagementApiDataVerificationTest {
 
     @Test
     public void testManagementApiConfigurationContents() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-
-        // Load configuration for path verification
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        // Arrange - Load configuration for path verification (test config already set in setUp)
+        GenericApiConfig config = new GenericApiConfig();
 
         // Start application
         GenericApiApplication application = new GenericApiApplication();
@@ -291,7 +275,7 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call configuration contents API
-            var response = client.get("/api/management/config/contents");
+            var response = client.get(ApiEndpoints.Management.CONFIG_CONTENTS);
 
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -334,11 +318,13 @@ public class ManagementApiDataVerificationTest {
     }
 
     private void testConfigurationConsistency(String configFile, String testType) {
-        // Arrange
+        // Arrange - Set specific config file for this test
+        String originalConfigFile = System.getProperty("generic.config.file");
         System.setProperty("generic.config.file", configFile);
 
-        // Load configurations directly
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        try {
+            // Load configurations directly
+            GenericApiConfig config = new GenericApiConfig();
         ConfigurationLoader loader = new ConfigurationLoader(config);
 
         Map<String, DatabaseConfig> expectedDatabases = loader.loadDatabaseConfigurations();
@@ -352,21 +338,21 @@ public class ManagementApiDataVerificationTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Test databases API
-            var dbResponse = client.get("/api/management/config/databases");
+            var dbResponse = client.get(ApiEndpoints.Management.CONFIG_DATABASES);
             assertThat(dbResponse.code()).isEqualTo(200);
 
             JsonNode dbJson = objectMapper.readTree(dbResponse.body().string());
             assertThat(dbJson.get("count").asInt()).isEqualTo(expectedDatabases.size());
 
             // Test queries API
-            var queryResponse = client.get("/api/management/config/queries");
+            var queryResponse = client.get(ApiEndpoints.Management.CONFIG_QUERIES);
             assertThat(queryResponse.code()).isEqualTo(200);
 
             JsonNode queryJson = objectMapper.readTree(queryResponse.body().string());
             assertThat(queryJson.get("count").asInt()).isEqualTo(expectedQueries.size());
 
             // Test endpoints API
-            var endpointResponse = client.get("/api/management/config/endpoints");
+            var endpointResponse = client.get(ApiEndpoints.Management.CONFIG_ENDPOINTS);
             assertThat(endpointResponse.code()).isEqualTo(200);
 
             JsonNode endpointJson = objectMapper.readTree(endpointResponse.body().string());
@@ -374,21 +360,26 @@ public class ManagementApiDataVerificationTest {
 
             logger.info("Verified configuration consistency for {} configuration", testType);
         });
+        } finally {
+            // Restore original config file
+            if (originalConfigFile != null) {
+                System.setProperty("generic.config.file", originalConfigFile);
+            } else {
+                System.clearProperty("generic.config.file");
+            }
+        }
     }
 
     @Test
     public void testManagementApiReturnsCompleteConfigurationData() {
-        // Arrange - Use test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
-
-        // Start application
+        // Arrange - Start application (test config already set in setUp)
         GenericApiApplication application = new GenericApiApplication();
         application.initializeForTesting();
         Javalin app = application.getApp();
 
         JavalinTest.test(app, (server, client) -> {
             // Act - Call comprehensive dashboard API
-            var response = client.get("/api/management/dashboard");
+            var response = client.get(ApiEndpoints.Management.DASHBOARD);
 
             // Assert - Verify response
             assertThat(response.code()).isEqualTo(200);
@@ -430,13 +421,13 @@ public class ManagementApiDataVerificationTest {
         JavalinTest.test(app, (server, client) -> {
             // Test that all management endpoints return successful responses
             var endpoints = new String[]{
-                "/api/management/config/databases",
-                "/api/management/config/queries",
-                "/api/management/config/endpoints",
-                "/api/management/config/metadata",
-                "/api/management/config/paths",
-                "/api/management/config/contents",
-                "/api/management/dashboard"
+                ApiEndpoints.Management.CONFIG_DATABASES,
+                ApiEndpoints.Management.CONFIG_QUERIES,
+                ApiEndpoints.Management.CONFIG_ENDPOINTS,
+                ApiEndpoints.Management.CONFIG_METADATA,
+                ApiEndpoints.Management.CONFIG_PATHS,
+                ApiEndpoints.Management.CONFIG_CONTENTS,
+                ApiEndpoints.Management.DASHBOARD
             };
 
             for (String endpoint : endpoints) {

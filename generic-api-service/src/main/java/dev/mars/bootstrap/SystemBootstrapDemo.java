@@ -8,25 +8,22 @@ import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.QueryConfig;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.config.GenericApiConfig;
+import dev.mars.util.ConfigurationValidator;
+import dev.mars.util.ValidationResult;
+import dev.mars.util.ApiEndpoints;
+import dev.mars.util.MetricsApiEndpoints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Bootstrap demonstration class that shows system startup and makes calls to all management API endpoints.
@@ -49,6 +46,7 @@ public class SystemBootstrapDemo {
     private ConfigurationLoader configurationLoader;
     private EndpointConfigurationManager configurationManager;
     private DatabaseConnectionManager databaseConnectionManager;
+    private ConfigurationValidator configurationValidator;
     
     public static void main(String[] args) {
         SystemBootstrapDemo demo = new SystemBootstrapDemo();
@@ -168,6 +166,7 @@ public class SystemBootstrapDemo {
     
     /**
      * Wait for a specific service to be ready
+     * TODO: make it a bit more fancy with backoff and jitter
      */
     private void waitForServiceReady(String healthUrl, String serviceName) throws Exception {
         int maxAttempts = 30;
@@ -205,28 +204,7 @@ public class SystemBootstrapDemo {
     private void testManagementApis() throws Exception {
         logger.info("[TEST] Testing Management API endpoints...");
 
-        List<String> managementEndpoints = List.of(
-            // Configuration Management
-            "/api/management/config/metadata",
-            "/api/management/config/paths",
-            "/api/management/config/contents",
-            "/api/management/config/endpoints",
-            "/api/management/config/queries",
-            "/api/management/config/databases",
-
-            // Usage Statistics
-            "/api/management/statistics",
-            "/api/management/statistics/endpoints",
-            "/api/management/statistics/queries",
-            "/api/management/statistics/databases",
-
-            // Health Monitoring
-            "/api/management/health",
-            "/api/management/health/databases",
-
-            // Dashboard
-            "/api/management/dashboard"
-        );
+        List<String> managementEndpoints = ApiEndpoints.getAllManagementEndpoints();
 
         testEndpoints(GENERIC_API_BASE_URL, managementEndpoints, "Management API");
         logger.info("[OK] Management API endpoints tested successfully");
@@ -238,19 +216,7 @@ public class SystemBootstrapDemo {
     private void testMetricsApis() throws Exception {
         logger.info("[TEST] Testing Metrics API endpoints...");
 
-        List<String> metricsEndpoints = List.of(
-            // Health Check
-            "/api/health",
-
-            // Performance Metrics
-            "/api/performance-metrics",
-            "/api/performance-metrics/summary",
-            "/api/performance-metrics/trends",
-            "/api/performance-metrics/test-types",
-
-            // Real-time Metrics
-            "/api/metrics/endpoints"
-        );
+        List<String> metricsEndpoints = MetricsApiEndpoints.getAllMetricsEndpoints();
 
         testEndpoints(METRICS_SERVICE_BASE_URL, metricsEndpoints, "Metrics API");
         logger.info("[OK] Metrics API endpoints tested successfully");
@@ -291,15 +257,15 @@ public class SystemBootstrapDemo {
 
             // Part 1: Configuration Validation
             logger.info("[PART 1] Configuration Validation");
-            ValidationResult configValidation = validateConfigurationChain();
-            displayValidationResults("Configuration Chain", configValidation);
+            ValidationResult configValidation = configurationValidator.validateConfigurationChain();
+            configurationValidator.displayValidationResults("Configuration Chain", configValidation);
 
             // Part 2: Database Schema Validation (only if config validation passed)
             if (configValidation.isSuccess()) {
                 logger.info("");
                 logger.info("[PART 2] Database Schema Validation");
-                ValidationResult schemaValidation = validateDatabaseSchema();
-                displayValidationResults("Database Schema", schemaValidation);
+                ValidationResult schemaValidation = configurationValidator.validateDatabaseSchema();
+                configurationValidator.displayValidationResults("Database Schema", schemaValidation);
             } else {
                 logger.info("[SKIP] Database Schema Validation - Configuration validation failed");
             }
@@ -328,335 +294,10 @@ public class SystemBootstrapDemo {
         // Create database connection manager
         databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
 
+        // Create configuration validator
+        configurationValidator = new ConfigurationValidator(configurationManager, databaseConnectionManager);
+
         logger.info("[OK] Configuration components initialized");
-    }
-
-    /**
-     * Validate the configuration chain: endpoints -> queries -> databases
-     */
-    private ValidationResult validateConfigurationChain() {
-        ValidationResult result = new ValidationResult();
-
-        // Load all configurations
-        Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
-        Map<String, QueryConfig> queries = configurationManager.getAllQueryConfigurations();
-        Map<String, ApiEndpointConfig> endpoints = configurationManager.getAllEndpointConfigurations();
-
-        logger.info("[CHECK] Loaded {} databases, {} queries, {} endpoints",
-                databases.size(), queries.size(), endpoints.size());
-
-        // Validate endpoint -> query dependencies
-        logger.info("[CHECK] Validating endpoint -> query dependencies...");
-        for (Map.Entry<String, ApiEndpointConfig> entry : endpoints.entrySet()) {
-            String endpointName = entry.getKey();
-            ApiEndpointConfig endpoint = entry.getValue();
-
-            String queryName = endpoint.getQuery();
-            if (queryName == null || queryName.trim().isEmpty()) {
-                result.addError("Endpoint '" + endpointName + "' has no query defined");
-                continue;
-            }
-
-            if (!queries.containsKey(queryName)) {
-                result.addError("Endpoint '" + endpointName + "' references non-existent query: " + queryName);
-            } else {
-                result.addSuccess("Endpoint '" + endpointName + "' -> query '" + queryName + "' [OK]");
-            }
-
-            // Check count query for paginated endpoints
-            if (endpoint.getPagination() != null && endpoint.getPagination().isEnabled()) {
-                String countQuery = endpoint.getCountQuery();
-                if (countQuery != null && !queries.containsKey(countQuery)) {
-                    result.addError("Endpoint '" + endpointName + "' references non-existent count query: " + countQuery);
-                }
-            }
-        }
-
-        // Validate query -> database dependencies
-        logger.info("[CHECK] Validating query -> database dependencies...");
-        for (Map.Entry<String, QueryConfig> entry : queries.entrySet()) {
-            String queryName = entry.getKey();
-            QueryConfig query = entry.getValue();
-
-            String databaseName = query.getDatabase();
-            if (databaseName == null || databaseName.trim().isEmpty()) {
-                result.addError("Query '" + queryName + "' has no database defined");
-                continue;
-            }
-
-            if (!databases.containsKey(databaseName)) {
-                result.addError("Query '" + queryName + "' references non-existent database: " + databaseName);
-            } else {
-                result.addSuccess("Query '" + queryName + "' -> database '" + databaseName + "' [OK]");
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Validate database schema: tables, fields, and query compatibility
-     */
-    private ValidationResult validateDatabaseSchema() {
-        ValidationResult result = new ValidationResult();
-
-        Map<String, QueryConfig> queries = configurationManager.getAllQueryConfigurations();
-        Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
-
-        // Group queries by database for efficient validation
-        Map<String, List<QueryConfig>> queriesByDatabase = new HashMap<>();
-        for (QueryConfig query : queries.values()) {
-            String databaseName = query.getDatabase();
-            queriesByDatabase.computeIfAbsent(databaseName, k -> new ArrayList<>()).add(query);
-        }
-
-        // Validate each database
-        for (Map.Entry<String, List<QueryConfig>> entry : queriesByDatabase.entrySet()) {
-            String databaseName = entry.getKey();
-            List<QueryConfig> databaseQueries = entry.getValue();
-
-            logger.info("[CHECK] Validating database '{}' with {} queries...", databaseName, databaseQueries.size());
-
-            try {
-                DataSource dataSource = databaseConnectionManager.getDataSource(databaseName);
-                if (dataSource == null) {
-                    result.addError("Database '" + databaseName + "' data source not available");
-                    continue;
-                }
-
-                try (Connection connection = dataSource.getConnection()) {
-                    DatabaseMetaData metaData = connection.getMetaData();
-
-                    // Validate each query for this database
-                    for (QueryConfig query : databaseQueries) {
-                        validateQuerySchema(query, metaData, result);
-                    }
-
-                    result.addSuccess("Database '" + databaseName + "' schema validation completed");
-
-                } catch (SQLException e) {
-                    result.addError("Failed to connect to database '" + databaseName + "': " + e.getMessage());
-                }
-
-            } catch (Exception e) {
-                result.addError("Error validating database '" + databaseName + "': " + e.getMessage());
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Validate a specific query against database schema
-     */
-    private void validateQuerySchema(QueryConfig query, DatabaseMetaData metaData, ValidationResult result) {
-        try {
-            String queryName = query.getName();
-            String sql = query.getSql();
-
-            // Extract table names from SQL
-            Set<String> referencedTables = extractTableNamesFromSql(sql);
-
-            // Validate each referenced table exists
-            for (String tableName : referencedTables) {
-                if (tableExists(metaData, tableName)) {
-                    result.addSuccess("Query '" + queryName + "' -> table '" + tableName + "' [EXISTS]");
-
-                    // Extract and validate column names
-                    Set<String> referencedColumns = extractColumnNamesFromSql(sql, tableName);
-                    validateTableColumns(metaData, tableName, referencedColumns, queryName, result);
-
-                } else {
-                    result.addError("Query '" + queryName + "' references non-existent table: " + tableName);
-                }
-            }
-
-            // Validate query parameters
-            validateQueryParameters(query, result);
-
-        } catch (Exception e) {
-            result.addError("Error validating query '" + query.getName() + "': " + e.getMessage());
-        }
-    }
-
-    /**
-     * Extract table names from SQL query
-     */
-    private Set<String> extractTableNamesFromSql(String sql) {
-        Set<String> tables = new HashSet<>();
-
-        // Simple regex to find table names after FROM and JOIN keywords
-        Pattern pattern = Pattern.compile("(?i)(?:FROM|JOIN)\\s+([a-zA-Z_][a-zA-Z0-9_]*)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(sql);
-
-        while (matcher.find()) {
-            String tableName = matcher.group(1).toLowerCase();
-            tables.add(tableName);
-        }
-
-        return tables;
-    }
-
-    /**
-     * Extract column names from SQL query for a specific table
-     */
-    private Set<String> extractColumnNamesFromSql(String sql, String tableName) {
-        Set<String> columns = new HashSet<>();
-
-        // Simple extraction - look for column names in SELECT clause
-        Pattern selectPattern = Pattern.compile("(?i)SELECT\\s+(.*?)\\s+FROM", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-        Matcher selectMatcher = selectPattern.matcher(sql);
-
-        if (selectMatcher.find()) {
-            String selectClause = selectMatcher.group(1);
-
-            // Split by comma and extract column names
-            String[] parts = selectClause.split(",");
-            for (String part : parts) {
-                part = part.trim();
-
-                // Handle aliases (column AS alias)
-                if (part.toLowerCase().contains(" as ")) {
-                    part = part.split("(?i)\\s+as\\s+")[0].trim();
-                }
-
-                // Remove table prefixes (table.column)
-                if (part.contains(".")) {
-                    part = part.substring(part.lastIndexOf(".") + 1);
-                }
-
-                // Skip functions and special cases
-                if (!part.equals("*") && !part.contains("(") && part.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
-                    columns.add(part.toLowerCase());
-                }
-            }
-        }
-
-        // Also look for columns in WHERE clause
-        Pattern wherePattern = Pattern.compile("(?i)WHERE\\s+(.*?)(?:ORDER|GROUP|LIMIT|$)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-        Matcher whereMatcher = wherePattern.matcher(sql);
-
-        if (whereMatcher.find()) {
-            String whereClause = whereMatcher.group(1);
-            Pattern columnPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*[=<>!]", Pattern.CASE_INSENSITIVE);
-            Matcher columnMatcher = columnPattern.matcher(whereClause);
-
-            while (columnMatcher.find()) {
-                String column = columnMatcher.group(1).toLowerCase();
-                if (!column.matches("(?i)(and|or|not|null|true|false)")) {
-                    columns.add(column);
-                }
-            }
-        }
-
-        return columns;
-    }
-
-    /**
-     * Check if a table exists in the database
-     */
-    private boolean tableExists(DatabaseMetaData metaData, String tableName) throws SQLException {
-        try (ResultSet tables = metaData.getTables(null, null, tableName.toUpperCase(), new String[]{"TABLE"})) {
-            return tables.next();
-        }
-    }
-
-    /**
-     * Validate that columns exist in the specified table
-     */
-    private void validateTableColumns(DatabaseMetaData metaData, String tableName, Set<String> referencedColumns,
-                                    String queryName, ValidationResult result) {
-        try {
-            Set<String> existingColumns = new HashSet<>();
-
-            try (ResultSet columns = metaData.getColumns(null, null, tableName.toUpperCase(), null)) {
-                while (columns.next()) {
-                    String columnName = columns.getString("COLUMN_NAME").toLowerCase();
-                    existingColumns.add(columnName);
-                }
-            }
-
-            for (String referencedColumn : referencedColumns) {
-                if (existingColumns.contains(referencedColumn)) {
-                    result.addSuccess("Query '" + queryName + "' -> table '" + tableName +
-                                    "' -> column '" + referencedColumn + "' [EXISTS]");
-                } else {
-                    result.addError("Query '" + queryName + "' references non-existent column '" +
-                                  referencedColumn + "' in table '" + tableName + "'");
-                }
-            }
-
-        } catch (SQLException e) {
-            result.addError("Error validating columns for table '" + tableName + "': " + e.getMessage());
-        }
-    }
-
-    /**
-     * Validate query parameters
-     */
-    private void validateQueryParameters(QueryConfig query, ValidationResult result) {
-        String queryName = query.getName();
-        String sql = query.getSql();
-
-        // Count parameter placeholders in SQL
-        int sqlParameterCount = 0;
-        for (char c : sql.toCharArray()) {
-            if (c == '?') {
-                sqlParameterCount++;
-            }
-        }
-
-        // Count defined parameters
-        int definedParameterCount = query.getParameters() != null ? query.getParameters().size() : 0;
-
-        if (sqlParameterCount == definedParameterCount) {
-            result.addSuccess("Query '" + queryName + "' parameter count matches: " + sqlParameterCount + " parameters");
-        } else {
-            result.addError("Query '" + queryName + "' parameter mismatch: SQL has " + sqlParameterCount +
-                          " placeholders but " + definedParameterCount + " parameters defined");
-        }
-    }
-
-    /**
-     * Display validation results in a formatted way
-     */
-    private void displayValidationResults(String validationType, ValidationResult result) {
-        logger.info("[RESULTS] {} Validation Results:", validationType);
-        logger.info("+------------------------------------------------------------------------------+");
-        logger.info("| Type: {} | Success: {} | Errors: {} |",
-                String.format("%-20s", validationType),
-                String.format("%7d", result.getSuccessCount()),
-                String.format("%6d", result.getErrorCount()));
-        logger.info("+------------------------------------------------------------------------------+");
-
-        // Display errors first
-        if (!result.getErrors().isEmpty()) {
-            logger.info("| ERRORS:");
-            for (String error : result.getErrors()) {
-                logger.info("| [ERROR] {}", error);
-            }
-        }
-
-        // Display successes (limit to first 10 to avoid spam)
-        if (!result.getSuccesses().isEmpty()) {
-            logger.info("| SUCCESSES:");
-            List<String> successes = result.getSuccesses();
-            int displayCount = Math.min(successes.size(), 10);
-            for (int i = 0; i < displayCount; i++) {
-                logger.info("| [OK] {}", successes.get(i));
-            }
-            if (successes.size() > 10) {
-                logger.info("| ... and {} more successful validations", successes.size() - 10);
-            }
-        }
-
-        logger.info("+------------------------------------------------------------------------------+");
-
-        if (result.isSuccess()) {
-            logger.info("[SUCCESS] {} validation passed", validationType);
-        } else {
-            logger.info("[FAILED] {} validation failed with {} errors", validationType, result.getErrorCount());
-        }
     }
 
     /**
@@ -769,11 +410,11 @@ public class SystemBootstrapDemo {
         logger.info("");
         logger.info("[ACCESS] Access URLs:");
         logger.info("   + Generic API Swagger: {}/swagger", GENERIC_API_BASE_URL);
-        logger.info("   + Management Dashboard: {}/api/management/dashboard", GENERIC_API_BASE_URL);
+        logger.info("   + Management Dashboard: {}{}", GENERIC_API_BASE_URL, ApiEndpoints.Management.DASHBOARD);
         if (metricsServiceAvailable) {
-            logger.info("   + Metrics Dashboard: {}/dashboard", METRICS_SERVICE_BASE_URL);
+            logger.info("   + Metrics Dashboard: {}{}", METRICS_SERVICE_BASE_URL, MetricsApiEndpoints.DASHBOARD);
         } else {
-            logger.info("   + Metrics Dashboard: {} (Start Metrics Service first)", METRICS_SERVICE_BASE_URL + "/dashboard");
+            logger.info("   + Metrics Dashboard: {}{} (Start Metrics Service first)", METRICS_SERVICE_BASE_URL, MetricsApiEndpoints.DASHBOARD);
         }
         logger.info("=".repeat(80));
     }
@@ -822,39 +463,5 @@ public class SystemBootstrapDemo {
         }
     }
 
-    /**
-     * Validation result container
-     */
-    private static class ValidationResult {
-        private final List<String> errors = new ArrayList<>();
-        private final List<String> successes = new ArrayList<>();
 
-        public void addError(String error) {
-            errors.add(error);
-        }
-
-        public void addSuccess(String success) {
-            successes.add(success);
-        }
-
-        public List<String> getErrors() {
-            return errors;
-        }
-
-        public List<String> getSuccesses() {
-            return successes;
-        }
-
-        public int getErrorCount() {
-            return errors.size();
-        }
-
-        public int getSuccessCount() {
-            return successes.size();
-        }
-
-        public boolean isSuccess() {
-            return errors.isEmpty();
-        }
-    }
 }

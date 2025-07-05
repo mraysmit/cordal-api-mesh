@@ -3,11 +3,11 @@ package dev.mars.generic;
 import com.google.inject.Module;
 import dev.mars.common.application.BaseJavalinApplication;
 import dev.mars.common.config.ServerConfig;
-import dev.mars.common.util.StockTradesTestDataInitializer;
 
 import dev.mars.config.GenericApiConfig;
 import dev.mars.config.GenericApiGuiceModule;
 import dev.mars.config.SwaggerConfig;
+import dev.mars.util.ApiEndpoints;
 
 import dev.mars.generic.config.ApiEndpointConfig;
 import org.slf4j.Logger;
@@ -27,6 +27,30 @@ public class GenericApiApplication extends BaseJavalinApplication {
     public static void main(String[] args) {
         try {
             GenericApiApplication application = new GenericApiApplication();
+
+            // Check for command line arguments
+            boolean validateOnlyFromArgs = false;
+            for (String arg : args) {
+                if ("--validate-only".equals(arg) || "--validate".equals(arg)) {
+                    validateOnlyFromArgs = true;
+                    break;
+                }
+            }
+
+            // Initialize dependency injection to read configuration
+            application.initializeDependencyInjection();
+            GenericApiConfig config = application.injector.getInstance(GenericApiConfig.class);
+
+            // Check if we should run validation only (from args or config)
+            boolean validateOnly = validateOnlyFromArgs || config.isValidationValidateOnly();
+
+            if (validateOnly) {
+                logger.info("Running configuration validation only (--validate-only flag or validation.validateOnly=true)");
+                application.runValidationOnly();
+                return;
+            }
+
+            // Normal application startup
             application.start();
 
             // Add shutdown hook
@@ -47,8 +71,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
     protected ServerConfig getServerConfig() {
         GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
         ServerConfig serverConfig = config.getServerConfig();
-        logger.info("GenericApiApplication - Retrieved server config: host={}, port={}",
-                   serverConfig.getHost(), serverConfig.getPort());
+        logger.info("GenericApiApplication - Retrieved server config: host={}, port={}", serverConfig.getHost(), serverConfig.getPort());
         return serverConfig;
     }
 
@@ -64,23 +87,11 @@ public class GenericApiApplication extends BaseJavalinApplication {
         dev.mars.database.DatabaseManager dbManager = injector.getInstance(dev.mars.database.DatabaseManager.class);
         logger.info("Configuration database initialized successfully");
 
-        // Check if test data loading is enabled via system property
-        String testDataProperty = System.getProperty("test.data.loading.enabled", "false");
-        boolean testDataLoadingEnabled = Boolean.parseBoolean(testDataProperty);
-        logger.info("Test data loading property: '{}', enabled: {}", testDataProperty, testDataLoadingEnabled);
-
-        if (testDataLoadingEnabled) {
-            logger.info("Test data loading enabled - initializing stock trades data");
-            try {
-                // Initialize stock trades data for testing using common library
-                initializeStockTradesForTesting();
-                logger.info("Stock trades data initialized successfully for testing");
-            } catch (Exception e) {
-                logger.error("Failed to initialize stock trades data for testing", e);
-                throw new RuntimeException("Failed to initialize stock trades data for testing", e);
-            }
-        } else {
-            logger.info("Production startup - no data loading performed");
+        // Check if validation should run on startup
+        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+        if (config.isValidationRunOnStartup()) {
+            logger.info("Running configuration validation on startup (validation.runOnStartup=true)");
+            runConfigurationValidation();
         }
     }
 
@@ -92,21 +103,6 @@ public class GenericApiApplication extends BaseJavalinApplication {
         logger.info("Swagger/OpenAPI configured");
     }
 
-    /**
-     * Initialize stock trades data for testing using common library
-     */
-    private void initializeStockTradesForTesting() throws Exception {
-        logger.info("Initializing stock trades table and sample data for testing");
-
-        // Get database connection manager
-        dev.mars.generic.database.DatabaseConnectionManager dbConnectionManager =
-            injector.getInstance(dev.mars.generic.database.DatabaseConnectionManager.class);
-
-        // Get connection to stocktrades database and use common library initializer
-        try (java.sql.Connection connection = dbConnectionManager.getConnection("stocktrades")) {
-            StockTradesTestDataInitializer.initializeStockTradesForTesting(connection);
-        }
-    }
     @Override
     protected void configureRoutes() {
         logger.info("Configuring routes");
@@ -115,7 +111,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         dev.mars.generic.management.ManagementController managementController = injector.getInstance(dev.mars.generic.management.ManagementController.class);
         
         // Health check endpoint
-        app.get("/api/health", ctx -> {
+        app.get(ApiEndpoints.HEALTH, ctx -> {
             ctx.json(java.util.Map.of(
                 "status", "UP",
                 "timestamp", System.currentTimeMillis(),
@@ -124,73 +120,73 @@ public class GenericApiApplication extends BaseJavalinApplication {
         });
 
         // Generic API management endpoints
-        app.get("/api/generic/health", genericApiController::getHealthStatus);
-        app.get("/api/generic/endpoints", genericApiController::getAvailableEndpoints);
-        app.get("/api/generic/endpoints/{endpointName}", genericApiController::getEndpointConfiguration);
+        app.get(ApiEndpoints.GENERIC_HEALTH, genericApiController::getHealthStatus);
+        app.get(ApiEndpoints.GENERIC_ENDPOINTS, genericApiController::getAvailableEndpoints);
+        app.get(ApiEndpoints.GENERIC_ENDPOINT_BY_NAME, genericApiController::getEndpointConfiguration);
 
         // Configuration endpoints
-        app.get("/api/generic/config", genericApiController::getCompleteConfiguration);
+        app.get(ApiEndpoints.GENERIC_CONFIG, genericApiController::getCompleteConfiguration);
 
         // ========== GRANULAR CONFIGURATION ENDPOINTS (MUST BE BEFORE PARAMETERIZED ROUTES) ==========
 
         // Granular configuration endpoints - Endpoints
-        app.get("/api/generic/config/endpoints/schema", genericApiController::getEndpointConfigurationSchema);
-        app.get("/api/generic/config/endpoints/parameters", genericApiController::getEndpointParameters);
-        app.get("/api/generic/config/endpoints/database-connections", genericApiController::getEndpointDatabaseConnections);
-        app.get("/api/generic/config/endpoints/summary", genericApiController::getEndpointConfigurationSummary);
+        app.get(ApiEndpoints.Config.ENDPOINTS_SCHEMA, genericApiController::getEndpointConfigurationSchema);
+        app.get(ApiEndpoints.Config.ENDPOINTS_PARAMETERS, genericApiController::getEndpointParameters);
+        app.get(ApiEndpoints.Config.ENDPOINTS_DATABASE_CONNECTIONS, genericApiController::getEndpointDatabaseConnections);
+        app.get(ApiEndpoints.Config.ENDPOINTS_SUMMARY, genericApiController::getEndpointConfigurationSummary);
 
         // Granular configuration endpoints - Queries
-        app.get("/api/generic/config/queries/schema", genericApiController::getQueryConfigurationSchema);
-        app.get("/api/generic/config/queries/parameters", genericApiController::getQueryParameters);
-        app.get("/api/generic/config/queries/database-connections", genericApiController::getQueryDatabaseConnections);
-        app.get("/api/generic/config/queries/summary", genericApiController::getQueryConfigurationSummary);
+        app.get(ApiEndpoints.Config.QUERIES_SCHEMA, genericApiController::getQueryConfigurationSchema);
+        app.get(ApiEndpoints.Config.QUERIES_PARAMETERS, genericApiController::getQueryParameters);
+        app.get(ApiEndpoints.Config.QUERIES_DATABASE_CONNECTIONS, genericApiController::getQueryDatabaseConnections);
+        app.get(ApiEndpoints.Config.QUERIES_SUMMARY, genericApiController::getQueryConfigurationSummary);
 
         // Granular configuration endpoints - Databases
-        app.get("/api/generic/config/databases/schema", genericApiController::getDatabaseConfigurationSchema);
-        app.get("/api/generic/config/databases/parameters", genericApiController::getDatabaseParameters);
-        app.get("/api/generic/config/databases/connections", genericApiController::getDatabaseConnections);
-        app.get("/api/generic/config/databases/summary", genericApiController::getDatabaseConfigurationSummary);
+        app.get(ApiEndpoints.Config.DATABASES_SCHEMA, genericApiController::getDatabaseConfigurationSchema);
+        app.get(ApiEndpoints.Config.DATABASES_PARAMETERS, genericApiController::getDatabaseParameters);
+        app.get(ApiEndpoints.Config.DATABASES_CONNECTIONS, genericApiController::getDatabaseConnections);
+        app.get(ApiEndpoints.Config.DATABASES_SUMMARY, genericApiController::getDatabaseConfigurationSummary);
 
         // ========== PARAMETERIZED CONFIGURATION ENDPOINTS (MUST BE AFTER SPECIFIC ROUTES) ==========
 
         app.get("/api/generic/config/queries", genericApiController::getQueryConfigurations);
-        app.get("/api/generic/config/queries/{queryName}", genericApiController::getQueryConfiguration);
+        app.get(ApiEndpoints.Config.QUERIES_BY_NAME, genericApiController::getQueryConfiguration);
         app.get("/api/generic/config/databases", genericApiController::getDatabaseConfigurations);
-        app.get("/api/generic/config/databases/{databaseName}", genericApiController::getDatabaseConfiguration);
-        app.get("/api/generic/config/relationships", genericApiController::getConfigurationRelationships);
+        app.get(ApiEndpoints.Config.DATABASES_BY_NAME, genericApiController::getDatabaseConfiguration);
+        app.get(ApiEndpoints.Config.RELATIONSHIPS, genericApiController::getConfigurationRelationships);
 
         // Configuration validation endpoints
-        app.get("/api/generic/config/validate", genericApiController::validateConfigurations);
-        app.get("/api/generic/config/validate/endpoints", genericApiController::validateEndpointConfigurations);
-        app.get("/api/generic/config/validate/queries", genericApiController::validateQueryConfigurations);
-        app.get("/api/generic/config/validate/databases", genericApiController::validateDatabaseConfigurations);
-        app.get("/api/generic/config/validate/relationships", genericApiController::validateConfigurationRelationships);
+        app.get(ApiEndpoints.Validation.VALIDATE_ALL, genericApiController::validateConfigurations);
+        app.get(ApiEndpoints.Validation.VALIDATE_ENDPOINTS, genericApiController::validateEndpointConfigurations);
+        app.get(ApiEndpoints.Validation.VALIDATE_QUERIES, genericApiController::validateQueryConfigurations);
+        app.get(ApiEndpoints.Validation.VALIDATE_DATABASES, genericApiController::validateDatabaseConfigurations);
+        app.get(ApiEndpoints.Validation.VALIDATE_RELATIONSHIPS, genericApiController::validateConfigurationRelationships);
 
         // ========== COMPREHENSIVE MANAGEMENT ENDPOINTS ==========
 
         // Configuration metadata endpoints
-        app.get("/api/management/config/metadata", managementController::getConfigurationMetadata);
-        app.get("/api/management/config/paths", managementController::getConfigurationPaths);
-        app.get("/api/management/config/contents", managementController::getConfigurationFileContents);
+        app.get(ApiEndpoints.Management.CONFIG_METADATA, managementController::getConfigurationMetadata);
+        app.get(ApiEndpoints.Management.CONFIG_PATHS, managementController::getConfigurationPaths);
+        app.get(ApiEndpoints.Management.CONFIG_CONTENTS, managementController::getConfigurationFileContents);
 
         // Configuration view endpoints
-        app.get("/api/management/config/endpoints", managementController::getConfiguredEndpoints);
-        app.get("/api/management/config/queries", managementController::getConfiguredQueries);
-        app.get("/api/management/config/databases", managementController::getConfiguredDatabases);
+        app.get(ApiEndpoints.Management.CONFIG_ENDPOINTS, managementController::getConfiguredEndpoints);
+        app.get(ApiEndpoints.Management.CONFIG_QUERIES, managementController::getConfiguredQueries);
+        app.get(ApiEndpoints.Management.CONFIG_DATABASES, managementController::getConfiguredDatabases);
 
         // Usage statistics endpoints
-        app.get("/api/management/statistics", managementController::getUsageStatistics);
-        app.get("/api/management/statistics/endpoints", managementController::getEndpointStatistics);
-        app.get("/api/management/statistics/queries", managementController::getQueryStatistics);
-        app.get("/api/management/statistics/databases", managementController::getDatabaseStatistics);
+        app.get(ApiEndpoints.Management.STATISTICS, managementController::getUsageStatistics);
+        app.get(ApiEndpoints.Management.STATISTICS_ENDPOINTS, managementController::getEndpointStatistics);
+        app.get(ApiEndpoints.Management.STATISTICS_QUERIES, managementController::getQueryStatistics);
+        app.get(ApiEndpoints.Management.STATISTICS_DATABASES, managementController::getDatabaseStatistics);
 
         // Health monitoring endpoints
-        app.get("/api/management/health", managementController::getHealthStatus);
-        app.get("/api/management/health/databases", managementController::getDatabaseHealth);
-        app.get("/api/management/health/databases/{databaseName}", managementController::getSpecificDatabaseHealth);
+        app.get(ApiEndpoints.Management.HEALTH, managementController::getHealthStatus);
+        app.get(ApiEndpoints.Management.HEALTH_DATABASES, managementController::getDatabaseHealth);
+        app.get(ApiEndpoints.Management.HEALTH_DATABASE_SPECIFIC, managementController::getSpecificDatabaseHealth);
 
         // Comprehensive dashboard endpoint
-        app.get("/api/management/dashboard", managementController::getManagementDashboard);
+        app.get(ApiEndpoints.Management.DASHBOARD, managementController::getManagementDashboard);
 
         // Register dynamic endpoints from YAML configuration
         registerDynamicEndpoints(genericApiController);
@@ -484,5 +480,93 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         logger.info("🎯 Generic API Service ready to accept requests!");
         logger.info("💡 APIs are dynamically configured via {} source", config.getConfigSource().toUpperCase());
+    }
+
+    /**
+     * Run validation only and exit
+     */
+    private void runValidationOnly() {
+        logger.info("=".repeat(80));
+        logger.info(">>> CONFIGURATION VALIDATION MODE");
+        logger.info("=".repeat(80));
+
+        try {
+            // Initialize configuration components
+            initializeConfigurationComponents();
+
+            // Run comprehensive validation
+            runConfigurationValidation();
+
+            logger.info("=".repeat(80));
+            logger.info(">>> VALIDATION COMPLETED - APPLICATION EXITING");
+            logger.info("=".repeat(80));
+
+        } catch (Exception e) {
+            logger.error("FATAL: Configuration validation failed", e);
+            logger.error("Application startup aborted due to validation failure");
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Run configuration validation (used both for startup validation and standalone validation)
+     */
+    private void runConfigurationValidation() {
+        logger.info("[VALIDATE] Starting Configuration Validation...");
+
+        try {
+            // Get configuration components
+            dev.mars.generic.config.ConfigurationLoader configurationLoader =
+                injector.getInstance(dev.mars.generic.config.ConfigurationLoader.class);
+            dev.mars.generic.config.EndpointConfigurationManager configurationManager =
+                injector.getInstance(dev.mars.generic.config.EndpointConfigurationManager.class);
+            dev.mars.generic.database.DatabaseConnectionManager databaseConnectionManager =
+                injector.getInstance(dev.mars.generic.database.DatabaseConnectionManager.class);
+
+            // Create configuration validator
+            dev.mars.util.ConfigurationValidator configurationValidator =
+                new dev.mars.util.ConfigurationValidator(configurationManager, databaseConnectionManager);
+
+            // Part 1: Configuration Chain Validation
+            logger.info("[PART 1] Configuration Chain Validation");
+            dev.mars.util.ValidationResult configValidation = configurationValidator.validateConfigurationChain();
+            configurationValidator.displayValidationResults("Configuration Chain", configValidation);
+
+            // Part 2: Database Schema Validation
+            logger.info("[PART 2] Database Schema Validation");
+            dev.mars.util.ValidationResult schemaValidation = configurationValidator.validateDatabaseSchema();
+            configurationValidator.displayValidationResults("Database Schema", schemaValidation);
+
+            // Summary
+            boolean overallSuccess = configValidation.isSuccess() && schemaValidation.isSuccess();
+            if (overallSuccess) {
+                logger.info("[SUCCESS] All configuration validations passed");
+            } else {
+                logger.error("[FAILED] Configuration validation failed");
+                logger.error("  Configuration Chain Errors: {}", configValidation.getErrorCount());
+                logger.error("  Database Schema Errors: {}", schemaValidation.getErrorCount());
+                throw new RuntimeException("Configuration validation failed");
+            }
+
+        } catch (Exception e) {
+            logger.error("Configuration validation failed", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Initialize configuration components for validation
+     */
+    private void initializeConfigurationComponents() {
+        logger.info("[INIT] Initializing configuration components for validation...");
+
+        // Components are already available through dependency injection
+        // Just verify they're accessible
+        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+        logger.info("[OK] Configuration components initialized");
+        logger.info("   Configuration Source: {}", config.getConfigSource());
+        logger.info("   Databases Path: {}", config.getDatabasesConfigPath());
+        logger.info("   Queries Path: {}", config.getQueriesConfigPath());
+        logger.info("   Endpoints Path: {}", config.getEndpointsConfigPath());
     }
 }

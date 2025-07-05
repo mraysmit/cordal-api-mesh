@@ -1,0 +1,147 @@
+# Stock Trades Named SQL Queries Configuration
+# This file contains reusable SQL queries that can be referenced by Stock Trades API endpoints
+
+queries:
+  # Stock Trades Queries
+  stock-trades-all:
+    name: "stock-trades-all"
+    description: "Get All Stock Trades - Retrieve all stock trades with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count:
+    name: "stock-trades-count"
+    description: "Count All Stock Trades - Get total count of stock trades"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  stock-trades-by-symbol:
+    name: "stock-trades-by-symbol"
+    description: "Get Stock Trades by Symbol - Retrieve stock trades filtered by symbol with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE symbol = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count-by-symbol:
+    name: "stock-trades-count-by-symbol"
+    description: "Count Stock Trades by Symbol - Get total count of stock trades for a specific symbol"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+
+  stock-trades-by-id:
+    name: "stock-trades-by-id"
+    description: "Get Stock Trade by ID - Retrieve a specific stock trade by ID"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE id = ?
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+
+  stock-trades-by-trader:
+    name: "stock-trades-by-trader"
+    description: "Get Stock Trades by Trader - Retrieve stock trades filtered by trader ID with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count-by-trader:
+    name: "stock-trades-count-by-trader"
+    description: "Count Stock Trades by Trader - Get total count of stock trades for a specific trader"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE trader_id = ?"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+
+  stock-trades-by-date-range:
+    name: "stock-trades-by-date-range"
+    description: "Get Stock Trades by Date Range - Retrieve stock trades within a date range with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trade_date_time BETWEEN ? AND ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count-by-date-range:
+    name: "stock-trades-count-by-date-range"
+    description: "Count Stock Trades by Date Range - Get total count of stock trades within a date range"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE trade_date_time BETWEEN ? AND ?"
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+
+
