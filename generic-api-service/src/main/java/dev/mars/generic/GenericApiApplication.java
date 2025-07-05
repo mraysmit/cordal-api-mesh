@@ -109,6 +109,8 @@ public class GenericApiApplication extends BaseJavalinApplication {
         
         GenericApiController genericApiController = injector.getInstance(GenericApiController.class);
         dev.mars.generic.management.ManagementController managementController = injector.getInstance(dev.mars.generic.management.ManagementController.class);
+        dev.mars.generic.management.ConfigurationManagementController configManagementController = injector.getInstance(dev.mars.generic.management.ConfigurationManagementController.class);
+        dev.mars.generic.migration.ConfigurationMigrationController migrationController = injector.getInstance(dev.mars.generic.migration.ConfigurationMigrationController.class);
         
         // Health check endpoint
         app.get(ApiEndpoints.HEALTH, ctx -> {
@@ -187,6 +189,48 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         // Comprehensive dashboard endpoint
         app.get(ApiEndpoints.Management.DASHBOARD, managementController::getManagementDashboard);
+
+        // ========== CONFIGURATION MANAGEMENT ENDPOINTS ==========
+
+        // Database Configuration Management
+        app.get(ApiEndpoints.ConfigManagement.DATABASES, configManagementController::getAllDatabaseConfigurations);
+        app.get(ApiEndpoints.ConfigManagement.DATABASE_BY_NAME, configManagementController::getDatabaseConfiguration);
+        app.post(ApiEndpoints.ConfigManagement.DATABASE_BY_NAME, configManagementController::saveDatabaseConfiguration);
+        app.delete(ApiEndpoints.ConfigManagement.DATABASE_BY_NAME, configManagementController::deleteDatabaseConfiguration);
+
+        // Query Configuration Management
+        app.get(ApiEndpoints.ConfigManagement.QUERIES, configManagementController::getAllQueryConfigurations);
+        app.get(ApiEndpoints.ConfigManagement.QUERY_BY_NAME, configManagementController::getQueryConfiguration);
+        app.get(ApiEndpoints.ConfigManagement.QUERIES_BY_DATABASE, configManagementController::getQueryConfigurationsByDatabase);
+        app.post(ApiEndpoints.ConfigManagement.QUERY_BY_NAME, configManagementController::saveQueryConfiguration);
+        app.delete(ApiEndpoints.ConfigManagement.QUERY_BY_NAME, configManagementController::deleteQueryConfiguration);
+
+        // Endpoint Configuration Management
+        app.get(ApiEndpoints.ConfigManagement.ENDPOINTS, configManagementController::getAllEndpointConfigurations);
+        app.get(ApiEndpoints.ConfigManagement.ENDPOINT_BY_NAME, configManagementController::getEndpointConfiguration);
+        app.get(ApiEndpoints.ConfigManagement.ENDPOINTS_BY_QUERY, configManagementController::getEndpointConfigurationsByQuery);
+        app.post(ApiEndpoints.ConfigManagement.ENDPOINT_BY_NAME, configManagementController::saveEndpointConfiguration);
+        app.delete(ApiEndpoints.ConfigManagement.ENDPOINT_BY_NAME, configManagementController::deleteEndpointConfiguration);
+
+        // Configuration Management Utilities
+        app.get(ApiEndpoints.ConfigManagement.STATISTICS, configManagementController::getConfigurationStatistics);
+        app.get(ApiEndpoints.ConfigManagement.SOURCE_INFO, configManagementController::getConfigurationSourceInfo);
+        app.get(ApiEndpoints.ConfigManagement.AVAILABILITY, configManagementController::getConfigurationManagementAvailability);
+
+        // ========== CONFIGURATION MIGRATION ENDPOINTS ==========
+
+        // Migration Operations
+        app.post(ApiEndpoints.Migration.YAML_TO_DATABASE, migrationController::migrateYamlToDatabase);
+        app.get(ApiEndpoints.Migration.EXPORT_DATABASE_TO_YAML, migrationController::exportDatabaseToYaml);
+
+        // Synchronization Operations
+        app.get(ApiEndpoints.Migration.COMPARE, migrationController::compareConfigurations);
+        app.get(ApiEndpoints.Migration.STATUS, migrationController::getMigrationStatus);
+
+        // YAML Export Utilities
+        app.get(ApiEndpoints.Migration.YAML_DATABASES, migrationController::getYamlDatabaseConfigurations);
+        app.get(ApiEndpoints.Migration.YAML_QUERIES, migrationController::getYamlQueryConfigurations);
+        app.get(ApiEndpoints.Migration.YAML_ENDPOINTS, migrationController::getYamlEndpointConfigurations);
 
         // Register dynamic endpoints from YAML configuration
         registerDynamicEndpoints(genericApiController);

@@ -22,7 +22,7 @@ import dev.mars.config.GenericApiConfig;
  * Loads YAML configuration files for queries and API endpoints
  */
 @Singleton
-public class ConfigurationLoader {
+public class ConfigurationLoader implements ConfigurationLoaderInterface {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationLoader.class);
 
     private final ObjectMapper yamlMapper;

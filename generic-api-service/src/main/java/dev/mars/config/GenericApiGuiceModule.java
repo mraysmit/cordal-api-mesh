@@ -8,12 +8,21 @@ import dev.mars.generic.GenericApiController;
 import dev.mars.generic.GenericApiService;
 import dev.mars.generic.GenericRepository;
 import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.ConfigurationLoaderFactory;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.database.DatabaseConnectionManager;
+import dev.mars.database.loader.DatabaseConfigurationLoader;
+import dev.mars.database.repository.DatabaseConfigurationRepository;
+import dev.mars.database.repository.QueryConfigurationRepository;
+import dev.mars.database.repository.EndpointConfigurationRepository;
 import dev.mars.generic.management.ConfigurationMetadataService;
+import dev.mars.generic.management.ConfigurationManagementService;
+import dev.mars.generic.management.ConfigurationManagementController;
 import dev.mars.generic.management.UsageStatisticsService;
 import dev.mars.generic.management.HealthMonitoringService;
 import dev.mars.generic.management.ManagementController;
+import dev.mars.generic.migration.ConfigurationMigrationService;
+import dev.mars.generic.migration.ConfigurationMigrationController;
 import dev.mars.database.DatabaseManager;
 import dev.mars.database.ConfigurationDataLoader;
 import org.slf4j.Logger;
@@ -57,9 +66,48 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoader configurationLoader) {
+    public DatabaseConfigurationRepository provideDatabaseConfigurationRepository(DatabaseManager databaseManager) {
+        logger.info("Creating DatabaseConfigurationRepository instance");
+        return new DatabaseConfigurationRepository(databaseManager);
+    }
+
+    @Provides
+    @Singleton
+    public QueryConfigurationRepository provideQueryConfigurationRepository(DatabaseManager databaseManager) {
+        logger.info("Creating QueryConfigurationRepository instance");
+        return new QueryConfigurationRepository(databaseManager);
+    }
+
+    @Provides
+    @Singleton
+    public EndpointConfigurationRepository provideEndpointConfigurationRepository(DatabaseManager databaseManager) {
+        logger.info("Creating EndpointConfigurationRepository instance");
+        return new EndpointConfigurationRepository(databaseManager);
+    }
+
+    @Provides
+    @Singleton
+    public DatabaseConfigurationLoader provideDatabaseConfigurationLoader(DatabaseConfigurationRepository databaseRepository,
+                                                                        QueryConfigurationRepository queryRepository,
+                                                                        EndpointConfigurationRepository endpointRepository) {
+        logger.info("Creating DatabaseConfigurationLoader instance");
+        return new DatabaseConfigurationLoader(databaseRepository, queryRepository, endpointRepository);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationLoaderFactory provideConfigurationLoaderFactory(GenericApiConfig genericApiConfig,
+                                                                       ConfigurationLoader yamlConfigurationLoader,
+                                                                       DatabaseConfigurationLoader databaseConfigurationLoader) {
+        logger.info("Creating ConfigurationLoaderFactory instance");
+        return new ConfigurationLoaderFactory(genericApiConfig, yamlConfigurationLoader, databaseConfigurationLoader);
+    }
+
+    @Provides
+    @Singleton
+    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory) {
         logger.info("Creating EndpointConfigurationManager instance");
-        EndpointConfigurationManager manager = new EndpointConfigurationManager(configurationLoader);
+        EndpointConfigurationManager manager = new EndpointConfigurationManager(configurationLoaderFactory);
 
         // Validate configurations on startup
         manager.validateConfigurations();
@@ -119,6 +167,45 @@ public class GenericApiGuiceModule extends AbstractModule {
                                                                 EndpointConfigurationManager configurationManager) {
         logger.info("Creating HealthMonitoringService instance");
         return new HealthMonitoringService(databaseConnectionManager, configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationManagementService provideConfigurationManagementService(DatabaseConfigurationRepository databaseRepository,
+                                                                               QueryConfigurationRepository queryRepository,
+                                                                               EndpointConfigurationRepository endpointRepository,
+                                                                               ConfigurationLoaderFactory configurationLoaderFactory,
+                                                                               EndpointConfigurationManager configurationManager) {
+        logger.info("Creating ConfigurationManagementService instance");
+        return new ConfigurationManagementService(databaseRepository, queryRepository, endpointRepository,
+                                                 configurationLoaderFactory, configurationManager);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationManagementController provideConfigurationManagementController(ConfigurationManagementService configurationManagementService) {
+        logger.info("Creating ConfigurationManagementController instance");
+        return new ConfigurationManagementController(configurationManagementService);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationMigrationService provideConfigurationMigrationService(DatabaseConfigurationRepository databaseRepository,
+                                                                             QueryConfigurationRepository queryRepository,
+                                                                             EndpointConfigurationRepository endpointRepository,
+                                                                             ConfigurationLoader yamlLoader,
+                                                                             DatabaseConfigurationLoader databaseLoader,
+                                                                             ConfigurationLoaderFactory configurationLoaderFactory) {
+        logger.info("Creating ConfigurationMigrationService instance");
+        return new ConfigurationMigrationService(databaseRepository, queryRepository, endpointRepository,
+                                                yamlLoader, databaseLoader, configurationLoaderFactory);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationMigrationController provideConfigurationMigrationController(ConfigurationMigrationService configurationMigrationService) {
+        logger.info("Creating ConfigurationMigrationController instance");
+        return new ConfigurationMigrationController(configurationMigrationService);
     }
 
     @Provides

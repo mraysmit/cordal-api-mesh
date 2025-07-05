@@ -51,6 +51,44 @@ public final class ApiEndpoints {
         public static final String DASHBOARD = MANAGEMENT_BASE + "/dashboard";
     }
 
+    // ========== CONFIGURATION MANAGEMENT ENDPOINTS ==========
+    public static final class ConfigManagement {
+        // Database Configuration Management
+        public static final String DATABASES = MANAGEMENT_BASE + "/config-mgmt/databases";
+        public static final String DATABASE_BY_NAME = MANAGEMENT_BASE + "/config-mgmt/databases/{name}";
+
+        // Query Configuration Management
+        public static final String QUERIES = MANAGEMENT_BASE + "/config-mgmt/queries";
+        public static final String QUERY_BY_NAME = MANAGEMENT_BASE + "/config-mgmt/queries/{name}";
+        public static final String QUERIES_BY_DATABASE = MANAGEMENT_BASE + "/config-mgmt/queries/by-database/{databaseName}";
+
+        // Endpoint Configuration Management
+        public static final String ENDPOINTS = MANAGEMENT_BASE + "/config-mgmt/endpoints";
+        public static final String ENDPOINT_BY_NAME = MANAGEMENT_BASE + "/config-mgmt/endpoints/{name}";
+        public static final String ENDPOINTS_BY_QUERY = MANAGEMENT_BASE + "/config-mgmt/endpoints/by-query/{queryName}";
+
+        // Configuration Management Utilities
+        public static final String STATISTICS = MANAGEMENT_BASE + "/config-mgmt/statistics";
+        public static final String SOURCE_INFO = MANAGEMENT_BASE + "/config-mgmt/source";
+        public static final String AVAILABILITY = MANAGEMENT_BASE + "/config-mgmt/availability";
+    }
+
+    // ========== CONFIGURATION MIGRATION ENDPOINTS ==========
+    public static final class Migration {
+        // Migration Operations
+        public static final String YAML_TO_DATABASE = MANAGEMENT_BASE + "/migration/yaml-to-database";
+        public static final String EXPORT_DATABASE_TO_YAML = MANAGEMENT_BASE + "/migration/export-database-to-yaml";
+
+        // Synchronization Operations
+        public static final String COMPARE = MANAGEMENT_BASE + "/migration/compare";
+        public static final String STATUS = MANAGEMENT_BASE + "/migration/status";
+
+        // YAML Export Utilities
+        public static final String YAML_DATABASES = MANAGEMENT_BASE + "/migration/yaml/databases";
+        public static final String YAML_QUERIES = MANAGEMENT_BASE + "/migration/yaml/queries";
+        public static final String YAML_ENDPOINTS = MANAGEMENT_BASE + "/migration/yaml/endpoints";
+    }
+
     // ========== CONFIGURATION VALIDATION ENDPOINTS ==========
     public static final class Validation {
         public static final String VALIDATE_ALL = GENERIC_BASE + "/config/validate";

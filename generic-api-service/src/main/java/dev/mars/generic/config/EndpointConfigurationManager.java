@@ -10,6 +10,7 @@ import java.util.Optional;
 
 /**
  * Manages API endpoint and query configurations
+ * Supports both YAML and database configuration sources
  */
 @Singleton
 public class EndpointConfigurationManager {
@@ -18,21 +19,32 @@ public class EndpointConfigurationManager {
     private final Map<String, QueryConfig> queryConfigurations;
     private final Map<String, ApiEndpointConfig> endpointConfigurations;
     private final Map<String, DatabaseConfig> databaseConfigurations;
-    
+    private final ConfigurationLoaderFactory configurationLoaderFactory;
+    private final String configurationSource;
+
     @Inject
-    public EndpointConfigurationManager(ConfigurationLoader configurationLoader) {
+    public EndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory) {
         logger.info("Initializing endpoint configuration manager");
 
+        this.configurationLoaderFactory = configurationLoaderFactory;
+        this.configurationSource = configurationLoaderFactory.getConfigurationSource();
+
+        logger.info("Using configuration source: {}", configurationSource);
+
+        // Get the appropriate configuration loader
+        ConfigurationLoaderInterface configurationLoader = configurationLoaderFactory.createConfigurationLoader();
+
+        // Load configurations from the selected source
         this.databaseConfigurations = configurationLoader.loadDatabaseConfigurations();
         this.queryConfigurations = configurationLoader.loadQueryConfigurations();
         this.endpointConfigurations = configurationLoader.loadEndpointConfigurations();
 
-        logger.info("Configuration manager initialized with {} databases, {} queries and {} endpoints",
-                   databaseConfigurations.size(), queryConfigurations.size(), endpointConfigurations.size());
+        logger.info("Configuration manager initialized with {} databases, {} queries and {} endpoints from {} source",
+                   databaseConfigurations.size(), queryConfigurations.size(), endpointConfigurations.size(), configurationSource);
 
         // Note: We don't add default database configurations anymore
         // The configuration database is separate and managed by DatabaseManager
-        // API endpoint databases should be explicitly configured in YAML files
+        // API endpoint databases should be explicitly configured in YAML files or database tables
 
         // Validate configurations
         validateConfigurations();
@@ -107,6 +119,27 @@ public class EndpointConfigurationManager {
      */
     public boolean hasDatabase(String databaseName) {
         return databaseConfigurations.containsKey(databaseName);
+    }
+
+    /**
+     * Get the configuration source being used
+     */
+    public String getConfigurationSource() {
+        return configurationSource;
+    }
+
+    /**
+     * Check if using YAML configuration source
+     */
+    public boolean isUsingYamlSource() {
+        return configurationLoaderFactory.isYamlSource();
+    }
+
+    /**
+     * Check if using database configuration source
+     */
+    public boolean isUsingDatabaseSource() {
+        return configurationLoaderFactory.isDatabaseSource();
     }
     
     /**

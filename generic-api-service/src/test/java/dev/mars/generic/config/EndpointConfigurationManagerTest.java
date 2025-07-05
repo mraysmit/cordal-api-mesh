@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import dev.mars.config.GenericApiConfig;
 import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.ConfigurationLoaderFactory;
 import dev.mars.generic.TestConfigurationLoader;
 
 import static org.assertj.core.api.Assertions.*;
@@ -24,7 +25,17 @@ class EndpointConfigurationManagerTest {
         // Create manager with test configuration loader
         GenericApiConfig config = GenericApiConfig.loadFromFile();
         ConfigurationLoader configurationLoader = new TestConfigurationLoader(config);
-        manager = new EndpointConfigurationManager(configurationLoader);
+
+        // Create a mock database loader for testing
+        dev.mars.database.DatabaseManager databaseManager = new dev.mars.database.DatabaseManager(config);
+        databaseManager.initializeSchema();
+        dev.mars.database.repository.DatabaseConfigurationRepository databaseRepository = new dev.mars.database.repository.DatabaseConfigurationRepository(databaseManager);
+        dev.mars.database.repository.QueryConfigurationRepository queryRepository = new dev.mars.database.repository.QueryConfigurationRepository(databaseManager);
+        dev.mars.database.repository.EndpointConfigurationRepository endpointRepository = new dev.mars.database.repository.EndpointConfigurationRepository(databaseManager);
+        dev.mars.database.loader.DatabaseConfigurationLoader databaseLoader = new dev.mars.database.loader.DatabaseConfigurationLoader(databaseRepository, queryRepository, endpointRepository);
+
+        ConfigurationLoaderFactory factory = new ConfigurationLoaderFactory(config, configurationLoader, databaseLoader);
+        manager = new EndpointConfigurationManager(factory);
     }
 
     @AfterEach

@@ -2,12 +2,18 @@ package dev.mars.bootstrap;
 
 import dev.mars.generic.GenericApiApplication;
 import dev.mars.generic.config.ConfigurationLoader;
+import dev.mars.generic.config.ConfigurationLoaderFactory;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.QueryConfig;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.config.GenericApiConfig;
+import dev.mars.database.loader.DatabaseConfigurationLoader;
+import dev.mars.database.repository.DatabaseConfigurationRepository;
+import dev.mars.database.repository.QueryConfigurationRepository;
+import dev.mars.database.repository.EndpointConfigurationRepository;
+import dev.mars.database.DatabaseManager;
 import dev.mars.util.ConfigurationValidator;
 import dev.mars.util.ValidationResult;
 import dev.mars.util.ApiEndpoints;
@@ -43,7 +49,7 @@ public class SystemBootstrapDemo {
     private boolean metricsServiceAvailable = false;
 
     // Configuration components for dynamic API validation
-    private ConfigurationLoader configurationLoader;
+    private ConfigurationLoaderFactory configurationLoaderFactory;
     private EndpointConfigurationManager configurationManager;
     private DatabaseConnectionManager databaseConnectionManager;
     private ConfigurationValidator configurationValidator;
@@ -284,12 +290,27 @@ public class SystemBootstrapDemo {
     private void initializeConfigurationComponents() {
         logger.info("[INIT] Initializing configuration components...");
 
-        // Create configuration loader
+        // Create configuration
         GenericApiConfig config = new GenericApiConfig();
-        configurationLoader = new ConfigurationLoader(config);
+
+        // Create database manager for database-based configurations
+        DatabaseManager databaseManager = new DatabaseManager(config);
+        databaseManager.initializeSchema();
+
+        // Create repositories
+        DatabaseConfigurationRepository databaseRepository = new DatabaseConfigurationRepository(databaseManager);
+        QueryConfigurationRepository queryRepository = new QueryConfigurationRepository(databaseManager);
+        EndpointConfigurationRepository endpointRepository = new EndpointConfigurationRepository(databaseManager);
+
+        // Create loaders
+        ConfigurationLoader yamlLoader = new ConfigurationLoader(config);
+        DatabaseConfigurationLoader databaseLoader = new DatabaseConfigurationLoader(databaseRepository, queryRepository, endpointRepository);
+
+        // Create factory
+        configurationLoaderFactory = new ConfigurationLoaderFactory(config, yamlLoader, databaseLoader);
 
         // Create configuration manager
-        configurationManager = new EndpointConfigurationManager(configurationLoader);
+        configurationManager = new EndpointConfigurationManager(configurationLoaderFactory);
 
         // Create database connection manager
         databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
@@ -297,7 +318,7 @@ public class SystemBootstrapDemo {
         // Create configuration validator
         configurationValidator = new ConfigurationValidator(configurationManager, databaseConnectionManager);
 
-        logger.info("[OK] Configuration components initialized");
+        logger.info("[OK] Configuration components initialized using {} source", configurationManager.getConfigurationSource());
     }
 
     /**

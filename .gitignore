@@ -41,3 +41,7 @@ build/
 **/*.mv.db
 **/*.lock.db
 **/*.trace.db
+
+# Ignore all log files
+*.log
+logs/

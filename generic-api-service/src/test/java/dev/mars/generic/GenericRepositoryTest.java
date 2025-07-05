@@ -38,7 +38,17 @@ class GenericRepositoryTest {
 
         // Create configuration loader and manager for test configurations
         ConfigurationLoader configurationLoader = new TestConfigurationLoader(genericApiConfig);
-        EndpointConfigurationManager configurationManager = new EndpointConfigurationManager(configurationLoader);
+
+        // Create database loader components for testing (using real DatabaseManager for repositories)
+        dev.mars.database.DatabaseManager realDatabaseManager = new dev.mars.database.DatabaseManager(genericApiConfig);
+        realDatabaseManager.initializeSchema();
+        dev.mars.database.repository.DatabaseConfigurationRepository databaseRepository = new dev.mars.database.repository.DatabaseConfigurationRepository(realDatabaseManager);
+        dev.mars.database.repository.QueryConfigurationRepository queryRepository = new dev.mars.database.repository.QueryConfigurationRepository(realDatabaseManager);
+        dev.mars.database.repository.EndpointConfigurationRepository endpointRepository = new dev.mars.database.repository.EndpointConfigurationRepository(realDatabaseManager);
+        dev.mars.database.loader.DatabaseConfigurationLoader databaseLoader = new dev.mars.database.loader.DatabaseConfigurationLoader(databaseRepository, queryRepository, endpointRepository);
+
+        dev.mars.generic.config.ConfigurationLoaderFactory factory = new dev.mars.generic.config.ConfigurationLoaderFactory(genericApiConfig, configurationLoader, databaseLoader);
+        EndpointConfigurationManager configurationManager = new EndpointConfigurationManager(factory);
 
         // Create database connection manager
         databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
