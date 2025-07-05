@@ -38,12 +38,27 @@ build/
 .DS_Store
 
 ### Database Files ###
+# H2 Database files
 **/*.mv.db
 **/*.lock.db
 **/*.trace.db
+# Generic database files
+**/*.db
+**/*.sqlite
+**/*.sqlite3
 
-# Ignore all log files
+### Log Files ###
+# All log files
 *.log
+**/*.log
+# Log directories
 **/logs/
-**/logs/*.log
-logs/*.log
+logs/
+# Common log file patterns
+**/*.out
+**/*.err
+# Application specific logs
+application*.log
+server*.log
+access*.log
+error*.log
