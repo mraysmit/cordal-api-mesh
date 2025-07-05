@@ -7,6 +7,7 @@ import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.QueryConfig;
 import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.ConfigurationLoaderInterface;
+import dev.mars.common.exception.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
                 logger.error("  Impact: Application cannot start without database configurations");
                 logger.error("  Action: Ensure database contains valid configuration data or switch to YAML source");
                 logger.error("Application startup aborted due to empty configuration database");
-                System.exit(1);
+                throw new dev.mars.common.exception.ConfigurationException("No database configurations found in database tables");
             }
 
             logger.info("Successfully loaded {} database configurations from database", configurations.size());
@@ -72,9 +73,8 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
             logger.error("  Error: {}", e.getMessage());
             logger.error("  Impact: Application cannot start without valid database configurations");
             logger.error("  Action: Check database connectivity and table structure");
-            logger.error("Application startup aborted due to configuration loading failure", e);
-            System.exit(1);
-            return null; // Never reached, but needed for compilation
+            logger.error("Application startup aborted due to configuration loading failure");
+            throw new ConfigurationException("Failed to load database configurations from database: " + e.getMessage(), e);
         }
     }
 
@@ -95,7 +95,7 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
                 logger.error("  Impact: Application cannot start without query configurations");
                 logger.error("  Action: Ensure database contains valid configuration data or switch to YAML source");
                 logger.error("Application startup aborted due to empty configuration database");
-                System.exit(1);
+                throw new dev.mars.common.exception.ConfigurationException("No query configurations found in database tables");
             }
 
             logger.info("Successfully loaded {} query configurations from database", configurations.size());
@@ -116,8 +116,8 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
             logger.error("  Impact: Application cannot start without valid query configurations");
             logger.error("  Action: Check database connectivity and table structure");
             logger.error("Application startup aborted due to configuration loading failure", e);
-            System.exit(1);
-            return null; // Never reached, but needed for compilation
+            throw new dev.mars.common.exception.ConfigurationException(
+                "Failed to load query configurations from database: " + e.getMessage(), e);
         }
     }
 
@@ -138,7 +138,7 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
                 logger.error("  Impact: Application cannot start without endpoint configurations");
                 logger.error("  Action: Ensure database contains valid configuration data or switch to YAML source");
                 logger.error("Application startup aborted due to empty configuration database");
-                System.exit(1);
+                throw new dev.mars.common.exception.ConfigurationException("No endpoint configurations found in database tables");
             }
 
             logger.info("Successfully loaded {} endpoint configurations from database", configurations.size());
@@ -158,8 +158,8 @@ public class DatabaseConfigurationLoader implements ConfigurationLoaderInterface
             logger.error("  Impact: Application cannot start without valid endpoint configurations");
             logger.error("  Action: Check database connectivity and table structure");
             logger.error("Application startup aborted due to configuration loading failure", e);
-            System.exit(1);
-            return null; // Never reached, but needed for compilation
+            throw new dev.mars.common.exception.ConfigurationException(
+                "Failed to load endpoint configurations from database: " + e.getMessage(), e);
         }
     }
 

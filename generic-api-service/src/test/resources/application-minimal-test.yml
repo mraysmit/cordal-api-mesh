@@ -1,0 +1,15 @@
+# Minimal test configuration - tests default behavior
+server:
+  host: localhost
+  port: 8080
+
+database:
+  url: "jdbc:h2:mem:api-service-config-test;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  createDatabase: true
+
+# Minimal configuration - should use defaults
+config:
+  source: yaml

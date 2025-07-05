@@ -1,0 +1,20 @@
+databases:
+  analytics-db:
+    name: "analytics-db"
+    url: "jdbc:h2:mem:analyticsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      connectionTimeout: 10000
+
+  reporting-db:
+    name: "reporting-db"
+    url: "jdbc:h2:mem:reportingdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      connectionTimeout: 10000

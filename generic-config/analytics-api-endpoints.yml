@@ -1,0 +1,51 @@
+# Analytics API Endpoint Configurations
+# This file contains API endpoint configurations for analytics operations
+
+endpoints:
+  # Daily trading volume endpoint
+  analytics-daily-volume:
+    description: "Get daily trading volume analysis"
+    method: "GET"
+    path: "/api/analytics/daily-volume"
+    query: "daily-trading-volume"
+    parameters:
+      - name: "start_date"
+        type: "query"
+        required: true
+      - name: "end_date"
+        type: "query"
+        required: true
+
+  # Top performers endpoint
+  analytics-top-performers:
+    description: "Get top performing stocks analysis"
+    method: "GET"
+    path: "/api/analytics/top-performers"
+    query: "top-performers"
+    parameters:
+      - name: "start_date"
+        type: "query"
+        required: true
+      - name: "end_date"
+        type: "query"
+        required: true
+      - name: "min_trades"
+        type: "query"
+        required: true
+      - name: "limit"
+        type: "query"
+        required: false
+
+  # Market summary endpoint
+  analytics-market-summary:
+    description: "Get market summary statistics"
+    method: "GET"
+    path: "/api/analytics/market-summary"
+    query: "market-summary"
+    parameters:
+      - name: "start_date"
+        type: "query"
+        required: true
+      - name: "end_date"
+        type: "query"
+        required: true

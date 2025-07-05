@@ -1,0 +1,20 @@
+databases:
+  test-db-1:
+    name: "test-db-1"
+    url: "jdbc:h2:mem:testdb1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      connectionTimeout: 10000
+
+  test-db-2:
+    name: "test-db-2"
+    url: "jdbc:h2:mem:testdb2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 5
+      connectionTimeout: 10000

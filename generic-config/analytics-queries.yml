@@ -1,0 +1,84 @@
+# Analytics Query Configurations
+# This file contains query configurations for analytics operations
+
+queries:
+  # Daily trading volume analysis
+  daily-trading-volume:
+    name: "Daily Trading Volume Analysis"
+    description: "Calculate daily trading volume by symbol"
+    database: "analytics"
+    sql: |
+      SELECT 
+        symbol,
+        DATE(trade_date) as trade_day,
+        SUM(quantity) as total_volume,
+        COUNT(*) as trade_count,
+        AVG(price) as avg_price
+      FROM trades 
+      WHERE trade_date >= ? AND trade_date <= ?
+      GROUP BY symbol, DATE(trade_date)
+      ORDER BY trade_day DESC, total_volume DESC
+    parameters:
+      - name: "start_date"
+        type: "date"
+        required: true
+      - name: "end_date"
+        type: "date"
+        required: true
+
+  # Top performers analysis
+  top-performers:
+    name: "Top Performing Stocks"
+    description: "Find top performing stocks by percentage gain"
+    database: "analytics"
+    sql: |
+      SELECT 
+        symbol,
+        MIN(price) as min_price,
+        MAX(price) as max_price,
+        ((MAX(price) - MIN(price)) / MIN(price)) * 100 as percentage_gain,
+        COUNT(*) as trade_count
+      FROM trades 
+      WHERE trade_date >= ? AND trade_date <= ?
+      GROUP BY symbol
+      HAVING COUNT(*) >= ?
+      ORDER BY percentage_gain DESC
+      LIMIT ?
+    parameters:
+      - name: "start_date"
+        type: "date"
+        required: true
+      - name: "end_date"
+        type: "date"
+        required: true
+      - name: "min_trades"
+        type: "integer"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: false
+
+  # Market summary statistics
+  market-summary:
+    name: "Market Summary Statistics"
+    description: "Get overall market summary statistics"
+    database: "datawarehouse"
+    sql: |
+      SELECT 
+        COUNT(DISTINCT symbol) as unique_symbols,
+        COUNT(*) as total_trades,
+        SUM(quantity) as total_volume,
+        AVG(price) as avg_price,
+        MIN(price) as min_price,
+        MAX(price) as max_price,
+        MIN(trade_date) as earliest_trade,
+        MAX(trade_date) as latest_trade
+      FROM historical_trades
+      WHERE trade_date >= ? AND trade_date <= ?
+    parameters:
+      - name: "start_date"
+        type: "date"
+        required: true
+      - name: "end_date"
+        type: "date"
+        required: true

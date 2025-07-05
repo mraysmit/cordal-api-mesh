@@ -18,17 +18,21 @@ swagger:
   enabled: true
   path: /swagger
 
-# Configuration source and file paths
+# Configuration source and directory scanning
 config:
   source: yaml  # Options: yaml, database
   # Load configuration data from YAML files into database (only when source is database)
   loadFromYaml: false  # Set to true to populate database from YAML files on startup
-  paths:
-    # Configuration files are located in the generic-config folder at project root
-    # Using ../ prefix to go up one level from generic-api-service to project root
-    databases: "./generic-config/stocktrades-databases.yml"
-    queries: "./generic-config/stocktrades-queries.yml"
-    endpoints: "./generic-config/stocktrades-api-endpoints.yml"
+
+  # Directories to scan for configuration files
+  directories:
+    - "../generic-config"
+
+  # Naming patterns for configuration files
+  patterns:
+    databases: ["*-database.yml", "*-databases.yml"]
+    queries: ["*-query.yml", "*-queries.yml"]
+    endpoints: ["*-endpoint.yml", "*-endpoints.yml", "*-api.yml"]
 
 # Configuration validation settings
 validation:

@@ -1,0 +1,42 @@
+# Test configuration for custom naming patterns
+server:
+  host: localhost
+  port: 8080
+  cors:
+    enabled: true
+  dev:
+    logging: true
+    requestLogging: true
+
+database:
+  url: "jdbc:h2:mem:api-service-config-test;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  pool:
+    maximumPoolSize: 10
+    minimumIdle: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+    leakDetectionThreshold: 60000
+    connectionTestQuery: "SELECT 1"
+  createDatabase: true
+
+# Configuration with custom patterns
+config:
+  source: yaml
+  loadFromYaml: false
+  
+  directories:
+    - "../generic-config"
+  
+  # Custom naming patterns
+  patterns:
+    databases: ["*-db-config.yml", "*-database-config.yml", "*-databases.yml"]
+    queries: ["*-sql.yml", "*-query-config.yml", "*-queries.yml"]
+    endpoints: ["*-rest-api.yml", "*-endpoint-config.yml", "*-api.yml"]
+
+validation:
+  runOnStartup: false
+  validateOnly: false

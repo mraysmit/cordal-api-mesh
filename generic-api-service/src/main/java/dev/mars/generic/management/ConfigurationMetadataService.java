@@ -33,11 +33,22 @@ public class ConfigurationMetadataService {
     }
     
     private void initializeMetadata() {
-        // Record metadata for each configuration file
-        recordConfigurationFile("databases", genericApiConfig.getDatabasesConfigPath());
-        recordConfigurationFile("queries", genericApiConfig.getQueriesConfigPath());
-        recordConfigurationFile("endpoints", genericApiConfig.getEndpointsConfigPath());
+        // Record metadata for configuration directories and patterns
+        recordConfigurationDirectories("databases", genericApiConfig.getConfigDirectories(), genericApiConfig.getDatabasePatterns());
+        recordConfigurationDirectories("queries", genericApiConfig.getConfigDirectories(), genericApiConfig.getQueryPatterns());
+        recordConfigurationDirectories("endpoints", genericApiConfig.getConfigDirectories(), genericApiConfig.getEndpointPatterns());
         recordConfigurationFile("application", "application.yml");
+    }
+
+    private void recordConfigurationDirectories(String configType, java.util.List<String> directories, java.util.List<String> patterns) {
+        ConfigurationFileMetadata metadata = new ConfigurationFileMetadata(
+            configType,
+            "Directories: " + directories + ", Patterns: " + patterns,
+            Instant.now(),
+            "LOADED"
+        );
+        configurationMetadata.put(configType, metadata);
+        logger.debug("Recorded metadata for {} configuration: directories={}, patterns={}", configType, directories, patterns);
     }
     
     private void recordConfigurationFile(String configType, String filePath) {
@@ -66,43 +77,47 @@ public class ConfigurationMetadataService {
     }
     
     /**
-     * Get configuration file paths
+     * Get configuration directories and patterns
      */
-    public Map<String, String> getConfigurationPaths() {
-        Map<String, String> paths = new HashMap<>();
-        paths.put("databases", genericApiConfig.getDatabasesConfigPath());
-        paths.put("queries", genericApiConfig.getQueriesConfigPath());
-        paths.put("endpoints", genericApiConfig.getEndpointsConfigPath());
+    public Map<String, Object> getConfigurationPaths() {
+        Map<String, Object> paths = new HashMap<>();
+        paths.put("directories", genericApiConfig.getConfigDirectories());
+        paths.put("databasePatterns", genericApiConfig.getDatabasePatterns());
+        paths.put("queryPatterns", genericApiConfig.getQueryPatterns());
+        paths.put("endpointPatterns", genericApiConfig.getEndpointPatterns());
         paths.put("application", "application.yml");
         return paths;
     }
     
     /**
-     * Get configuration file contents (simulated - in real implementation would read from classpath)
+     * Get configuration file contents (simulated - in real implementation would scan directories)
      */
     public Map<String, Object> getConfigurationFileContents() {
         Map<String, Object> contents = new HashMap<>();
-        
-        // Note: In a real implementation, you would read the actual file contents
+
+        // Note: In a real implementation, you would scan directories and read actual file contents
         // For now, we'll return metadata about what would be loaded
         contents.put("databases", Map.of(
-            "path", genericApiConfig.getDatabasesConfigPath(),
+            "directories", genericApiConfig.getConfigDirectories(),
+            "patterns", genericApiConfig.getDatabasePatterns(),
             "status", "Available",
-            "note", "File content would be loaded from classpath"
+            "note", "Files would be discovered by scanning directories with patterns"
         ));
-        
+
         contents.put("queries", Map.of(
-            "path", genericApiConfig.getQueriesConfigPath(),
+            "directories", genericApiConfig.getConfigDirectories(),
+            "patterns", genericApiConfig.getQueryPatterns(),
             "status", "Available",
-            "note", "File content would be loaded from classpath"
+            "note", "Files would be discovered by scanning directories with patterns"
         ));
-        
+
         contents.put("endpoints", Map.of(
-            "path", genericApiConfig.getEndpointsConfigPath(),
+            "directories", genericApiConfig.getConfigDirectories(),
+            "patterns", genericApiConfig.getEndpointPatterns(),
             "status", "Available",
-            "note", "File content would be loaded from classpath"
+            "note", "Files would be discovered by scanning directories with patterns"
         ));
-        
+
         return contents;
     }
     

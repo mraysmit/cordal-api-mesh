@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Test that configuration paths can be customized via application.yml
+ * Test that configuration directories and patterns can be customized via application.yml
  */
 class ConfigurablePathsTest {
 
@@ -25,39 +25,44 @@ class ConfigurablePathsTest {
     }
 
     @Test
-    void testDefaultConfigurationPaths() {
-        // Test that default paths are used when no custom configuration is provided
+    void testDefaultConfigurationDirectoriesAndPatterns() {
+        // Test that default directories and patterns are used when no custom configuration is provided
         GenericApiConfig config = new GenericApiConfig();
 
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("./generic-config/stocktrades-databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("./generic-config/stocktrades-queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("./generic-config/stocktrades-api-endpoints.yml");
+        assertThat(config.getConfigDirectories()).contains("../generic-config");
+        assertThat(config.getDatabasePatterns()).contains("*-database.yml", "*-databases.yml");
+        assertThat(config.getQueryPatterns()).contains("*-query.yml", "*-queries.yml");
+        assertThat(config.getEndpointPatterns()).contains("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
     }
 
     @Test
-    void testCustomConfigurationPaths() {
-        // Test that custom paths are loaded from application-custom-paths.yml
-        System.setProperty("generic.config.file", "application-custom-paths.yml");
+    void testCustomConfigurationDirectoriesAndPatterns() {
+        // Test that custom directories and patterns are loaded from application-custom-patterns-test.yml
+        System.setProperty("generic.config.file", "application-custom-patterns-test.yml");
 
         GenericApiConfig config = GenericApiConfig.loadFromFile();
 
-        // The custom configuration file specifies custom paths
-        assertThat(config.getDatabasesConfigPath()).isEqualTo("custom/databases.yml");
-        assertThat(config.getQueriesConfigPath()).isEqualTo("custom/queries.yml");
-        assertThat(config.getEndpointsConfigPath()).isEqualTo("custom/api-endpoints.yml");
+        // The custom configuration file specifies custom patterns
+        assertThat(config.getConfigDirectories()).contains("../generic-config");
+        assertThat(config.getDatabasePatterns()).contains("*-db-config.yml", "*-database-config.yml", "*-databases.yml");
+        assertThat(config.getQueryPatterns()).contains("*-sql.yml", "*-query-config.yml", "*-queries.yml");
+        assertThat(config.getEndpointPatterns()).contains("*-rest-api.yml", "*-endpoint-config.yml", "*-api.yml");
     }
 
     @Test
-    void testConfigurationLoaderUsesDefaultPaths() {
-        // Test that ConfigurationLoader uses the default paths (refactored architecture)
-        System.setProperty("generic.config.file", "application-custom-paths.yml");
+    void testConfigurationLoaderUsesDirectoryScanning() {
+        // Test that ConfigurationLoader uses directory scanning (refactored architecture)
+        System.setProperty("generic.config.file", "application-test.yml");
 
         GenericApiConfig config = GenericApiConfig.loadFromFile();
         ConfigurationLoader loader = new ConfigurationLoader(config);
 
-        // In the refactored architecture, the config/queries.yml file exists and loads successfully
-        // We're testing that it's using the default path and loads without error
-        assertThatCode(() -> loader.loadQueryConfigurations())
-            .doesNotThrowAnyException();
+        // In the refactored architecture, configuration files are discovered by directory scanning
+        // We're testing that it uses directory scanning and loads without error
+        assertThatCode(() -> {
+            loader.loadDatabaseConfigurations();
+            loader.loadQueryConfigurations();
+            loader.loadEndpointConfigurations();
+        }).doesNotThrowAnyException();
     }
 }

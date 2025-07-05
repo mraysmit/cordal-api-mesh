@@ -1,0 +1,45 @@
+# Test configuration for multiple directory scanning
+server:
+  host: localhost
+  port: 8080
+  cors:
+    enabled: true
+  dev:
+    logging: true
+    requestLogging: true
+
+database:
+  url: "jdbc:h2:mem:api-service-config-test;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  pool:
+    maximumPoolSize: 10
+    minimumIdle: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+    leakDetectionThreshold: 60000
+    connectionTestQuery: "SELECT 1"
+  createDatabase: true
+
+# Configuration with multiple directories
+config:
+  source: yaml
+  loadFromYaml: false
+  
+  # Multiple directories to scan
+  directories:
+    - "../generic-config"
+    - "./additional-config"
+    - "./custom-config"
+  
+  # Standard naming patterns
+  patterns:
+    databases: ["*-database.yml", "*-databases.yml"]
+    queries: ["*-query.yml", "*-queries.yml"]
+    endpoints: ["*-endpoint.yml", "*-endpoints.yml", "*-api.yml"]
+
+validation:
+  runOnStartup: false
+  validateOnly: false

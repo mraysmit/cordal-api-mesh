@@ -48,7 +48,7 @@ class EndToEndConfigurationManagementTest {
         System.out.println("=== STARTING END-TO-END CONFIGURATION MANAGEMENT INTEGRATION TEST ===");
         
         // Create test configuration
-        System.setProperty("generic.config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-end-to-end-test.yml");
         config = GenericApiConfig.loadFromFile();
         
         // Create database manager and initialize schema

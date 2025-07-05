@@ -1,0 +1,20 @@
+queries:
+  test-query-1:
+    name: "test-query-1"
+    sql: "SELECT * FROM test_table_1 LIMIT ? OFFSET ?"
+    database: "test-db-1"
+    description: "First test query"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  test-query-2:
+    name: "test-query-2"
+    sql: "SELECT COUNT(*) FROM test_table_1"
+    database: "test-db-1"
+    description: "Second test query"
+    parameters: []

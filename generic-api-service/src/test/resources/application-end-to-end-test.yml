@@ -1,0 +1,33 @@
+server:
+  host: localhost
+  port: 18080
+
+database:
+  url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+  username: sa
+  password: ""
+  driver: org.h2.Driver
+
+swagger:
+  enabled: true
+  path: /swagger
+
+# Configuration source and directory scanning for end-to-end testing
+config:
+  source: yaml  # Options: yaml, database
+  loadFromYaml: false
+
+  # Directories to scan for configuration files (use test resources)
+  directories:
+    - "src/test/resources"  # Look in test resources directory
+
+  # Naming patterns for configuration files
+  patterns:
+    databases: ["test-databases.yml"]
+    queries: ["test-queries.yml"]
+    endpoints: ["test-api-endpoints.yml"]
+
+# Validation configuration
+validation:
+  runOnStartup: false
+  validateOnly: false

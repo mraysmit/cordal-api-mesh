@@ -58,7 +58,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         } catch (Exception e) {
             logger.error("Failed to start Generic API application", e);
-            System.exit(1);
+            throw new RuntimeException("Failed to start Generic API application", e);
         }
     }
 
@@ -514,9 +514,10 @@ public class GenericApiApplication extends BaseJavalinApplication {
         logger.info("⚙️  CONFIGURATION:");
         logger.info("   ├─ Source:           {}", config.getConfigSource());
         if ("yaml".equals(config.getConfigSource())) {
-            logger.info("   ├─ Databases:        {}", config.getDatabasesConfigPath());
-            logger.info("   ├─ Queries:          {}", config.getQueriesConfigPath());
-            logger.info("   └─ Endpoints:        {}", config.getEndpointsConfigPath());
+            logger.info("   ├─ Directories:      {}", config.getConfigDirectories());
+            logger.info("   ├─ Database Patterns: {}", config.getDatabasePatterns());
+            logger.info("   ├─ Query Patterns:   {}", config.getQueryPatterns());
+            logger.info("   └─ Endpoint Patterns: {}", config.getEndpointPatterns());
         } else {
             logger.info("   └─ Database Tables:  config_databases, config_queries, config_endpoints");
         }
@@ -548,7 +549,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         } catch (Exception e) {
             logger.error("FATAL: Configuration validation failed", e);
             logger.error("Application startup aborted due to validation failure");
-            System.exit(1);
+            throw new RuntimeException("Configuration validation failed", e);
         }
     }
 
@@ -609,8 +610,9 @@ public class GenericApiApplication extends BaseJavalinApplication {
         GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
         logger.info("[OK] Configuration components initialized");
         logger.info("   Configuration Source: {}", config.getConfigSource());
-        logger.info("   Databases Path: {}", config.getDatabasesConfigPath());
-        logger.info("   Queries Path: {}", config.getQueriesConfigPath());
-        logger.info("   Endpoints Path: {}", config.getEndpointsConfigPath());
+        logger.info("   Configuration Directories: {}", config.getConfigDirectories());
+        logger.info("   Database Patterns: {}", config.getDatabasePatterns());
+        logger.info("   Query Patterns: {}", config.getQueryPatterns());
+        logger.info("   Endpoint Patterns: {}", config.getEndpointPatterns());
     }
 }

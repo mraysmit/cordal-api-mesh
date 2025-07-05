@@ -1,0 +1,37 @@
+# Analytics Database Connections Configuration
+# This file contains analytics database connection configurations
+
+databases:
+  # Analytics database - for business intelligence and reporting
+  analytics:
+    name: "analytics"
+    description: "Analytics database for business intelligence and reporting"
+    url: "jdbc:h2:./data/analytics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 15
+      minimumIdle: 3
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  # Data warehouse database - for historical data storage
+  datawarehouse:
+    name: "datawarehouse"
+    description: "Data warehouse for historical data storage and analysis"
+    url: "jdbc:h2:./data/datawarehouse;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 20
+      minimumIdle: 5
+      connectionTimeout: 45000
+      idleTimeout: 900000
+      maxLifetime: 3600000
+      leakDetectionThreshold: 90000
+      connectionTestQuery: "SELECT 1"

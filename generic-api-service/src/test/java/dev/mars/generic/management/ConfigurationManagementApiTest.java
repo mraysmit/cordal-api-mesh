@@ -116,7 +116,7 @@ class ConfigurationManagementApiTest {
         assertThat(result).containsKey("databases");
         
         // Should have configurations from YAML source
-        assertThat(result.get("count")).isEqualTo(2); // 2 databases in test config
+        assertThat(result.get("count")).isEqualTo(3); // 3 databases in production config (analytics, datawarehouse, stocktrades)
         assertThat(result.get("source")).isEqualTo("yaml");
     }
 
@@ -148,7 +148,7 @@ class ConfigurationManagementApiTest {
         assertThat(result).containsKey("endpoints");
         
         // Should have configurations from YAML source
-        assertThat(result.get("count")).isEqualTo(6); // 6 endpoints in test config
+        assertThat(result.get("count")).isEqualTo(8); // 8 endpoints in production config (3 analytics + 5 stocktrades)
         assertThat(result.get("source")).isEqualTo("yaml");
     }
 

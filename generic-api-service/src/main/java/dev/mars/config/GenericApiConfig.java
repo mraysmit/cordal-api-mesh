@@ -69,32 +69,48 @@ public class GenericApiConfig extends BaseConfig {
         Boolean loadFromYaml = getBoolean("config.loadFromYaml", false);
         config.setLoadFromYaml(loadFromYaml);
 
-        // Try to load from config.paths first (new structure)
-        String databasesPath = getString("config.paths.databases", null);
-        String queriesPath = getString("config.paths.queries", null);
-        String endpointsPath = getString("config.paths.endpoints", null);
+        // Load directory scanning configuration
+        loadDirectoryConfiguration();
+        loadPatternConfiguration();
 
-        // Fall back to old structure if not found
-        if (databasesPath == null) {
-            databasesPath = getString("config.databasesPath", "../generic-config/databases.yml");
-        }
-
-        if (queriesPath == null) {
-            queriesPath = getString("config.queriesPath", "../generic-config/queries.yml");
-        }
-
-        if (endpointsPath == null) {
-            endpointsPath = getString("config.endpointsPath", "../generic-config/api-endpoints.yml");
-        }
-
-        config.setDatabasesPath(databasesPath);
-        config.setQueriesPath(queriesPath);
-        config.setEndpointsPath(endpointsPath);
-
-        logger.info("Configured paths: databases={}, queries={}, endpoints={}",
-                    databasesPath, queriesPath, endpointsPath);
         logger.info("Configuration source: {}", configSource);
         logger.info("Load configuration from YAML: {}", loadFromYaml);
+        logger.info("Configuration directories: {}", config.getDirectories());
+        logger.info("Database patterns: {}", config.getDatabasePatterns());
+        logger.info("Query patterns: {}", config.getQueryPatterns());
+        logger.info("Endpoint patterns: {}", config.getEndpointPatterns());
+    }
+
+    private void loadDirectoryConfiguration() {
+        // Load directories to scan for configuration files
+        java.util.List<String> directories = getStringList("config.directories");
+        if (directories == null || directories.isEmpty()) {
+            // Default to generic-config directory
+            directories = java.util.Arrays.asList("../generic-config");
+            logger.info("No config directories specified, using default: ../generic-config");
+        }
+        config.setDirectories(directories);
+    }
+
+    private void loadPatternConfiguration() {
+        // Load naming patterns for each configuration type
+        java.util.List<String> databasePatterns = getStringList("config.patterns.databases");
+        if (databasePatterns == null || databasePatterns.isEmpty()) {
+            databasePatterns = java.util.Arrays.asList("*-database.yml", "*-databases.yml");
+        }
+        config.setDatabasePatterns(databasePatterns);
+
+        java.util.List<String> queryPatterns = getStringList("config.patterns.queries");
+        if (queryPatterns == null || queryPatterns.isEmpty()) {
+            queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
+        }
+        config.setQueryPatterns(queryPatterns);
+
+        java.util.List<String> endpointPatterns = getStringList("config.patterns.endpoints");
+        if (endpointPatterns == null || endpointPatterns.isEmpty()) {
+            endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
+        }
+        config.setEndpointPatterns(endpointPatterns);
     }
 
     private void loadValidationConfig() {
@@ -146,6 +162,20 @@ public class GenericApiConfig extends BaseConfig {
         return getNestedValue(path, Double.class, defaultValue);
     }
 
+    @SuppressWarnings("unchecked")
+    protected java.util.List<String> getStringList(String path) {
+        try {
+            Object value = getNestedValue(path, Object.class, null);
+            if (value instanceof java.util.List) {
+                return (java.util.List<String>) value;
+            }
+            return null;
+        } catch (Exception e) {
+            logger.debug("Failed to get string list for path: {}", path, e);
+            return null;
+        }
+    }
+
 
 
     
@@ -190,16 +220,21 @@ public class GenericApiConfig extends BaseConfig {
         return swagger.path;
     }
 
-    public String getDatabasesConfigPath() {
-        return config.databasesPath;
+    // Configuration directory and pattern getters
+    public java.util.List<String> getConfigDirectories() {
+        return config.getDirectories();
     }
 
-    public String getQueriesConfigPath() {
-        return config.queriesPath;
+    public java.util.List<String> getDatabasePatterns() {
+        return config.getDatabasePatterns();
     }
 
-    public String getEndpointsConfigPath() {
-        return config.endpointsPath;
+    public java.util.List<String> getQueryPatterns() {
+        return config.getQueryPatterns();
+    }
+
+    public java.util.List<String> getEndpointPatterns() {
+        return config.getEndpointPatterns();
     }
 
     public String getConfigSource() {
@@ -257,21 +292,28 @@ public class GenericApiConfig extends BaseConfig {
     public static class ConfigPaths {
         private String source = "yaml";
         private boolean loadFromYaml = false;
-        private String databasesPath = "../generic-config/databases.yml";
-        private String queriesPath = "../generic-config/queries.yml";
-        private String endpointsPath = "../generic-config/api-endpoints.yml";
+        private java.util.List<String> directories = java.util.Arrays.asList("../generic-config");
+        private java.util.List<String> databasePatterns = java.util.Arrays.asList("*-database.yml", "*-databases.yml");
+        private java.util.List<String> queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
+        private java.util.List<String> endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
 
         // Getters and setters
         public String getSource() { return source; }
         public void setSource(String source) { this.source = source; }
         public boolean isLoadFromYaml() { return loadFromYaml; }
         public void setLoadFromYaml(boolean loadFromYaml) { this.loadFromYaml = loadFromYaml; }
-        public String getDatabasesPath() { return databasesPath; }
-        public void setDatabasesPath(String databasesPath) { this.databasesPath = databasesPath; }
-        public String getQueriesPath() { return queriesPath; }
-        public void setQueriesPath(String queriesPath) { this.queriesPath = queriesPath; }
-        public String getEndpointsPath() { return endpointsPath; }
-        public void setEndpointsPath(String endpointsPath) { this.endpointsPath = endpointsPath; }
+
+        public java.util.List<String> getDirectories() { return directories; }
+        public void setDirectories(java.util.List<String> directories) { this.directories = directories; }
+
+        public java.util.List<String> getDatabasePatterns() { return databasePatterns; }
+        public void setDatabasePatterns(java.util.List<String> databasePatterns) { this.databasePatterns = databasePatterns; }
+
+        public java.util.List<String> getQueryPatterns() { return queryPatterns; }
+        public void setQueryPatterns(java.util.List<String> queryPatterns) { this.queryPatterns = queryPatterns; }
+
+        public java.util.List<String> getEndpointPatterns() { return endpointPatterns; }
+        public void setEndpointPatterns(java.util.List<String> endpointPatterns) { this.endpointPatterns = endpointPatterns; }
     }
 
     public static class ValidationSettings {

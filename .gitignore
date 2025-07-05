@@ -44,4 +44,6 @@ build/
 
 # Ignore all log files
 *.log
-logs/
+**/logs/
+**/logs/*.log
+logs/*.log

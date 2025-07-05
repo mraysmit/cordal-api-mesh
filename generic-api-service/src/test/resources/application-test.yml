@@ -12,10 +12,17 @@ swagger:
   enabled: true
   path: /swagger
 
-# Configuration source and file paths for testing
+# Configuration source and directory scanning for testing
 config:
   source: yaml  # Options: yaml, database
-  paths:
-    databases: "test-databases.yml"
-    queries: "test-queries.yml"
-    endpoints: "test-api-endpoints.yml"
+  loadFromYaml: false
+
+  # Directories to scan for configuration files
+  directories:
+    - "../generic-config"  # Look in the root generic-config directory
+
+  # Naming patterns for configuration files
+  patterns:
+    databases: ["*-database.yml", "*-databases.yml"]
+    queries: ["*-query.yml", "*-queries.yml"]
+    endpoints: ["*-endpoint.yml", "*-endpoints.yml", "*-api.yml"]

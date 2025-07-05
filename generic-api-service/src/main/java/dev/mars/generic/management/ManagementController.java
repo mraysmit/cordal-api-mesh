@@ -61,7 +61,7 @@ public class ManagementController {
     public void getConfigurationPaths(Context ctx) {
         logger.debug("Getting configuration paths");
         try {
-            Map<String, String> paths = metadataService.getConfigurationPaths();
+            Map<String, Object> paths = metadataService.getConfigurationPaths();
             ctx.json(paths);
         } catch (Exception e) {
             logger.error("Error getting configuration paths", e);
