@@ -72,8 +72,11 @@ public abstract class BaseJavalinApplication {
             
             // Start the server
             startServer(serverConfig);
-            
+
             logger.info("{} started successfully", getApplicationName());
+
+            // Perform any post-startup initialization
+            performPostStartupInitialization();
 
             // Display available endpoints
             displayAvailableEndpoints(serverConfig);
@@ -212,6 +215,14 @@ public abstract class BaseJavalinApplication {
      * Override in subclasses if needed
      */
     protected void performPreStartupInitialization() {
+        // Default implementation - can be overridden
+    }
+
+    /**
+     * Perform any post-startup initialization
+     * Override in subclasses if needed
+     */
+    protected void performPostStartupInitialization() {
         // Default implementation - can be overridden
     }
 

@@ -1,0 +1,150 @@
+queries:
+  postgres-trades-all:
+    name: postgres-trades-all
+    description: "Get all stock trades from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades ORDER BY trade_date_time DESC"
+    parameters: []
+
+  postgres-trades-count:
+    name: postgres-trades-count
+    description: "Get total count of stock trades in PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as total_trades FROM stock_trades"
+    parameters: []
+
+  postgres-trades-by-symbol:
+    name: postgres-trades-by-symbol
+    description: "Get stock trades by symbol from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE symb = ? ORDER BY trade_date_time DESC"
+    parameters:
+      - name: symb
+        type: string
+        required: true
+
+  postgres-trades-count-by-symbol:
+    name: postgres-trades-count-by-symbol
+    description: "Get count of stock trades by symbol from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as trade_count, symb FROM stock_trades WHERE symb = ? GROUP BY symb"
+    parameters:
+      - name: sym
+        type: string
+        required: true
+
+  postgres-trades-by-id:
+    name: postgres-trades-by-id
+    description: "Get specific stock trade by ID from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, sym, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE id = ?"
+    parameters:
+      - name: id
+        type: long
+        required: true
+
+  postgres-trades-by-trader:
+    name: postgres-trades-by-trader
+    description: "Get stock trades by trader ID from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE trader_id = ? ORDER BY trade_date_time DESC"
+    parameters:
+      - name: trader_id
+        type: string
+        required: true
+
+  postgres-trades-count-by-trader:
+    name: postgres-trades-count-by-trader
+    description: "Get count of stock trades by trader ID from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as trade_count, trader_id FROM stock_trades WHERE trader_id = ? GROUP BY trader_id"
+    parameters:
+      - name: trader_id
+        type: string
+        required: true
+
+  postgres-trades-by-date-range:
+    name: postgres-trades-by-date-range
+    description: "Get stock trades within a date range from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE trade_date_time >= ?::timestamp AND trade_date_time <= ?::timestamp ORDER BY trade_date_time DESC"
+    parameters:
+      - name: start_date
+        type: string
+        required: true
+      - name: end_date
+        type: string
+        required: true
+
+  postgres-trades-count-by-date-range:
+    name: postgres-trades-count-by-date-range
+    description: "Get count of stock trades within a date range from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as trade_count FROM stock_trades WHERE trade_date_time >= ?::timestamp AND trade_date_time <= ?::timestamp"
+    parameters:
+      - name: start_date
+        type: string
+        required: true
+      - name: end_date
+        type: string
+        required: true
+
+  postgres-trades-by-exchange:
+    name: postgres-trades-by-exchange
+    description: "Get stock trades by exchange from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE exchange = ? ORDER BY trade_date_time DESC"
+    parameters:
+      - name: exchange
+        type: string
+        required: true
+
+  postgres-trades-summary-by-symbol:
+    name: postgres-trades-summary-by-symbol
+    description: "Get trading summary statistics by symbol from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT symb, COUNT(*) as trade_count, SUM(quantity) as total_quantity, AVG(price) as avg_price, MIN(price) as min_price, MAX(price) as max_price, SUM(total_val) as total_val FROM stock_trades WHERE symb = ? GROUP BY symb"
+    parameters:
+      - name: symb
+        type: string
+        required: true
+
+  postgres-trades-recent:
+    name: postgres-trades-recent
+    description: "Get recent stock trades from PostgreSQL database (last N trades)"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades ORDER BY trade_date_time DESC LIMIT ?"
+    parameters:
+      - name: limit
+        type: integer
+        required: false
+
+  postgres-trades-by-type:
+    name: postgres-trades-by-type
+    description: "Get stock trades by trade type (BUY/SELL) from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE trade_type = ? ORDER BY trade_date_time DESC"
+    parameters:
+      - name: trade_type
+        type: string
+        required: true
+
+  postgres-trades-count-by-exchange:
+    name: postgres-trades-count-by-exchange
+    description: "Get count of stock trades by exchange from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as trade_count, exchange FROM stock_trades WHERE exchange = ? GROUP BY exchange"
+    parameters:
+      - name: exchange
+        type: string
+        required: true
+
+  postgres-trades-count-by-type:
+    name: postgres-trades-count-by-type
+    description: "Get count of stock trades by trade type from PostgreSQL database"
+    database: postgres-trades
+    sql: "SELECT COUNT(*) as trade_count, trade_type FROM stock_trades WHERE trade_type = ? GROUP BY trade_type"
+    parameters:
+      - name: trade_type
+        type: string
+        required: true

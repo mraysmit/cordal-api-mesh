@@ -5,6 +5,7 @@ import dev.mars.generic.config.ApiEndpointConfig;
 import dev.mars.generic.config.DatabaseConfig;
 import dev.mars.generic.config.EndpointConfigurationManager;
 import dev.mars.generic.config.QueryConfig;
+import dev.mars.generic.database.DatabaseConnectionManager;
 import dev.mars.generic.model.GenericResponse;
 import dev.mars.generic.model.QueryParameter;
 import org.slf4j.Logger;
@@ -26,13 +27,16 @@ public class GenericApiService {
     
     private final GenericRepository genericRepository;
     private final EndpointConfigurationManager configurationManager;
+    private final DatabaseConnectionManager databaseConnectionManager;
     private final Executor asyncExecutor;
-    
+
     @Inject
-    public GenericApiService(GenericRepository genericRepository, 
-                           EndpointConfigurationManager configurationManager) {
+    public GenericApiService(GenericRepository genericRepository,
+                           EndpointConfigurationManager configurationManager,
+                           DatabaseConnectionManager databaseConnectionManager) {
         this.genericRepository = genericRepository;
         this.configurationManager = configurationManager;
+        this.databaseConnectionManager = databaseConnectionManager;
         this.asyncExecutor = ForkJoinPool.commonPool();
     }
     
@@ -41,18 +45,30 @@ public class GenericApiService {
      */
     public GenericResponse executeEndpoint(String endpointName, Map<String, Object> requestParameters) {
         logger.debug("Executing endpoint: {} with parameters: {}", endpointName, requestParameters);
-        
+
         // Get endpoint configuration
         ApiEndpointConfig endpointConfig = configurationManager.getEndpointConfig(endpointName)
                 .orElseThrow(() -> ApiException.notFound("Endpoint not found: " + endpointName));
-        
+
         // Get query configuration
         QueryConfig queryConfig = configurationManager.getQueryConfig(endpointConfig.getQuery())
                 .orElseThrow(() -> ApiException.internalError("Query not found: " + endpointConfig.getQuery()));
-        
+
+        // Check if the database for this endpoint is available
+        String databaseName = queryConfig.getDatabase();
+        if (!databaseConnectionManager.isDatabaseAvailable(databaseName)) {
+            String failureReason = databaseConnectionManager.getDatabaseFailureReason(databaseName);
+            logger.warn("Endpoint '{}' is unavailable because database '{}' is not available: {}",
+                       endpointName, databaseName, failureReason);
+            throw ApiException.serviceUnavailable(
+                "Endpoint '" + endpointName + "' is temporarily unavailable due to database connectivity issues. " +
+                "Database '" + databaseName + "' is not accessible: " + failureReason
+            );
+        }
+
         // Process parameters
         List<QueryParameter> queryParameters = processParameters(endpointConfig, queryConfig, requestParameters);
-        
+
         // Execute based on response type
         if (endpointConfig.getPagination() != null && endpointConfig.getPagination().isEnabled()) {
             return executePaginatedEndpoint(endpointConfig, queryConfig, queryParameters, requestParameters);
@@ -227,10 +243,73 @@ public class GenericApiService {
     }
     
     /**
-     * Get all available endpoints
+     * Get all available endpoints (only those with available databases)
      */
     public Map<String, ApiEndpointConfig> getAvailableEndpoints() {
+        Map<String, ApiEndpointConfig> allEndpoints = configurationManager.getAllEndpointConfigurations();
+        Map<String, ApiEndpointConfig> availableEndpoints = new HashMap<>();
+
+        for (Map.Entry<String, ApiEndpointConfig> entry : allEndpoints.entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig endpointConfig = entry.getValue();
+
+            // Check if the endpoint's database is available
+            if (isEndpointAvailable(endpointName)) {
+                availableEndpoints.put(endpointName, endpointConfig);
+            }
+        }
+
+        return availableEndpoints;
+    }
+
+    /**
+     * Get all endpoints including unavailable ones
+     */
+    public Map<String, ApiEndpointConfig> getAllEndpoints() {
         return configurationManager.getAllEndpointConfigurations();
+    }
+
+    /**
+     * Get unavailable endpoints (those with unavailable databases)
+     */
+    public Map<String, String> getUnavailableEndpoints() {
+        Map<String, ApiEndpointConfig> allEndpoints = configurationManager.getAllEndpointConfigurations();
+        Map<String, String> unavailableEndpoints = new HashMap<>();
+
+        for (Map.Entry<String, ApiEndpointConfig> entry : allEndpoints.entrySet()) {
+            String endpointName = entry.getKey();
+            ApiEndpointConfig endpointConfig = entry.getValue();
+
+            // Get the database name for this endpoint
+            Optional<QueryConfig> queryConfig = configurationManager.getQueryConfig(endpointConfig.getQuery());
+            if (queryConfig.isPresent()) {
+                String databaseName = queryConfig.get().getDatabase();
+                if (!databaseConnectionManager.isDatabaseAvailable(databaseName)) {
+                    String reason = databaseConnectionManager.getDatabaseFailureReason(databaseName);
+                    unavailableEndpoints.put(endpointName, "Database '" + databaseName + "' unavailable: " + reason);
+                }
+            }
+        }
+
+        return unavailableEndpoints;
+    }
+
+    /**
+     * Check if a specific endpoint is available
+     */
+    public boolean isEndpointAvailable(String endpointName) {
+        Optional<ApiEndpointConfig> endpointConfig = configurationManager.getEndpointConfig(endpointName);
+        if (!endpointConfig.isPresent()) {
+            return false;
+        }
+
+        Optional<QueryConfig> queryConfig = configurationManager.getQueryConfig(endpointConfig.get().getQuery());
+        if (!queryConfig.isPresent()) {
+            return false;
+        }
+
+        String databaseName = queryConfig.get().getDatabase();
+        return databaseConnectionManager.isDatabaseAvailable(databaseName);
     }
     
     /**
@@ -800,6 +879,41 @@ public class GenericApiService {
         validationResults.put("warningCount", warnings.size());
         validationResults.put("totalDatabases", configurationManager.getAllDatabaseConfigurations().size());
         validationResults.put("timestamp", System.currentTimeMillis());
+
+        return validationResults;
+    }
+
+    /**
+     * Validate endpoint connectivity by making HTTP requests
+     */
+    public Map<String, Object> validateEndpointConnectivity() {
+        Map<String, Object> validationResults = new HashMap<>();
+
+        try {
+            // Create configuration validator using existing dependencies
+            dev.mars.util.ConfigurationValidator configurationValidator =
+                new dev.mars.util.ConfigurationValidator(configurationManager, databaseConnectionManager);
+
+            // Use default base URL (we'll need to get this from configuration or use localhost:8080)
+            String baseUrl = "http://localhost:8080";
+
+            // Validate endpoint connectivity
+            dev.mars.util.ValidationResult result = configurationValidator.validateEndpointConnectivity(baseUrl);
+
+            validationResults.put("status", result.isSuccess() ? "VALID" : "INVALID");
+            validationResults.put("errors", result.getErrors());
+            validationResults.put("successes", result.getSuccesses());
+            validationResults.put("errorCount", result.getErrorCount());
+            validationResults.put("successCount", result.getSuccessCount());
+            validationResults.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
+            validationResults.put("baseUrl", baseUrl);
+            validationResults.put("timestamp", System.currentTimeMillis());
+
+        } catch (Exception e) {
+            validationResults.put("status", "ERROR");
+            validationResults.put("error", "Failed to validate endpoint connectivity: " + e.getMessage());
+            validationResults.put("timestamp", System.currentTimeMillis());
+        }
 
         return validationResults;
     }

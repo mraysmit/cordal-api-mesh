@@ -25,6 +25,7 @@ import dev.mars.generic.migration.ConfigurationMigrationService;
 import dev.mars.generic.migration.ConfigurationMigrationController;
 import dev.mars.database.DatabaseManager;
 import dev.mars.database.ConfigurationDataLoader;
+import dev.mars.api.H2ServerController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,9 +135,10 @@ public class GenericApiGuiceModule extends AbstractModule {
     @Provides
     @Singleton
     public GenericApiService provideGenericApiService(GenericRepository genericRepository,
-                                                     EndpointConfigurationManager configurationManager) {
+                                                     EndpointConfigurationManager configurationManager,
+                                                     DatabaseConnectionManager databaseConnectionManager) {
         logger.info("Creating GenericApiService instance");
-        return new GenericApiService(genericRepository, configurationManager);
+        return new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
     }
 
     @Provides
@@ -246,5 +248,19 @@ public class GenericApiGuiceModule extends AbstractModule {
         dataLoader.loadConfigurationDataIfNeeded();
 
         return dataLoader;
+    }
+
+    @Provides
+    @Singleton
+    public H2ServerConfig provideH2ServerConfig(GenericApiConfig genericApiConfig) {
+        logger.info("Creating H2ServerConfig instance");
+        return new H2ServerConfig(genericApiConfig);
+    }
+
+    @Provides
+    @Singleton
+    public H2ServerController provideH2ServerController(H2ServerConfig h2ServerConfig) {
+        logger.info("Creating H2ServerController instance");
+        return new H2ServerController(h2ServerConfig);
     }
 }

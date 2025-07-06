@@ -3,7 +3,10 @@ server:
   port: 8081
 
 metricsDatabase:
-  url: jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+  # File-based mode with AUTO_SERVER (limited multi-connection support)
+  # url: jdbc:h2:./data/metrics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+  # TCP server mode (recommended for multiple connections)
+  url: jdbc:h2:tcp://localhost:9092/./data/metrics;DB_CLOSE_DELAY=-1
   username: sa
   password: ""
   driver: org.h2.Driver

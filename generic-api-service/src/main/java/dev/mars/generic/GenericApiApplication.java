@@ -96,6 +96,16 @@ public class GenericApiApplication extends BaseJavalinApplication {
     }
 
     @Override
+    protected void performPostStartupInitialization() {
+        // Check if endpoint validation should run after startup
+        GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+        if (config.isValidationRunOnStartup() && config.isValidationValidateEndpoints()) {
+            logger.info("Running endpoint connectivity validation after startup (validation.runOnStartup=true, validation.validateEndpoints=true)");
+            runConfigurationValidation(true);
+        }
+    }
+
+    @Override
     protected void configureSwagger() {
         logger.info("Configuring Swagger/OpenAPI");
         SwaggerConfig swaggerConfig = injector.getInstance(SwaggerConfig.class);
@@ -111,6 +121,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         dev.mars.generic.management.ManagementController managementController = injector.getInstance(dev.mars.generic.management.ManagementController.class);
         dev.mars.generic.management.ConfigurationManagementController configManagementController = injector.getInstance(dev.mars.generic.management.ConfigurationManagementController.class);
         dev.mars.generic.migration.ConfigurationMigrationController migrationController = injector.getInstance(dev.mars.generic.migration.ConfigurationMigrationController.class);
+        dev.mars.api.H2ServerController h2ServerController = injector.getInstance(dev.mars.api.H2ServerController.class);
         
         // Health check endpoint
         app.get(ApiEndpoints.HEALTH, ctx -> {
@@ -163,6 +174,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         app.get(ApiEndpoints.Validation.VALIDATE_QUERIES, genericApiController::validateQueryConfigurations);
         app.get(ApiEndpoints.Validation.VALIDATE_DATABASES, genericApiController::validateDatabaseConfigurations);
         app.get(ApiEndpoints.Validation.VALIDATE_RELATIONSHIPS, genericApiController::validateConfigurationRelationships);
+        app.get(ApiEndpoints.Validation.VALIDATE_ENDPOINT_CONNECTIVITY, genericApiController::validateEndpointConnectivity);
 
         // ========== COMPREHENSIVE MANAGEMENT ENDPOINTS ==========
 
@@ -232,6 +244,15 @@ public class GenericApiApplication extends BaseJavalinApplication {
         app.get(ApiEndpoints.Migration.YAML_QUERIES, migrationController::getYamlQueryConfigurations);
         app.get(ApiEndpoints.Migration.YAML_ENDPOINTS, migrationController::getYamlEndpointConfigurations);
 
+        // H2 Server Management Endpoints
+        app.get(ApiEndpoints.H2_SERVER_STATUS, h2ServerController::getServerStatus);
+        app.post(ApiEndpoints.H2_SERVER_START, h2ServerController::startServers);
+        app.post(ApiEndpoints.H2_SERVER_STOP, h2ServerController::stopServers);
+        app.post(ApiEndpoints.H2_SERVER_TCP_START, h2ServerController::startTcpServer);
+        app.post(ApiEndpoints.H2_SERVER_TCP_STOP, h2ServerController::stopTcpServer);
+        app.post(ApiEndpoints.H2_SERVER_WEB_START, h2ServerController::startWebServer);
+        app.post(ApiEndpoints.H2_SERVER_WEB_STOP, h2ServerController::stopWebServer);
+
         // Register dynamic endpoints from YAML configuration
         registerDynamicEndpoints(genericApiController);
 
@@ -245,12 +266,29 @@ public class GenericApiApplication extends BaseJavalinApplication {
         logger.info("Registering dynamic endpoints from YAML configuration");
 
         try {
-            // Get endpoint configurations
-            Map<String, dev.mars.generic.config.ApiEndpointConfig> endpoints =
-                genericApiController.getGenericApiService().getAvailableEndpoints();
+            GenericApiService genericApiService = genericApiController.getGenericApiService();
 
-            if (endpoints.isEmpty()) {
-                logger.warn("No endpoint configurations found - no dynamic routes will be registered");
+            // Get available endpoint configurations (only those with working databases)
+            Map<String, dev.mars.generic.config.ApiEndpointConfig> availableEndpoints = genericApiService.getAvailableEndpoints();
+
+            // Get unavailable endpoints for logging
+            Map<String, String> unavailableEndpoints = genericApiService.getUnavailableEndpoints();
+
+            // Log unavailable endpoints
+            if (!unavailableEndpoints.isEmpty()) {
+                logger.warn("Found {} unavailable endpoint(s) due to database connectivity issues:", unavailableEndpoints.size());
+                for (Map.Entry<String, String> entry : unavailableEndpoints.entrySet()) {
+                    logger.warn("  - Endpoint '{}': {}", entry.getKey(), entry.getValue());
+                }
+                logger.warn("These endpoints will not be registered and will return 404 errors if accessed");
+            }
+
+            if (availableEndpoints.isEmpty()) {
+                if (unavailableEndpoints.isEmpty()) {
+                    logger.warn("No endpoint configurations found - no dynamic routes will be registered");
+                } else {
+                    logger.error("All {} endpoint(s) are unavailable due to database issues - no dynamic routes will be registered", unavailableEndpoints.size());
+                }
                 return;
             }
 
@@ -258,11 +296,11 @@ public class GenericApiApplication extends BaseJavalinApplication {
             // This ensures routes like /api/generic/stock-trades/symbol/{symbol}
             // are registered before /api/generic/stock-trades/{id}
             List<Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig>> sortedEndpoints =
-                endpoints.entrySet().stream()
+                availableEndpoints.entrySet().stream()
                     .sorted((e1, e2) -> comparePathSpecificity(e1.getValue().getPath(), e2.getValue().getPath()))
                     .collect(java.util.stream.Collectors.toList());
 
-            // Register each endpoint
+            // Register each available endpoint
             for (Map.Entry<String, dev.mars.generic.config.ApiEndpointConfig> entry : sortedEndpoints) {
                 String endpointName = entry.getKey();
                 dev.mars.generic.config.ApiEndpointConfig config = entry.getValue();
@@ -270,7 +308,15 @@ public class GenericApiApplication extends BaseJavalinApplication {
                 registerSingleEndpoint(endpointName, config, genericApiController);
             }
 
-            logger.info("Successfully registered {} dynamic endpoints", endpoints.size());
+            // Log summary
+            int totalEndpoints = availableEndpoints.size() + unavailableEndpoints.size();
+            logger.info("Successfully registered {} available dynamic endpoints out of {} total configured endpoints",
+                       availableEndpoints.size(), totalEndpoints);
+
+            if (!unavailableEndpoints.isEmpty()) {
+                logger.warn("Application started with {} endpoint(s) unavailable due to database connectivity issues",
+                           unavailableEndpoints.size());
+            }
 
         } catch (Exception e) {
             logger.error("Failed to register dynamic endpoints", e);
@@ -557,6 +603,13 @@ public class GenericApiApplication extends BaseJavalinApplication {
      * Run configuration validation (used both for startup validation and standalone validation)
      */
     private void runConfigurationValidation() {
+        runConfigurationValidation(false);
+    }
+
+    /**
+     * Run configuration validation with optional endpoint connectivity testing
+     */
+    private void runConfigurationValidation(boolean includeEndpointTesting) {
         logger.info("[VALIDATE] Starting Configuration Validation...");
 
         try {
@@ -582,21 +635,69 @@ public class GenericApiApplication extends BaseJavalinApplication {
             dev.mars.util.ValidationResult schemaValidation = configurationValidator.validateDatabaseSchema();
             configurationValidator.displayValidationResults("Database Schema", schemaValidation);
 
+            // Part 3: Endpoint Connectivity Validation (only if application is running)
+            dev.mars.util.ValidationResult endpointValidation = null;
+            if (includeEndpointTesting) {
+                logger.info("[PART 3] Endpoint Connectivity Validation");
+                GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+                String baseUrl = "http://" + config.getServerConfig().getHost() + ":" + config.getServerConfig().getPort();
+                endpointValidation = configurationValidator.validateEndpointConnectivity(baseUrl);
+                configurationValidator.displayValidationResults("Endpoint Connectivity", endpointValidation);
+            }
+
             // Summary
-            boolean overallSuccess = configValidation.isSuccess() && schemaValidation.isSuccess();
+            boolean overallSuccess = configValidation.isSuccess() && schemaValidation.isSuccess() &&
+                                   (endpointValidation == null || endpointValidation.isSuccess());
             if (overallSuccess) {
                 logger.info("[SUCCESS] All configuration validations passed");
             } else {
-                logger.error("[FAILED] Configuration validation failed");
+                logger.error("[FAILED] Configuration validation found errors");
                 logger.error("  Configuration Chain Errors: {}", configValidation.getErrorCount());
                 logger.error("  Database Schema Errors: {}", schemaValidation.getErrorCount());
-                throw new RuntimeException("Configuration validation failed");
+                if (endpointValidation != null) {
+                    logger.error("  Endpoint Connectivity Errors: {}", endpointValidation.getErrorCount());
+                }
+
+                // Check if validation failures should be fatal
+                GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+                if (shouldValidationFailuresBeFatal(config)) {
+                    logger.error("[FATAL] Configuration validation failed - application startup aborted");
+                    throw new RuntimeException("Configuration validation failed");
+                } else {
+                    logger.warn("[CONTINUE] Configuration validation failed but application will continue");
+                    logger.warn("  Some endpoints may be unavailable due to configuration errors");
+                    logger.warn("  Use management APIs to check configuration status");
+                }
             }
 
-        } catch (Exception e) {
-            logger.error("Configuration validation failed", e);
+        } catch (RuntimeException e) {
+            // Re-throw RuntimeExceptions (like validation failures) as-is
             throw e;
+        } catch (Exception e) {
+            logger.error("Configuration validation encountered an unexpected error", e);
+
+            // Check if validation failures should be fatal
+            GenericApiConfig config = injector.getInstance(GenericApiConfig.class);
+            if (shouldValidationFailuresBeFatal(config)) {
+                logger.error("[FATAL] Configuration validation error - application startup aborted");
+                throw new RuntimeException("Configuration validation error", e);
+            } else {
+                logger.warn("[CONTINUE] Configuration validation error but application will continue");
+                logger.warn("  Configuration validation could not be completed");
+                logger.warn("  Some endpoints may be unavailable");
+            }
         }
+    }
+
+    /**
+     * Determine if validation failures should be fatal (cause application to exit)
+     * or just warnings (allow application to continue with limited functionality)
+     */
+    private boolean shouldValidationFailuresBeFatal(GenericApiConfig config) {
+        // For now, make validation failures non-fatal to allow graceful error handling
+        // This can be made configurable in the future if needed
+        // In validate-only mode, failures should still be fatal since that's the whole point
+        return config.isValidationValidateOnly();
     }
 
     /**

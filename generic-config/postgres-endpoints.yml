@@ -1,0 +1,609 @@
+# PostgreSQL Stock Trades API Endpoints Configuration
+# This file defines the REST API endpoints for PostgreSQL database
+
+endpoints:
+  # PostgreSQL Stock Trades Endpoints
+  postgres-trades-list:
+    path: "/api/postgres/trades"
+    method: "GET"
+    description: "Get all stock trades from PostgreSQL database with pagination"
+    query: "postgres-trades-all"
+    countQuery: "postgres-trades-count"
+    pagination:
+      enabled: true
+      defaultSize: 50
+      maxSize: 500
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 50
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-count:
+    path: "/api/postgres/trades/count"
+    method: "GET"
+    description: "Get total count of stock trades in PostgreSQL database"
+    query: "postgres-trades-count"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "total_trades"
+          type: "LONG"
+          description: "Total number of trades"
+
+  postgres-trades-by-symbol:
+    path: "/api/postgres/trades/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol from PostgreSQL database with pagination"
+    query: "postgres-trades-by-symbol"
+    countQuery: "postgres-trades-count-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 50
+      maxSize: 200
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        description: "Stock symbol to filter by"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 50
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-count-by-symbol:
+    path: "/api/postgres/trades/symbol/{symbol}/count"
+    method: "GET"
+    description: "Get count of stock trades by symbol from PostgreSQL database"
+    query: "postgres-trades-count-by-symbol"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        description: "Stock symbol to count trades for"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "trade_count"
+          type: "LONG"
+          description: "Number of trades for the symbol"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+
+  postgres-trades-by-id:
+    path: "/api/postgres/trades/{id}"
+    method: "GET"
+    description: "Get specific stock trade by ID from PostgreSQL database"
+    query: "postgres-trades-by-id"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+        description: "Trade ID to retrieve"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-by-trader:
+    path: "/api/postgres/trades/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader ID from PostgreSQL database with pagination"
+    query: "postgres-trades-by-trader"
+    countQuery: "postgres-trades-count-by-trader"
+    pagination:
+      enabled: true
+      defaultSize: 50
+      maxSize: 200
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+        description: "Trader ID to filter by"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 50
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-count-by-trader:
+    path: "/api/postgres/trades/trader/{trader_id}/count"
+    method: "GET"
+    description: "Get count of stock trades by trader ID from PostgreSQL database"
+    query: "postgres-trades-count-by-trader"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+        description: "Trader ID to count trades for"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "trade_count"
+          type: "LONG"
+          description: "Number of trades for the trader"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+
+  postgres-trades-by-date-range:
+    path: "/api/postgres/trades/date-range"
+    method: "GET"
+    description: "Get stock trades within a date range from PostgreSQL database with pagination"
+    query: "postgres-trades-by-date-range"
+    countQuery: "postgres-trades-count-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 100
+      maxSize: 1000
+    parameters:
+      - name: "start_date"
+        type: "STRING"
+        required: true
+        description: "Start date in YYYY-MM-DD HH:MM:SS format"
+      - name: "end_date"
+        type: "STRING"
+        required: true
+        description: "End date in YYYY-MM-DD HH:MM:SS format"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 100
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-count-by-date-range:
+    path: "/api/postgres/trades/date-range/count"
+    method: "GET"
+    description: "Get count of stock trades within a date range from PostgreSQL database"
+    query: "postgres-trades-count-by-date-range"
+    parameters:
+      - name: "start_date"
+        type: "STRING"
+        required: true
+        description: "Start date in YYYY-MM-DD HH:MM:SS format"
+      - name: "end_date"
+        type: "STRING"
+        required: true
+        description: "End date in YYYY-MM-DD HH:MM:SS format"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "trade_count"
+          type: "LONG"
+          description: "Number of trades in the date range"
+
+  postgres-trades-by-exchange:
+    path: "/api/postgres/trades/exchange/{exchange}"
+    method: "GET"
+    description: "Get stock trades by exchange from PostgreSQL database with pagination"
+    query: "postgres-trades-by-exchange"
+    countQuery: "postgres-trades-count-by-exchange"
+    pagination:
+      enabled: true
+      defaultSize: 50
+      maxSize: 200
+    parameters:
+      - name: "exchange"
+        type: "STRING"
+        required: true
+        description: "Exchange name to filter by"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 50
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-summary-by-symbol:
+    path: "/api/postgres/trades/symbol/{symbol}/summary"
+    method: "GET"
+    description: "Get trading summary statistics by symbol from PostgreSQL database"
+    query: "postgres-trades-summary-by-symbol"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        description: "Stock symbol to get summary for"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_count"
+          type: "LONG"
+          description: "Total number of trades"
+        - name: "total_quantity"
+          type: "LONG"
+          description: "Total quantity traded"
+        - name: "avg_price"
+          type: "DECIMAL"
+          description: "Average price"
+        - name: "min_price"
+          type: "DECIMAL"
+          description: "Minimum price"
+        - name: "max_price"
+          type: "DECIMAL"
+          description: "Maximum price"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+
+  postgres-trades-recent:
+    path: "/api/postgres/trades/recent"
+    method: "GET"
+    description: "Get recent stock trades from PostgreSQL database"
+    query: "postgres-trades-recent"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: false
+        defaultValue: 100
+        description: "Number of recent trades to retrieve"
+    response:
+      type: "LIST"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"
+
+  postgres-trades-by-type:
+    path: "/api/postgres/trades/type/{trade_type}"
+    method: "GET"
+    description: "Get stock trades by trade type (BUY/SELL) from PostgreSQL database with pagination"
+    query: "postgres-trades-by-type"
+    countQuery: "postgres-trades-count-by-type"
+    pagination:
+      enabled: true
+      defaultSize: 50
+      maxSize: 200
+    parameters:
+      - name: "trade_type"
+        type: "STRING"
+        required: true
+        description: "Trade type: BUY or SELL"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 50
+        description: "Page size"
+      - name: "async"
+        type: "BOOLEAN"
+        required: false
+        defaultValue: false
+        description: "Enable async processing"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "LONG"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "STRING"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "STRING"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "INTEGER"
+          description: "Number of shares"
+        - name: "price"
+          type: "DECIMAL"
+          description: "Price per share"
+        - name: "total_value"
+          type: "DECIMAL"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "TIMESTAMP"
+          description: "Trade date and time"
+        - name: "trader_id"
+          type: "STRING"
+          description: "Trader identifier"
+        - name: "exchange"
+          type: "STRING"
+          description: "Exchange name"
+        - name: "created_at"
+          type: "TIMESTAMP"
+          description: "Record creation timestamp"
+        - name: "updated_at"
+          type: "TIMESTAMP"
+          description: "Record update timestamp"

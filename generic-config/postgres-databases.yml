@@ -1,0 +1,16 @@
+databases:
+  postgres-trades:
+    name: postgres
+    description: "PostgreSQL database for stock trading data"
+    url: "jdbc:postgresql://localhost:5432/postgres?currentSchema=public"
+    username: postgres
+    password: postgres
+    driver: org.postgresql.Driver
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"

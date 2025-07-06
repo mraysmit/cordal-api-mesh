@@ -117,11 +117,14 @@ public class GenericApiConfig extends BaseConfig {
         // Load validation configuration
         Boolean runOnStartup = getBoolean("validation.runOnStartup", false);
         Boolean validateOnly = getBoolean("validation.validateOnly", false);
+        Boolean validateEndpoints = getBoolean("validation.validateEndpoints", true);
 
         validation.setRunOnStartup(runOnStartup);
         validation.setValidateOnly(validateOnly);
+        validation.setValidateEndpoints(validateEndpoints);
 
-        logger.info("Validation configuration: runOnStartup={}, validateOnly={}", runOnStartup, validateOnly);
+        logger.info("Validation configuration: runOnStartup={}, validateOnly={}, validateEndpoints={}",
+                   runOnStartup, validateOnly, validateEndpoints);
     }
 
     @Override
@@ -257,6 +260,10 @@ public class GenericApiConfig extends BaseConfig {
         return validation.validateOnly;
     }
 
+    public boolean isValidationValidateEndpoints() {
+        return validation.validateEndpoints;
+    }
+
     // Inner classes for configuration structure
     public static class DatabaseSettings {
         private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
@@ -319,11 +326,14 @@ public class GenericApiConfig extends BaseConfig {
     public static class ValidationSettings {
         private boolean runOnStartup = false;
         private boolean validateOnly = false;
+        private boolean validateEndpoints = true;
 
         // Getters and setters
         public boolean isRunOnStartup() { return runOnStartup; }
         public void setRunOnStartup(boolean runOnStartup) { this.runOnStartup = runOnStartup; }
         public boolean isValidateOnly() { return validateOnly; }
         public void setValidateOnly(boolean validateOnly) { this.validateOnly = validateOnly; }
+        public boolean isValidateEndpoints() { return validateEndpoints; }
+        public void setValidateEndpoints(boolean validateEndpoints) { this.validateEndpoints = validateEndpoints; }
     }
 }

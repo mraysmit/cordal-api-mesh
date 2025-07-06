@@ -8,23 +8,20 @@ queries:
     description: "Calculate daily trading volume by symbol"
     database: "analytics"
     sql: |
-      SELECT 
+      SELECT
         symbol,
-        DATE(trade_date) as trade_day,
+        CAST(trade_date AS DATE) as trade_day,
         SUM(quantity) as total_volume,
         COUNT(*) as trade_count,
         AVG(price) as avg_price
-      FROM trades 
-      WHERE trade_date >= ? AND trade_date <= ?
-      GROUP BY symbol, DATE(trade_date)
+      FROM trades
+      GROUP BY symbol, CAST(trade_date AS DATE)
       ORDER BY trade_day DESC, total_volume DESC
+      LIMIT ?
     parameters:
-      - name: "start_date"
-        type: "date"
-        required: true
-      - name: "end_date"
-        type: "date"
-        required: true
+      - name: "limit"
+        type: "integer"
+        required: false
 
   # Top performers analysis
   top-performers:
@@ -32,28 +29,18 @@ queries:
     description: "Find top performing stocks by percentage gain"
     database: "analytics"
     sql: |
-      SELECT 
+      SELECT
         symbol,
         MIN(price) as min_price,
         MAX(price) as max_price,
         ((MAX(price) - MIN(price)) / MIN(price)) * 100 as percentage_gain,
         COUNT(*) as trade_count
-      FROM trades 
-      WHERE trade_date >= ? AND trade_date <= ?
+      FROM trades
       GROUP BY symbol
-      HAVING COUNT(*) >= ?
+      HAVING COUNT(*) >= 1
       ORDER BY percentage_gain DESC
       LIMIT ?
     parameters:
-      - name: "start_date"
-        type: "date"
-        required: true
-      - name: "end_date"
-        type: "date"
-        required: true
-      - name: "min_trades"
-        type: "integer"
-        required: true
       - name: "limit"
         type: "integer"
         required: false
@@ -64,21 +51,19 @@ queries:
     description: "Get overall market summary statistics"
     database: "datawarehouse"
     sql: |
-      SELECT 
-        COUNT(DISTINCT symbol) as unique_symbols,
-        COUNT(*) as total_trades,
-        SUM(quantity) as total_volume,
-        AVG(price) as avg_price,
-        MIN(price) as min_price,
-        MAX(price) as max_price,
-        MIN(trade_date) as earliest_trade,
-        MAX(trade_date) as latest_trade
-      FROM historical_trades
-      WHERE trade_date >= ? AND trade_date <= ?
+      SELECT
+        id,
+        summary_date,
+        total_volume,
+        total_trades,
+        avg_trade_value,
+        top_symbol,
+        top_symbol_volume,
+        created_at
+      FROM market_summary
+      ORDER BY summary_date DESC
+      LIMIT ?
     parameters:
-      - name: "start_date"
-        type: "date"
-        required: true
-      - name: "end_date"
-        type: "date"
-        required: true
+      - name: "limit"
+        type: "integer"
+        required: false

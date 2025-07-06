@@ -57,6 +57,10 @@ public class ApiException extends RuntimeException {
         return new ApiException("FORBIDDEN", message, 403);
     }
 
+    public static ApiException serviceUnavailable(String message) {
+        return new ApiException("SERVICE_UNAVAILABLE", message, 503);
+    }
+
     @Override
     public String toString() {
         return "ApiException{" +

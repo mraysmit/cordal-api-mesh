@@ -339,6 +339,22 @@ public class GenericApiController {
         }
     }
 
+    /**
+     * Validate endpoint connectivity
+     */
+    public void validateEndpointConnectivity(Context ctx) {
+        logger.debug("Validating endpoint connectivity");
+
+        try {
+            var validationResults = genericApiService.validateEndpointConnectivity();
+            ctx.json(validationResults);
+
+        } catch (Exception e) {
+            logger.error("Error validating endpoint connectivity", e);
+            throw e;
+        }
+    }
+
     // ========== GRANULAR CONFIGURATION ENDPOINTS ==========
 
     /**
@@ -617,27 +633,55 @@ public class GenericApiController {
      */
     public void getHealthStatus(Context ctx) {
         logger.debug("Generic API health check");
-        
+
         try {
             Map<String, Object> health = new HashMap<>();
-            health.put("status", "UP");
+
+            // Get endpoint availability information
+            int availableEndpointCount = genericApiService.getAvailableEndpoints().size();
+            int totalEndpointCount = genericApiService.getAllEndpoints().size();
+            Map<String, String> unavailableEndpoints = genericApiService.getUnavailableEndpoints();
+
+            // Determine overall status
+            String status;
+            if (availableEndpointCount == 0) {
+                status = "DOWN";
+            } else if (unavailableEndpoints.isEmpty()) {
+                status = "UP";
+            } else {
+                status = "DEGRADED";
+            }
+
+            health.put("status", status);
             health.put("service", "Generic API Service");
             health.put("timestamp", System.currentTimeMillis());
-            
-            // Add endpoint count
-            int endpointCount = genericApiService.getAvailableEndpoints().size();
-            health.put("availableEndpoints", endpointCount);
-            
+            health.put("availableEndpoints", availableEndpointCount);
+            health.put("totalEndpoints", totalEndpointCount);
+
+            if (!unavailableEndpoints.isEmpty()) {
+                health.put("unavailableEndpoints", unavailableEndpoints);
+                health.put("message", unavailableEndpoints.size() + " endpoint(s) unavailable due to database connectivity issues");
+            }
+
+            // Set appropriate HTTP status
+            if ("DOWN".equals(status)) {
+                ctx.status(503); // Service Unavailable
+            } else if ("DEGRADED".equals(status)) {
+                ctx.status(200); // OK but with warnings
+            } else {
+                ctx.status(200); // OK
+            }
+
             ctx.json(health);
-            
+
         } catch (Exception e) {
             logger.error("Health check failed", e);
-            
+
             Map<String, Object> health = new HashMap<>();
             health.put("status", "DOWN");
             health.put("error", e.getMessage());
             health.put("timestamp", System.currentTimeMillis());
-            
+
             ctx.status(503).json(health);
         }
     }

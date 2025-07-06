@@ -24,7 +24,9 @@ javalin-api-mesh/
 - **Multi-Database Support** - Connect different endpoints to different databases
 - **Swagger Integration** - Auto-generated API documentation
 - **Configuration Management APIs** - Runtime configuration inspection and validation
-- **Configuration Validation** - Comprehensive startup and standalone validation modes
+- **Comprehensive Validation** - Configuration, database schema, and endpoint connectivity validation
+- **Bootstrap Validation** - Startup validation with configurable options
+- **Endpoint Testing** - HTTP connectivity testing with performance monitoring
 
 ### **📊 Metrics Service**
 - **Automatic Metrics Collection** - Zero-code performance monitoring
@@ -75,6 +77,7 @@ The Generic API Service provides YAML or database-configured REST endpoints. Ava
 - `GET /api/generic/config/validate/queries` - Validate query configurations
 - `GET /api/generic/config/validate/databases` - Validate database configurations
 - `GET /api/generic/config/validate/relationships` - Validate configuration relationships
+- `GET /api/generic/config/validate/endpoint-connectivity` - Test HTTP endpoint connectivity
 - `GET /api/generic/config/endpoints` - List all configured endpoints
 - `GET /api/generic/config/queries` - List all configured queries
 - `GET /api/generic/config/databases` - List all configured databases
@@ -332,6 +335,7 @@ java -jar generic-api-service.jar --validate
 ### **Validation Process**
 - **Configuration Chain Validation** - Verifies endpoints → queries → databases relationships
 - **Database Schema Validation** - Checks table existence, field availability, and query compatibility
+- **Endpoint Connectivity Validation** - Tests HTTP endpoints with actual requests and performance monitoring
 - **Detailed Error Reporting** - ASCII tables with clear, readable validation results
 - **Fatal Error Handling** - Application exits with proper error codes on validation failure
 
@@ -543,15 +547,17 @@ CREATE TABLE performance_metrics (
 
 ## 📚 **Additional Documentation**
 
-- [Architecture Guide](ARCHITECTURE_GUIDE.md) - Detailed system architecture
-- [Configuration Schema Reference](CONFIGURATION_SCHEMA_REFERENCE.md) - Complete YAML configuration guide
-- [Configuration Validation](CONFIGURATION_VALIDATION.md) - Configuration validation guide and best practices
-- [Common Library Implementation](COMMON_LIBRARY_IMPLEMENTATION.md) - Shared utilities guide
-- [Metrics Collection Architecture](METRICS_COLLECTION_ARCHITECTURE.md) - Performance monitoring details
-- [Metrics Collection Implementation](METRICS_COLLECTION_IMPLEMENTATION.md) - Implementation guide
-- [Metrics Collection Quick Reference](METRICS_COLLECTION_QUICK_REFERENCE.md) - Quick start guide
-- [Dashboard Configuration](DASHBOARD_CONFIGURATION.md) - Dashboard setup and configuration
-- [Performance Dashboard](PERFORMANCE_DASHBOARD.md) - Dashboard features and usage
-- [Test Documentation](TEST_DOCUMENTATION.md) - Testing guide and best practices
-- [Metrics Collection Tests](METRICS_COLLECTION_TESTS.md) - Metrics testing documentation
+- [Architecture Guide](docs/ARCHITECTURE_GUIDE.md) - Detailed system architecture
+- [Configuration Schema Reference](docs/CONFIGURATION_SCHEMA_REFERENCE.md) - Complete YAML configuration guide
+- [Configuration Validation](docs/CONFIGURATION_VALIDATION.md) - Configuration validation guide and best practices
+- [Endpoint Validation](docs/ENDPOINT_VALIDATION.md) - HTTP endpoint connectivity testing guide
+- [Bootstrap Demo](docs/BOOTSTRAP_DEMO.md) - System demonstration and validation showcase
+- [Common Library Implementation](docs/COMMON_LIBRARY_IMPLEMENTATION.md) - Shared utilities guide
+- [Metrics Collection Architecture](docs/METRICS_COLLECTION_ARCHITECTURE.md) - Performance monitoring details
+- [Metrics Collection Implementation](docs/METRICS_COLLECTION_IMPLEMENTATION.md) - Implementation guide
+- [Metrics Collection Quick Reference](docs/METRICS_COLLECTION_QUICK_REFERENCE.md) - Quick start guide
+- [Dashboard Configuration](docs/DASHBOARD_CONFIGURATION.md) - Dashboard setup and configuration
+- [Performance Dashboard](docs/PERFORMANCE_DASHBOARD.md) - Dashboard features and usage
+- [Test Documentation](docs/TEST_DOCUMENTATION.md) - Testing guide and best practices
+- [Metrics Collection Tests](docs/METRICS_COLLECTION_TESTS.md) - Metrics testing documentation
 - [Configuration Examples](config/) - YAML configuration samples

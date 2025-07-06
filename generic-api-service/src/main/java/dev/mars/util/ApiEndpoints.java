@@ -19,6 +19,16 @@ public final class ApiEndpoints {
     public static final String HEALTH = HEALTH_BASE;
     public static final String GENERIC_HEALTH = GENERIC_BASE + "/health";
 
+    // ========== H2 SERVER MANAGEMENT ENDPOINTS ==========
+    public static final String H2_SERVER_BASE = API_BASE + "/h2-server";
+    public static final String H2_SERVER_STATUS = H2_SERVER_BASE + "/status";
+    public static final String H2_SERVER_START = H2_SERVER_BASE + "/start";
+    public static final String H2_SERVER_STOP = H2_SERVER_BASE + "/stop";
+    public static final String H2_SERVER_TCP_START = H2_SERVER_BASE + "/tcp/start";
+    public static final String H2_SERVER_TCP_STOP = H2_SERVER_BASE + "/tcp/stop";
+    public static final String H2_SERVER_WEB_START = H2_SERVER_BASE + "/web/start";
+    public static final String H2_SERVER_WEB_STOP = H2_SERVER_BASE + "/web/stop";
+
     // ========== GENERIC API ENDPOINTS ==========
     public static final String GENERIC_ENDPOINTS = GENERIC_BASE + "/endpoints";
     public static final String GENERIC_ENDPOINT_BY_NAME = GENERIC_BASE + "/endpoints/{endpointName}";
@@ -96,6 +106,7 @@ public final class ApiEndpoints {
         public static final String VALIDATE_QUERIES = GENERIC_BASE + "/config/validate/queries";
         public static final String VALIDATE_DATABASES = GENERIC_BASE + "/config/validate/databases";
         public static final String VALIDATE_RELATIONSHIPS = GENERIC_BASE + "/config/validate/relationships";
+        public static final String VALIDATE_ENDPOINT_CONNECTIVITY = GENERIC_BASE + "/config/validate/endpoint-connectivity";
     }
 
     // ========== GRANULAR CONFIGURATION ENDPOINTS ==========
@@ -160,7 +171,8 @@ public final class ApiEndpoints {
             Validation.VALIDATE_ENDPOINTS,
             Validation.VALIDATE_QUERIES,
             Validation.VALIDATE_DATABASES,
-            Validation.VALIDATE_RELATIONSHIPS
+            Validation.VALIDATE_RELATIONSHIPS,
+            Validation.VALIDATE_ENDPOINT_CONNECTIVITY
         );
 
         /**

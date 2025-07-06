@@ -282,6 +282,7 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
         }
 
         Map<String, DatabaseConfig> allDatabases = new java.util.LinkedHashMap<>();
+        java.util.List<String> failedFiles = new java.util.ArrayList<>();
 
         for (Path databaseFile : databaseFiles) {
             logger.info("Loading database configurations from file: {}", databaseFile);
@@ -296,18 +297,22 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                 }
 
                 // Check for duplicate keys across files
+                boolean hasConflicts = false;
                 for (String databaseName : databases.keySet()) {
                     if (allDatabases.containsKey(databaseName)) {
-                        logger.error("FATAL CONFIGURATION ERROR: Duplicate database configuration found");
+                        logger.error("CONFIGURATION CONFLICT: Duplicate database configuration found");
                         logger.error("  Database name: {}", databaseName);
                         logger.error("  First defined in: (previous file)");
                         logger.error("  Duplicate found in: {}", databaseFile);
-                        logger.error("  Impact: Configuration conflicts prevent application startup");
-                        logger.error("  Action: Ensure database names are unique across all configuration files");
-                        logger.error("Application startup aborted due to configuration conflict");
-                        throw new dev.mars.common.exception.ConfigurationException(
-                            "Duplicate database configuration found: " + databaseName + " in file: " + databaseFile);
+                        logger.error("  Action: Skipping duplicate configuration from: {}", databaseFile);
+                        hasConflicts = true;
                     }
+                }
+
+                if (hasConflicts) {
+                    logger.warn("Skipping file {} due to configuration conflicts", databaseFile);
+                    failedFiles.add(databaseFile.toString() + " (duplicate database names)");
+                    continue;
                 }
 
                 allDatabases.putAll(databases);
@@ -319,29 +324,54 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                 });
 
             } catch (Exception e) {
-                logger.error("FATAL CONFIGURATION ERROR: Failed to load database configurations");
+                String errorMessage = "Failed to load database configurations from file: " + databaseFile + " - " + e.getMessage();
+                failedFiles.add(databaseFile.toString() + " (" + e.getMessage() + ")");
+
+                logger.error("CONFIGURATION ERROR: Failed to load database configurations");
                 logger.error("  File: {}", databaseFile);
                 logger.error("  Type: Database configurations");
                 logger.error("  Error: {}", e.getMessage());
-                logger.error("  Impact: Application cannot start without valid database configurations");
-                logger.error("  Action: Check file format, syntax, and accessibility");
-                logger.error("Application startup aborted due to configuration loading failure", e);
-                throw new ConfigurationException("Failed to load database configurations from file: " + databaseFile, e);
+                logger.error("  Action: Skipping this file and continuing with other configuration files");
+                logger.warn("Database configurations from {} will be unavailable", databaseFile, e);
+            }
+        }
+
+        // Log summary of loading results
+        if (!failedFiles.isEmpty()) {
+            logger.warn("Failed to load {} configuration file(s):", failedFiles.size());
+            for (String failedFile : failedFiles) {
+                logger.warn("  - {}", failedFile);
             }
         }
 
         if (allDatabases.isEmpty()) {
-            logger.error("FATAL CONFIGURATION ERROR: No database configurations found in any file");
-            logger.error("  Files processed: {}", databaseFiles.size());
-            logger.error("  Type: Database configurations");
-            logger.error("  Impact: Application cannot start without database configurations");
-            logger.error("  Action: Verify files contain valid YAML with database definitions");
-            logger.error("Application startup aborted due to empty configuration files");
-            throw new ConfigurationException("No database configurations found in " + databaseFiles.size() + " processed files");
+            if (failedFiles.isEmpty()) {
+                logger.error("FATAL CONFIGURATION ERROR: No database configurations found in any file");
+                logger.error("  Files processed: {}", databaseFiles.size());
+                logger.error("  Type: Database configurations");
+                logger.error("  Impact: Application cannot start without database configurations");
+                logger.error("  Action: Verify files contain valid YAML with database definitions");
+                logger.error("Application startup aborted due to empty configuration files");
+                throw new ConfigurationException("No database configurations found in " + databaseFiles.size() + " processed files");
+            } else {
+                logger.error("FATAL CONFIGURATION ERROR: All database configuration files failed to load");
+                logger.error("  Files processed: {}", databaseFiles.size());
+                logger.error("  Files failed: {}", failedFiles.size());
+                logger.error("  Type: Database configurations");
+                logger.error("  Impact: Application cannot start without any valid database configurations");
+                logger.error("  Action: Fix configuration file errors and restart");
+                logger.error("Application startup aborted due to all configuration files failing");
+                throw new ConfigurationException("All " + databaseFiles.size() + " database configuration files failed to load");
+            }
         }
 
-        logger.info("Successfully loaded {} total database configurations from {} files",
-                   allDatabases.size(), databaseFiles.size());
+        logger.info("Successfully loaded {} total database configurations from {} files ({} files failed)",
+                   allDatabases.size(), databaseFiles.size() - failedFiles.size(), failedFiles.size());
+
+        if (!failedFiles.isEmpty()) {
+            logger.warn("Application started with {} database configuration file(s) unavailable", failedFiles.size());
+        }
+
         return allDatabases;
     }
 
@@ -367,6 +397,7 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
         }
 
         Map<String, ApiEndpointConfig> allEndpoints = new java.util.LinkedHashMap<>();
+        java.util.List<String> failedFiles = new java.util.ArrayList<>();
 
         for (Path endpointFile : endpointFiles) {
             logger.info("Loading endpoint configurations from file: {}", endpointFile);
@@ -404,29 +435,54 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                 });
 
             } catch (Exception e) {
-                logger.error("FATAL CONFIGURATION ERROR: Failed to load endpoint configurations");
+                String errorMessage = "Failed to load endpoint configurations from file: " + endpointFile + " - " + e.getMessage();
+                failedFiles.add(endpointFile.toString() + " (" + e.getMessage() + ")");
+
+                logger.error("CONFIGURATION ERROR: Failed to load endpoint configurations");
                 logger.error("  File: {}", endpointFile);
                 logger.error("  Type: Endpoint configurations");
                 logger.error("  Error: {}", e.getMessage());
-                logger.error("  Impact: Application cannot start without valid endpoint configurations");
-                logger.error("  Action: Check file format, syntax, and accessibility");
-                logger.error("Application startup aborted due to configuration loading failure", e);
-                throw new ConfigurationException("Failed to load endpoint configurations from file: " + endpointFile, e);
+                logger.error("  Action: Skipping this file and continuing with other configuration files");
+                logger.warn("Endpoint configurations from {} will be unavailable", endpointFile, e);
+            }
+        }
+
+        // Log summary of loading results
+        if (!failedFiles.isEmpty()) {
+            logger.warn("Failed to load {} endpoint configuration file(s):", failedFiles.size());
+            for (String failedFile : failedFiles) {
+                logger.warn("  - {}", failedFile);
             }
         }
 
         if (allEndpoints.isEmpty()) {
-            logger.error("FATAL CONFIGURATION ERROR: No endpoint configurations found in any file");
-            logger.error("  Files processed: {}", endpointFiles.size());
-            logger.error("  Type: Endpoint configurations");
-            logger.error("  Impact: Application cannot start without endpoint configurations");
-            logger.error("  Action: Verify files contain valid YAML with endpoint definitions");
-            logger.error("Application startup aborted due to empty configuration files");
-            throw new ConfigurationException("No endpoint configurations found in " + endpointFiles.size() + " processed files");
+            if (failedFiles.isEmpty()) {
+                logger.error("FATAL CONFIGURATION ERROR: No endpoint configurations found in any file");
+                logger.error("  Files processed: {}", endpointFiles.size());
+                logger.error("  Type: Endpoint configurations");
+                logger.error("  Impact: Application cannot start without endpoint configurations");
+                logger.error("  Action: Verify files contain valid YAML with endpoint definitions");
+                logger.error("Application startup aborted due to empty configuration files");
+                throw new ConfigurationException("No endpoint configurations found in " + endpointFiles.size() + " processed files");
+            } else {
+                logger.error("FATAL CONFIGURATION ERROR: All endpoint configuration files failed to load");
+                logger.error("  Files processed: {}", endpointFiles.size());
+                logger.error("  Files failed: {}", failedFiles.size());
+                logger.error("  Type: Endpoint configurations");
+                logger.error("  Impact: Application cannot start without any valid endpoint configurations");
+                logger.error("  Action: Fix configuration file errors and restart");
+                logger.error("Application startup aborted due to all configuration files failing");
+                throw new ConfigurationException("All " + endpointFiles.size() + " endpoint configuration files failed to load");
+            }
         }
 
-        logger.info("Successfully loaded {} total endpoint configurations from {} files",
-                   allEndpoints.size(), endpointFiles.size());
+        logger.info("Successfully loaded {} total endpoint configurations from {} files ({} files failed)",
+                   allEndpoints.size(), endpointFiles.size() - failedFiles.size(), failedFiles.size());
+
+        if (!failedFiles.isEmpty()) {
+            logger.warn("Application started with {} endpoint configuration file(s) unavailable", failedFiles.size());
+        }
+
         return allEndpoints;
     }
     
