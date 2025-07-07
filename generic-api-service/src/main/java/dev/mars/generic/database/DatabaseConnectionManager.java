@@ -11,6 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -37,7 +39,13 @@ public class DatabaseConnectionManager {
         this.failedDatabases = new ConcurrentHashMap<>();
 
         logger.info("Initializing database connection manager");
-        initializeDataSources();
+        try {
+            initializeDataSources();
+        } catch (Exception e) {
+            // Ensure constructor never fails - log error and continue with empty data sources
+            logger.error("Failed to initialize data sources during construction: {}", e.getMessage(), e);
+            logger.warn("Database connection manager will start with no available databases");
+        }
         logger.info("Database connection manager initialized with {} successful databases and {} failed databases",
                    dataSources.size(), failedDatabases.size());
     }
@@ -46,7 +54,14 @@ public class DatabaseConnectionManager {
      * Initialize all configured data sources - continue even if some fail
      */
     private void initializeDataSources() {
-        Map<String, DatabaseConfig> databaseConfigs = configurationManager.getAllDatabaseConfigurations();
+        Map<String, DatabaseConfig> databaseConfigs;
+        try {
+            databaseConfigs = configurationManager.getAllDatabaseConfigurations();
+        } catch (Exception e) {
+            logger.error("Failed to get database configurations: {}", e.getMessage(), e);
+            logger.warn("No databases will be initialized due to configuration error");
+            return;
+        }
 
         for (Map.Entry<String, DatabaseConfig> entry : databaseConfigs.entrySet()) {
             String databaseName = entry.getKey();
@@ -85,18 +100,23 @@ public class DatabaseConnectionManager {
                     }
                 } catch (SQLException testException) {
                     // Basic connectivity failed - close the data source and mark as failed
+                    String errorMessage = "Failed to connect to database: " + testException.getMessage();
+                    failedDatabases.put(databaseName, errorMessage);
+                    logger.error("Database '{}' marked as unavailable due to connection failure: {}", databaseName, testException.getMessage());
+                    logger.warn("Database '{}' will be marked as unavailable. Endpoints using this database will return errors.", databaseName);
+
                     try {
                         dataSource.close();
                     } catch (Exception closeException) {
                         logger.warn("Failed to close failed data source for database: {}", databaseName, closeException);
                     }
-                    throw testException;
                 }
 
             } catch (Exception e) {
+                // Data source creation or initialization failed - mark database as unavailable
                 String errorMessage = "Failed to initialize data source: " + e.getMessage();
                 failedDatabases.put(databaseName, errorMessage);
-                logger.error("Failed to initialize data source for database: {} - {}", databaseName, errorMessage, e);
+                logger.error("Failed to initialize data source for database: {} - {}", databaseName, errorMessage);
                 logger.warn("Database '{}' will be marked as unavailable. Endpoints using this database will return errors.", databaseName);
             }
         }
@@ -318,15 +338,114 @@ public class DatabaseConnectionManager {
         logger.debug("Testing {} required tables for database '{}': {}",
                     requiredTables.size(), databaseName, requiredTables);
 
+        // Add detailed debugging information for H2 databases
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            String databaseProductName = metaData.getDatabaseProductName();
+            String databaseProductVersion = metaData.getDatabaseProductVersion();
+            String url = metaData.getURL();
+            String currentSchema = connection.getSchema();
+
+            logger.debug("=== DATABASE DEBUG INFO for '{}' ===", databaseName);
+            logger.debug("Database Product: {} {}", databaseProductName, databaseProductVersion);
+            logger.debug("Database URL: {}", url);
+            logger.debug("Current Schema: {}", currentSchema);
+
+            // For H2 databases, list all available tables
+            if (databaseProductName != null && databaseProductName.toUpperCase().contains("H2")) {
+                logger.debug("=== H2 DATABASE TABLE LISTING ===");
+                try (ResultSet tables = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
+                    logger.debug("Available tables in H2 database:");
+                    while (tables.next()) {
+                        String catalog = tables.getString("TABLE_CAT");
+                        String schema = tables.getString("TABLE_SCHEM");
+                        String table = tables.getString("TABLE_NAME");
+                        String type = tables.getString("TABLE_TYPE");
+                        logger.debug("  - Catalog: {}, Schema: {}, Table: {}, Type: {}", catalog, schema, table, type);
+                    }
+                }
+
+                // Also try with uppercase schema
+                try (ResultSet tables = metaData.getTables(null, "PUBLIC", "%", new String[]{"TABLE"})) {
+                    logger.debug("Available tables in PUBLIC schema:");
+                    while (tables.next()) {
+                        String catalog = tables.getString("TABLE_CAT");
+                        String schema = tables.getString("TABLE_SCHEM");
+                        String table = tables.getString("TABLE_NAME");
+                        String type = tables.getString("TABLE_TYPE");
+                        logger.debug("  - Catalog: {}, Schema: {}, Table: {}, Type: {}", catalog, schema, table, type);
+                    }
+                }
+            }
+            logger.debug("=== END DATABASE DEBUG INFO ===");
+        } catch (SQLException debugException) {
+            logger.warn("Failed to get database metadata for debugging: {}", debugException.getMessage());
+        }
+
         // Test each required table by attempting a simple query
         for (String tableName : requiredTables) {
+            logger.debug("Testing table '{}' in database '{}'", tableName, databaseName);
+
             try {
                 String testSql = "SELECT 1 FROM " + tableName + " LIMIT 1";
+                logger.debug("Executing test SQL: {}", testSql);
+
                 try (Statement statement = connection.createStatement()) {
                     statement.executeQuery(testSql);
                 }
                 logger.debug("Table '{}' exists and is accessible in database '{}'", tableName, databaseName);
             } catch (SQLException e) {
+                logger.debug("Failed to access table '{}' with error: {}", tableName, e.getMessage());
+
+                // Try alternative approaches for H2 databases
+                try {
+                    DatabaseMetaData metaData = connection.getMetaData();
+                    if (metaData.getDatabaseProductName().toUpperCase().contains("H2")) {
+                        logger.debug("Attempting H2-specific table validation for '{}'", tableName);
+
+                        // Try with uppercase table name
+                        String upperTableName = tableName.toUpperCase();
+                        String testSqlUpper = "SELECT 1 FROM " + upperTableName + " LIMIT 1";
+                        logger.debug("Trying uppercase table name: {}", testSqlUpper);
+
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeQuery(testSqlUpper);
+                            logger.info("Table '{}' found with uppercase name '{}' in database '{}'", tableName, upperTableName, databaseName);
+                            continue; // Skip adding error if uppercase version works
+                        } catch (SQLException upperException) {
+                            logger.debug("Uppercase table name '{}' also failed: {}", upperTableName, upperException.getMessage());
+                        }
+
+                        // Try with PUBLIC schema prefix
+                        String schemaTableName = "PUBLIC." + tableName;
+                        String testSqlSchema = "SELECT 1 FROM " + schemaTableName + " LIMIT 1";
+                        logger.debug("Trying with schema prefix: {}", testSqlSchema);
+
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeQuery(testSqlSchema);
+                            logger.info("Table '{}' found with schema prefix '{}' in database '{}'", tableName, schemaTableName, databaseName);
+                            continue; // Skip adding error if schema version works
+                        } catch (SQLException schemaException) {
+                            logger.debug("Schema prefixed table name '{}' also failed: {}", schemaTableName, schemaException.getMessage());
+                        }
+
+                        // Try with PUBLIC schema and uppercase
+                        String schemaUpperTableName = "PUBLIC." + upperTableName;
+                        String testSqlSchemaUpper = "SELECT 1 FROM " + schemaUpperTableName + " LIMIT 1";
+                        logger.debug("Trying with schema prefix and uppercase: {}", testSqlSchemaUpper);
+
+                        try (Statement statement = connection.createStatement()) {
+                            statement.executeQuery(testSqlSchemaUpper);
+                            logger.info("Table '{}' found with schema prefix and uppercase '{}' in database '{}'", tableName, schemaUpperTableName, databaseName);
+                            continue; // Skip adding error if schema+uppercase version works
+                        } catch (SQLException schemaUpperException) {
+                            logger.debug("Schema prefixed uppercase table name '{}' also failed: {}", schemaUpperTableName, schemaUpperException.getMessage());
+                        }
+                    }
+                } catch (SQLException metaException) {
+                    logger.debug("Failed to get metadata for H2-specific validation: {}", metaException.getMessage());
+                }
+
                 String errorMessage = String.format(
                     "Required table '%s' is not accessible in database '%s': %s",
                     tableName, databaseName, e.getMessage()

@@ -1,8 +1,8 @@
 databases:
   postgres-trades:
-    name: postgres
+    name: postgres-trades
     description: "PostgreSQL database for stock trading data"
-    url: "jdbc:postgresql://localhost:5432/postgres?currentSchema=public"
+    url: "jdbc:postgresql://localhost:5432/postgres-trades?currentSchema=public"
     username: postgres
     password: postgres
     driver: org.postgresql.Driver

@@ -604,6 +604,71 @@ public class SystemBootstrapDemo {
     }
 
     /**
+     * Display database validation results in a formatted grid
+     */
+    private void displayDatabaseValidationGrid() {
+        if (databaseConnectionManager == null) {
+            logger.info("[DATABASE] Database validation not available");
+            return;
+        }
+
+        // Get database status information
+        Set<String> failedDatabaseNames = databaseConnectionManager.getFailedDatabaseNames();
+        Set<String> availableDatabaseNames = databaseConnectionManager.getAvailableDatabaseNames();
+        Map<String, DatabaseConfig> allDatabases = configurationManager.getAllDatabaseConfigurations();
+
+        logger.info("[RESULTS] Database Validation Results:");
+        logger.info("+----------------------+----------+--------------------------------------------------+");
+        logger.info("| Database             | Status   | Details                                          |");
+        logger.info("+----------------------+----------+--------------------------------------------------+");
+
+        for (Map.Entry<String, DatabaseConfig> entry : allDatabases.entrySet()) {
+            String databaseName = entry.getKey();
+            DatabaseConfig config = entry.getValue();
+
+            String status;
+            String details;
+
+            if (failedDatabaseNames.contains(databaseName)) {
+                status = "UNAVAIL";
+                String errorMessage = databaseConnectionManager.getDatabaseFailureReason(databaseName);
+                // Truncate long error messages for the grid
+                details = errorMessage != null && errorMessage.length() > 48 ?
+                         errorMessage.substring(0, 45) + "..." :
+                         (errorMessage != null ? errorMessage : "Unknown error");
+            } else if (availableDatabaseNames.contains(databaseName)) {
+                status = "OK";
+                details = "Connected and ready";
+            } else {
+                status = "UNKNOWN";
+                details = "Status not determined";
+            }
+
+            // Format the row
+            String dbName = String.format("%-20s", databaseName.length() > 20 ?
+                    databaseName.substring(0, 17) + "..." : databaseName);
+            String statusFormatted = String.format("%-8s", status);
+            String detailsFormatted = String.format("%-48s", details);
+
+            logger.info("| {} | {} | {} |", dbName, statusFormatted, detailsFormatted);
+        }
+
+        logger.info("+----------------------+----------+--------------------------------------------------+");
+
+        // Summary statistics
+        int totalDatabases = allDatabases.size();
+        int availableDatabases = availableDatabaseNames.size();
+        int unavailableDatabases = failedDatabaseNames.size();
+
+        logger.info("[SUMMARY] {}/{} databases available, {} unavailable",
+                availableDatabases, totalDatabases, unavailableDatabases);
+
+        if (unavailableDatabases > 0) {
+            logger.info("[WARNING] Endpoints using unavailable databases will return service errors");
+        }
+    }
+
+    /**
      * Display overall system summary
      */
     private void displaySummary() {
@@ -614,6 +679,10 @@ public class SystemBootstrapDemo {
         logger.info("   + Generic API Service: {} [OK]", GENERIC_API_BASE_URL);
         logger.info("   + Metrics Service:     {} {}", METRICS_SERVICE_BASE_URL,
                 metricsServiceAvailable ? "[OK]" : "[NOT RUNNING]");
+        logger.info("");
+
+        // Display database validation results in grid format
+        displayDatabaseValidationGrid();
         logger.info("");
         logger.info("[TESTED] Management APIs Tested:");
         logger.info("   + Configuration Management [OK]");
