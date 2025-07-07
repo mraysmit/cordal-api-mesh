@@ -22,7 +22,7 @@ class MetricsApplicationTest {
     @BeforeEach
     void setUp() {
         // Set test configuration
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("metrics.config.file", "application-test.yml");
 
         application = new MetricsApplication();
         // Don't start the server here - let individual tests handle it
@@ -37,7 +37,7 @@ class MetricsApplicationTest {
                 // Ignore cleanup errors in tests
             }
         }
-        System.clearProperty("config.file");
+        System.clearProperty("metrics.config.file");
     }
 
     @Test

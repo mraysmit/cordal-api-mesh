@@ -59,7 +59,7 @@ class GenericApiServiceTest {
         // Create database connection manager and repository
         DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
         genericRepository = new GenericRepository(databaseConnectionManager);
-        service = new GenericApiService(genericRepository, configurationManager);
+        service = new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
     }
 
     @AfterEach

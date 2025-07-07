@@ -14,6 +14,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,11 +57,34 @@ public class DatabaseConnectionManager {
 
                 // Test the connection to ensure it's actually working
                 try (Connection testConnection = dataSource.getConnection()) {
+                    // Basic connectivity test
                     testConnection.createStatement().execute("SELECT 1");
-                    dataSources.put(databaseName, dataSource);
-                    logger.info("Successfully initialized and tested data source for database: {}", databaseName);
+                    logger.debug("Basic connectivity test passed for database: {}", databaseName);
+
+                    // Test that required tables exist for this database's queries
+                    List<String> tableErrors = testRequiredTablesForDatabase(databaseName, testConnection);
+
+                    if (tableErrors.isEmpty()) {
+                        // All tables exist - database is ready
+                        dataSources.put(databaseName, dataSource);
+                        logger.info("Successfully initialized and tested data source for database: {}", databaseName);
+                    } else {
+                        // Some tables are missing - mark database as unavailable
+                        String combinedErrors = String.join("; ", tableErrors);
+                        String errorMessage = "Required tables missing: " + combinedErrors;
+                        failedDatabases.put(databaseName, errorMessage);
+                        logger.error("Database '{}' marked as unavailable due to missing tables: {}", databaseName, combinedErrors);
+                        logger.warn("Database '{}' will be marked as unavailable. Endpoints using this database will return errors.", databaseName);
+
+                        // Close the data source since we won't be using it
+                        try {
+                            dataSource.close();
+                        } catch (Exception closeException) {
+                            logger.warn("Failed to close failed data source for database: {}", databaseName, closeException);
+                        }
+                    }
                 } catch (SQLException testException) {
-                    // Close the data source if connection test fails
+                    // Basic connectivity failed - close the data source and mark as failed
                     try {
                         dataSource.close();
                     } catch (Exception closeException) {
@@ -255,5 +281,102 @@ public class DatabaseConnectionManager {
         
         dataSources.clear();
         logger.info("Database connection manager shutdown completed");
+    }
+
+    /**
+     * Test that required tables exist for queries configured for this database
+     * Returns a list of error messages for missing tables, or empty list if all tables exist
+     */
+    private List<String> testRequiredTablesForDatabase(String databaseName, Connection connection) {
+        List<String> errors = new ArrayList<>();
+
+        // Get all queries that use this database
+        Map<String, dev.mars.generic.config.QueryConfig> allQueries = configurationManager.getAllQueryConfigurations();
+
+        Set<String> requiredTables = new HashSet<>();
+        List<String> testQueries = new ArrayList<>();
+
+        // Find queries that use this database and extract table names
+        for (Map.Entry<String, dev.mars.generic.config.QueryConfig> entry : allQueries.entrySet()) {
+            dev.mars.generic.config.QueryConfig queryConfig = entry.getValue();
+
+            if (databaseName.equals(queryConfig.getDatabase())) {
+                String sql = queryConfig.getSql();
+                testQueries.add(queryConfig.getName());
+
+                // Extract table names from SQL (simple approach for common cases)
+                Set<String> tablesInQuery = extractTableNamesFromSql(sql);
+                requiredTables.addAll(tablesInQuery);
+            }
+        }
+
+        if (requiredTables.isEmpty()) {
+            logger.debug("No queries configured for database '{}', skipping table validation", databaseName);
+            return errors; // Return empty list
+        }
+
+        logger.debug("Testing {} required tables for database '{}': {}",
+                    requiredTables.size(), databaseName, requiredTables);
+
+        // Test each required table by attempting a simple query
+        for (String tableName : requiredTables) {
+            try {
+                String testSql = "SELECT 1 FROM " + tableName + " LIMIT 1";
+                try (Statement statement = connection.createStatement()) {
+                    statement.executeQuery(testSql);
+                }
+                logger.debug("Table '{}' exists and is accessible in database '{}'", tableName, databaseName);
+            } catch (SQLException e) {
+                String errorMessage = String.format(
+                    "Required table '%s' is not accessible in database '%s': %s",
+                    tableName, databaseName, e.getMessage()
+                );
+                logger.error(errorMessage);
+                errors.add(errorMessage);
+            }
+        }
+
+        if (errors.isEmpty()) {
+            logger.info("All {} required tables validated for database '{}': {}",
+                       requiredTables.size(), databaseName, requiredTables);
+        } else {
+            logger.warn("Database '{}' has {} missing/inaccessible tables out of {} required",
+                       databaseName, errors.size(), requiredTables.size());
+        }
+
+        return errors;
+    }
+
+    /**
+     * Extract table names from SQL query (simple regex-based approach)
+     * This handles common cases like SELECT ... FROM table_name
+     */
+    private Set<String> extractTableNamesFromSql(String sql) {
+        Set<String> tableNames = new HashSet<>();
+
+        if (sql == null || sql.trim().isEmpty()) {
+            return tableNames;
+        }
+
+        // Simple regex to find table names after FROM keyword
+        // This is a basic implementation - could be enhanced with a proper SQL parser
+        String normalizedSql = sql.toLowerCase().replaceAll("\\s+", " ");
+
+        // Pattern to match: FROM table_name or FROM schema.table_name
+        java.util.regex.Pattern fromPattern = java.util.regex.Pattern.compile(
+            "\\bfrom\\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)?)"
+        );
+
+        java.util.regex.Matcher matcher = fromPattern.matcher(normalizedSql);
+        while (matcher.find()) {
+            String tableName = matcher.group(1);
+            // Remove schema prefix if present (keep only table name)
+            if (tableName.contains(".")) {
+                tableName = tableName.substring(tableName.lastIndexOf(".") + 1);
+            }
+            tableNames.add(tableName);
+        }
+
+        return tableNames;
     }
 }

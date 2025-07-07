@@ -22,7 +22,7 @@ public class MetricsCollectionTest {
     @BeforeEach
     void setUp() {
         // Use test configuration with sync metrics saving
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("metrics.config.file", "application-test.yml");
 
         // Initialize application for testing (no server startup)
         application = new MetricsApplication();
@@ -50,7 +50,7 @@ public class MetricsCollectionTest {
                 // Ignore cleanup errors
             }
         }
-        System.clearProperty("config.file");
+        System.clearProperty("metrics.config.file");
     }
 
 

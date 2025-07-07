@@ -1,0 +1,47 @@
+# Isolated test configuration that uses controlled test configurations
+# This configuration does NOT read from the production generic-config directory
+server:
+  host: localhost
+  port: 18080
+  cors:
+    enabled: true
+  dev:
+    logging: true
+    requestLogging: true
+
+# Database configuration for the API service itself
+database:
+  url: "jdbc:h2:mem:api-service-config-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  pool:
+    maximumPoolSize: 10
+    minimumIdle: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+    leakDetectionThreshold: 60000
+    connectionTestQuery: "SELECT 1"
+  createDatabase: true
+
+# Configuration source and directory scanning (ISOLATED TEST APPROACH)
+config:
+  source: yaml
+  loadFromYaml: false
+  
+  # Use test resources directory instead of production generic-config
+  directories:
+    - "src/test/resources"  # Look in test resources directory only
+  
+  # Naming patterns for test configuration files
+  patterns:
+    databases: ["test-databases.yml"]
+    queries: ["test-queries.yml"]
+    endpoints: ["test-api-endpoints.yml"]
+
+# Validation configuration
+validation:
+  runOnStartup: false
+  validateOnly: false
+  validateEndpoints: true

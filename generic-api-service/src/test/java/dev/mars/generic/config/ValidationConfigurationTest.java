@@ -29,30 +29,35 @@ class ValidationConfigurationTest {
     @Test
     void testDefaultValidationSettings() {
         // Test that default validation settings are loaded correctly
-        GenericApiConfig config = new GenericApiConfig();
-        
+        // Use test configuration that has default validation settings
+        System.setProperty("generic.config.file", "application-test.yml");
+
+        GenericApiConfig config = GenericApiConfig.loadFromFile();
+
         // Default values should be false for both flags
         assertThat(config.isValidationRunOnStartup()).isFalse();
         assertThat(config.isValidationValidateOnly()).isFalse();
-        
+
         // Validation settings object should exist
         assertThat(config.getValidationSettings()).isNotNull();
         assertThat(config.getValidationSettings().isRunOnStartup()).isFalse();
         assertThat(config.getValidationSettings().isValidateOnly()).isFalse();
-        
+
         logger.info("✓ Default validation settings verified");
     }
 
     @Test
     void testValidationSettingsFromApplicationYaml() {
-        // Test loading validation settings from the main application.yml
-        // The main application.yml should have validation.runOnStartup=false and validation.validateOnly=false
-        GenericApiConfig config = new GenericApiConfig();
-        
+        // Test loading validation settings from the test application.yml
+        // The test application.yml should have validation.runOnStartup=false and validation.validateOnly=false (defaults)
+        System.setProperty("generic.config.file", "application-test.yml");
+
+        GenericApiConfig config = GenericApiConfig.loadFromFile();
+
         assertThat(config.isValidationRunOnStartup()).isFalse();
         assertThat(config.isValidationValidateOnly()).isFalse();
-        
-        logger.info("✓ Validation settings from application.yml verified");
+
+        logger.info("✓ Validation settings from application-test.yml verified");
         logger.info("   runOnStartup: {}", config.isValidationRunOnStartup());
         logger.info("   validateOnly: {}", config.isValidationValidateOnly());
     }

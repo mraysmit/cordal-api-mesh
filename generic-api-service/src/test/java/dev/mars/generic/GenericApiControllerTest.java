@@ -51,7 +51,7 @@ class GenericApiControllerTest {
         // Create database connection manager, repository and service
         DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
         genericRepository = new GenericRepository(databaseConnectionManager);
-        genericApiService = new GenericApiService(genericRepository, configurationManager);
+        genericApiService = new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
 
         // Create controller
         dev.mars.generic.management.UsageStatisticsService statisticsService = new dev.mars.generic.management.UsageStatisticsService();

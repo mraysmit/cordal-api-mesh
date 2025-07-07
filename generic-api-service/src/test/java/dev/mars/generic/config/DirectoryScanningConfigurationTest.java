@@ -34,33 +34,20 @@ class DirectoryScanningConfigurationTest {
     
     @BeforeAll
     void setUpTestEnvironment() throws IOException {
-        // Create temporary test directory structure
-        testConfigDir = Files.createTempDirectory("test-config-scanning");
-        logger.info("Created test directory: {}", testConfigDir);
-        
-        // Create test configuration files
-        createTestConfigurationFiles();
-        
-        // Set up test application.yml that points to our test directory
-        System.setProperty("generic.config.file", "application-directory-scanning-test.yml");
+        // Use isolated test configuration that reads from test resources only
+        System.setProperty("generic.config.file", "application-isolated-test.yml");
+        logger.info("Using isolated test configuration that does not read from production generic-config");
     }
     
     @AfterAll
     void cleanUpTestEnvironment() throws IOException {
-        // Clean up temporary directory
-        if (testConfigDir != null && Files.exists(testConfigDir)) {
-            Files.walk(testConfigDir)
-                .map(Path::toFile)
-                .forEach(File::delete);
-            Files.deleteIfExists(testConfigDir);
-        }
         System.clearProperty("generic.config.file");
     }
     
     @BeforeEach
     void setUp() {
-        // Create configuration that uses directory scanning
-        config = createTestConfig();
+        // Create configuration that uses isolated test configuration
+        config = GenericApiConfig.loadFromFile();
         loader = new ConfigurationLoader(config);
     }
     
@@ -69,16 +56,15 @@ class DirectoryScanningConfigurationTest {
     void testDiscoverMultipleDatabaseFiles() {
         // Act
         Map<String, DatabaseConfig> databases = loader.loadDatabaseConfigurations();
-        
+
         // Assert
         assertThat(databases).isNotNull();
-        assertThat(databases).hasSize(3); // 3 from production config (analytics, datawarehouse, stocktrades)
-        
-        // Verify production databases
-        assertThat(databases).containsKey("analytics");
-        assertThat(databases).containsKey("datawarehouse");
-        assertThat(databases).containsKey("stocktrades");
-        
+        assertThat(databases).hasSize(2); // 2 from test config (stock-trades-db, metrics-db)
+
+        // Verify test databases
+        assertThat(databases).containsKey("stock-trades-db");
+        assertThat(databases).containsKey("metrics-db");
+
         logger.info("Successfully discovered {} database configurations", databases.size());
     }
     
@@ -87,18 +73,18 @@ class DirectoryScanningConfigurationTest {
     void testDiscoverMultipleQueryFiles() {
         // Act
         Map<String, QueryConfig> queries = loader.loadQueryConfigurations();
-        
+
         // Assert
         assertThat(queries).isNotNull();
-        assertThat(queries).hasSize(12); // 12 from production config (3 analytics + 9 stocktrades)
-        
-        // Verify some production queries
-        assertThat(queries).containsKey("daily-trading-volume");
-        assertThat(queries).containsKey("top-performers");
-        assertThat(queries).containsKey("market-summary");
+        assertThat(queries).hasSize(12); // 12 from test config
+
+        // Verify some test queries
+        assertThat(queries).containsKey("test-query");
+        assertThat(queries).containsKey("test-count-query");
         assertThat(queries).containsKey("stock-trades-all");
         assertThat(queries).containsKey("stock-trades-by-symbol");
-        
+        assertThat(queries).containsKey("stock-trades-count");
+
         logger.info("Successfully discovered {} query configurations", queries.size());
     }
     
@@ -107,18 +93,18 @@ class DirectoryScanningConfigurationTest {
     void testDiscoverMultipleEndpointFiles() {
         // Act
         Map<String, ApiEndpointConfig> endpoints = loader.loadEndpointConfigurations();
-        
+
         // Assert
         assertThat(endpoints).isNotNull();
-        assertThat(endpoints).hasSize(8); // 8 from production config (3 analytics + 5 stocktrades)
-        
-        // Verify some production endpoints
-        assertThat(endpoints).containsKey("analytics-daily-volume");
-        assertThat(endpoints).containsKey("analytics-top-performers");
-        assertThat(endpoints).containsKey("analytics-market-summary");
+        assertThat(endpoints).hasSize(6); // 6 from test config
+
+        // Verify some test endpoints
+        assertThat(endpoints).containsKey("test-endpoint");
         assertThat(endpoints).containsKey("stock-trades-list");
         assertThat(endpoints).containsKey("stock-trades-by-symbol");
-        
+        assertThat(endpoints).containsKey("stock-trades-by-id");
+        assertThat(endpoints).containsKey("stock-trades-by-trader");
+
         logger.info("Successfully discovered {} endpoint configurations", endpoints.size());
     }
     
@@ -160,11 +146,12 @@ class DirectoryScanningConfigurationTest {
         List<String> databasePatterns = config.getDatabasePatterns();
         List<String> queryPatterns = config.getQueryPatterns();
         List<String> endpointPatterns = config.getEndpointPatterns();
-        
-        assertThat(databasePatterns).contains("*-database.yml", "*-databases.yml");
-        assertThat(queryPatterns).contains("*-query.yml", "*-queries.yml");
-        assertThat(endpointPatterns).contains("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
-        
+
+        // For isolated test configuration, we use specific test file names
+        assertThat(databasePatterns).contains("test-databases.yml");
+        assertThat(queryPatterns).contains("test-queries.yml");
+        assertThat(endpointPatterns).contains("test-api-endpoints.yml");
+
         logger.info("Naming patterns validated successfully");
     }
     

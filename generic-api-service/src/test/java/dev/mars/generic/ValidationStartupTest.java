@@ -29,7 +29,10 @@ class ValidationStartupTest {
     @Test
     void testValidationConfigurationLoading() {
         // Test that GenericApiConfig can load validation configuration directly
-        GenericApiConfig config = new GenericApiConfig();
+        // Use test configuration that has default validation settings
+        System.setProperty("generic.config.file", "application-test.yml");
+
+        GenericApiConfig config = GenericApiConfig.loadFromFile();
 
         // Verify validation settings are accessible
         assertThat(config.getValidationSettings()).isNotNull();

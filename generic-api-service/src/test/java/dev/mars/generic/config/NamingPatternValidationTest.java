@@ -30,29 +30,19 @@ class NamingPatternValidationTest {
     
     @BeforeAll
     void setUpTestEnvironment() throws IOException {
-        testConfigDir = Files.createTempDirectory("pattern-test-config");
-        logger.info("Created test directory: {}", testConfigDir);
-        
-        // Create files with various naming patterns
-        createTestFilesWithDifferentPatterns();
-        
-        System.setProperty("generic.config.file", "application-pattern-test.yml");
+        // Use isolated test configuration that reads from test resources only
+        System.setProperty("generic.config.file", "application-isolated-test.yml");
+        logger.info("Using isolated test configuration for pattern validation testing");
     }
     
     @AfterAll
     void cleanUpTestEnvironment() throws IOException {
-        if (testConfigDir != null && Files.exists(testConfigDir)) {
-            Files.walk(testConfigDir)
-                .map(Path::toFile)
-                .forEach(File::delete);
-            Files.deleteIfExists(testConfigDir);
-        }
         System.clearProperty("generic.config.file");
     }
     
     @BeforeEach
     void setUp() {
-        config = createTestConfig();
+        config = GenericApiConfig.loadFromFile();
         loader = new ConfigurationLoader(config);
     }
     
@@ -130,10 +120,10 @@ class NamingPatternValidationTest {
         assertThat(queries).isNotNull();
         assertThat(endpoints).isNotNull();
         
-        // Should find the production configuration files
-        assertThat(databases).hasSize(3); // From production config (analytics, datawarehouse, stocktrades)
-        assertThat(queries).hasSize(12); // From production config (3 analytics + 9 stocktrades)
-        assertThat(endpoints).hasSize(8); // From production config (3 analytics + 5 stocktrades)
+        // Should find the test configuration files
+        assertThat(databases).hasSize(2); // From test config (stock-trades-db, metrics-db)
+        assertThat(queries).hasSize(12); // From test config
+        assertThat(endpoints).hasSize(6); // From test config
         
         logger.info("Pattern discovery validated: {} databases, {} queries, {} endpoints", 
                    databases.size(), queries.size(), endpoints.size());
@@ -164,9 +154,9 @@ class NamingPatternValidationTest {
         GenericApiConfig customConfig = createConfigWithCustomPatterns();
         ConfigurationLoader customLoader = new ConfigurationLoader(customConfig);
         
-        // Test that patterns are loaded correctly (using default patterns since custom patterns aren't configured)
+        // Test that patterns are loaded correctly (using test patterns)
         List<String> customDatabasePatterns = customConfig.getDatabasePatterns();
-        assertThat(customDatabasePatterns).contains("*-databases.yml");
+        assertThat(customDatabasePatterns).contains("test-databases.yml");
         
         logger.info("Custom patterns validated successfully");
     }

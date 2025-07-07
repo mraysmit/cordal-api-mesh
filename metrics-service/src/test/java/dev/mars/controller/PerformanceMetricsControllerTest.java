@@ -19,8 +19,8 @@ class PerformanceMetricsControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Use test configuration
-        System.setProperty("config.file", "application-test.yml");
+        // Use test configuration - MetricsConfig looks for "metrics.config.file" property
+        System.setProperty("metrics.config.file", "application-test.yml");
 
         // Initialize application for testing (no server startup)
         application = new MetricsApplication();
@@ -36,7 +36,7 @@ class PerformanceMetricsControllerTest {
         if (application != null) {
             application.stop();
         }
-        System.clearProperty("config.file");
+        System.clearProperty("metrics.config.file");
     }
 
     @Test
