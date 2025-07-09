@@ -82,12 +82,21 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     private void loadDirectoryConfiguration() {
-        // Load directories to scan for configuration files
-        java.util.List<String> directories = getStringList("config.directories");
-        if (directories == null || directories.isEmpty()) {
-            // Default to generic-config directory
-            directories = java.util.Arrays.asList("../generic-config");
-            logger.info("No config directories specified, using default: ../generic-config");
+        // Check for system property override (used by IDE execution)
+        String systemPropertyDirs = System.getProperty("generic.config.directories");
+        java.util.List<String> directories;
+
+        if (systemPropertyDirs != null) {
+            directories = java.util.Arrays.asList(systemPropertyDirs.split(","));
+            logger.info("Using config directories from system property: {}", directories);
+        } else {
+            // Load directories from configuration file
+            directories = getStringList("config.directories");
+            if (directories == null || directories.isEmpty()) {
+                // Default to both possible locations for compatibility
+                directories = java.util.Arrays.asList("generic-config", "../generic-config");
+                logger.info("No config directories specified, using defaults: {}", directories);
+            }
         }
         config.setDirectories(directories);
     }
@@ -299,7 +308,7 @@ public class GenericApiConfig extends BaseConfig {
     public static class ConfigPaths {
         private String source = "yaml";
         private boolean loadFromYaml = false;
-        private java.util.List<String> directories = java.util.Arrays.asList("../generic-config");
+        private java.util.List<String> directories = java.util.Arrays.asList("generic-config", "../generic-config");
         private java.util.List<String> databasePatterns = java.util.Arrays.asList("*-database.yml", "*-databases.yml");
         private java.util.List<String> queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
         private java.util.List<String> endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");

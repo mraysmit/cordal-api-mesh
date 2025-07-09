@@ -59,6 +59,9 @@ public class SystemBootstrapDemo {
         // Set the configuration file for the demo to disable startup validation
         System.setProperty("config.file", "application-demo.yml");
 
+        // Detect and adjust working directory for IDE vs command line execution
+        adjustWorkingDirectoryForIDE();
+
         SystemBootstrapDemo demo = new SystemBootstrapDemo();
         try {
             demo.runBootstrapDemo();
@@ -66,6 +69,43 @@ public class SystemBootstrapDemo {
             logger.error("Bootstrap demo encountered an error", e);
             logger.info("Demo completed with errors - see log messages above for details");
             System.exit(1);
+        }
+    }
+
+    /**
+     * Adjust working directory and paths when running from IDE
+     */
+    private static void adjustWorkingDirectoryForIDE() {
+        String currentDir = System.getProperty("user.dir");
+        logger.info("[INIT] Current working directory: {}", currentDir);
+
+        // Check if we're running from the project root (IDE) vs generic-api-service directory (command line)
+        boolean runningFromProjectRoot = currentDir.endsWith("javalin-api-mesh") &&
+                                        !currentDir.endsWith("generic-api-service");
+
+        if (runningFromProjectRoot) {
+            logger.info("[INIT] Detected IDE execution from project root, adjusting paths...");
+
+            // Use absolute path for configuration directory when running from IDE
+            String configDir = currentDir + "/generic-config";
+            System.setProperty("generic.config.directories", configDir);
+            logger.info("[INIT] Set config directories to: {}", configDir);
+
+            // Set absolute data path for H2 databases when running from IDE
+            String dataPath = currentDir + "/data";
+            System.setProperty("h2.data.path", dataPath);
+            logger.info("[INIT] Set H2 data path to: {}", dataPath);
+
+            // Change working directory to generic-api-service for compatibility
+            String newWorkingDir = currentDir + "/generic-api-service";
+            System.setProperty("user.dir", newWorkingDir);
+            logger.info("[INIT] Changed working directory to: {}", newWorkingDir);
+
+        } else {
+            logger.info("[INIT] Detected command line execution from generic-api-service directory");
+            // Use relative path for command line execution
+            System.setProperty("generic.config.directories", "../generic-config");
+            logger.info("[INIT] Set config directories to: ../generic-config");
         }
     }
     

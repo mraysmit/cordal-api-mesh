@@ -6,7 +6,7 @@ databases:
   analytics:
     name: "analytics"
     description: "Analytics database for business intelligence and reporting"
-    url: "jdbc:h2:../data/analytics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    url: "jdbc:h2:${h2.data.path:../data}/analytics;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
     username: "sa"
     password: ""
     driver: "org.h2.Driver"
@@ -23,7 +23,7 @@ databases:
   datawarehouse:
     name: "datawarehouse"
     description: "Data warehouse for historical data storage and analysis"
-    url: "jdbc:h2:../data/datawarehouse;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    url: "jdbc:h2:${h2.data.path:../data}/datawarehouse;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
     username: "sa"
     password: ""
     driver: "org.h2.Driver"

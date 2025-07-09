@@ -315,6 +315,16 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                     continue;
                 }
 
+                // Resolve system properties in database URLs before adding to the map
+                databases.forEach((key, config) -> {
+                    String originalUrl = config.getUrl();
+                    String resolvedUrl = resolveSystemProperties(originalUrl);
+                    if (!originalUrl.equals(resolvedUrl)) {
+                        config.setUrl(resolvedUrl);
+                        logger.debug("Resolved database URL for '{}': {} -> {}", key, originalUrl, resolvedUrl);
+                    }
+                });
+
                 allDatabases.putAll(databases);
                 logger.info("Loaded {} database configurations from: {}", databases.size(), databaseFile.getFileName());
 
@@ -529,5 +539,37 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
         public void setDatabases(Map<String, DatabaseConfig> databases) {
             this.databases = databases;
         }
+    }
+
+    /**
+     * Resolve system properties in a string using ${property:defaultValue} syntax
+     */
+    private String resolveSystemProperties(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        // Pattern to match ${property:defaultValue} or ${property}
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}:]+)(?::([^}]*))?\\}");
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String propertyName = matcher.group(1);
+            String defaultValue = matcher.group(2);
+
+            String propertyValue = System.getProperty(propertyName);
+            if (propertyValue != null) {
+                matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(propertyValue));
+            } else if (defaultValue != null) {
+                matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(defaultValue));
+            } else {
+                // Keep the original placeholder if no value found
+                matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(matcher.group(0)));
+            }
+        }
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 }

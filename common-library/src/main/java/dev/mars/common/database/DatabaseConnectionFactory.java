@@ -21,9 +21,9 @@ public class DatabaseConnectionFactory {
      */
     public static HikariDataSource createDataSource(DatabaseConfig config) {
         logger.info("Creating data source for database: {}", config.getName());
-        
+
         HikariConfig hikariConfig = new HikariConfig();
-        
+
         // Basic connection settings
         hikariConfig.setJdbcUrl(config.getUrl());
         hikariConfig.setUsername(config.getUsername());
