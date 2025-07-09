@@ -149,6 +149,20 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- JUnit Platform Dependencies for Test Profiling -->
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>1.10.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-reporting</artifactId>
+                <version>1.10.2</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

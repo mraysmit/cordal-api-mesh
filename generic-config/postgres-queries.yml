@@ -37,7 +37,7 @@ queries:
     name: postgres-trades-by-id
     description: "Get specific stock trade by ID from PostgreSQL database"
     database: postgres-trades
-    sql: "SELECT id, sym, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE id = ?"
+    sql: "SELECT id, symb, trade_type, quantity, price, total_val, trade_date_time, trader_id, exchange, created_at, updated_at FROM stock_trades WHERE id = ?"
     parameters:
       - name: id
         type: long

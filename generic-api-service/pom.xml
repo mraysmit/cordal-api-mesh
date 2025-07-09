@@ -118,6 +118,18 @@
             <artifactId>javalin-testtools</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Test Profiling Dependencies -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-reporting</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -129,6 +141,34 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Enable detailed test reporting for profiling -->
+                    <reportFormat>xml</reportFormat>
+                    <useFile>true</useFile>
+                    <printSummary>true</printSummary>
+                    <redirectTestOutputToFile>false</redirectTestOutputToFile>
+
+                    <!-- Enable test timing and profiling -->
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>dev.mars.test.profiling.TestTimingExtension</value>
+                        </property>
+                    </properties>
+
+                    <!-- System properties for test profiling -->
+                    <systemPropertyVariables>
+                        <test.profiling.enabled>true</test.profiling.enabled>
+                        <test.profiling.detailed>false</test.profiling.detailed>
+                        <test.profiling.output.dir>${project.build.directory}/test-profiling</test.profiling.output.dir>
+                    </systemPropertyVariables>
+
+                    <!-- Include all test classes -->
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -139,4 +179,59 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Profile for detailed test profiling -->
+        <profile>
+            <id>test-profiling</id>
+            <properties>
+                <test.profiling.enabled>true</test.profiling.enabled>
+                <test.profiling.detailed>true</test.profiling.detailed>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.profiling.enabled>true</test.profiling.enabled>
+                                <test.profiling.detailed>true</test.profiling.detailed>
+                                <test.profiling.output.dir>${project.build.directory}/test-profiling-detailed</test.profiling.output.dir>
+                            </systemPropertyVariables>
+                            <reportFormat>xml</reportFormat>
+                            <useFile>true</useFile>
+                            <printSummary>true</printSummary>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profile for performance benchmarking -->
+        <profile>
+            <id>test-benchmark</id>
+            <properties>
+                <test.profiling.enabled>true</test.profiling.enabled>
+                <test.profiling.detailed>false</test.profiling.detailed>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.profiling.enabled>true</test.profiling.enabled>
+                                <test.profiling.detailed>false</test.profiling.detailed>
+                                <test.profiling.output.dir>${project.build.directory}/test-benchmark</test.profiling.output.dir>
+                            </systemPropertyVariables>
+                            <!-- Run tests multiple times for better benchmarking -->
+                            <rerunFailingTestsCount>0</rerunFailingTestsCount>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
