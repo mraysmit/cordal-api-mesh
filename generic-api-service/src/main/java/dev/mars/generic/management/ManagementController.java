@@ -241,21 +241,95 @@ public class ManagementController {
     public void getSpecificDatabaseHealth(Context ctx) {
         String databaseName = ctx.pathParam("databaseName");
         logger.debug("Getting health for database: {}", databaseName);
-        
+
         try {
             var healthStatus = healthService.checkDatabaseHealth(databaseName);
-            
+
             // Set HTTP status based on database health
             if ("DOWN".equals(healthStatus.getStatus())) {
                 ctx.status(503); // Service Unavailable
             } else {
                 ctx.status(200); // OK
             }
-            
+
             ctx.json(healthStatus);
         } catch (Exception e) {
             logger.error("Error getting health for database {}", databaseName, e);
             ctx.status(500).json(Map.of("error", "Failed to get database health: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get deployment verification information
+     */
+    public void getDeploymentInfo(Context ctx) {
+        logger.debug("Getting deployment verification info");
+        try {
+            Map<String, Object> deploymentInfo = healthService.getDeploymentInfo();
+            ctx.json(deploymentInfo);
+        } catch (Exception e) {
+            logger.error("Error getting deployment info", e);
+            ctx.status(500).json(Map.of("error", "Failed to get deployment info: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get JAR information and dependencies
+     */
+    public void getJarInfo(Context ctx) {
+        logger.debug("Getting JAR information");
+        try {
+            Map<String, Object> jarInfo = healthService.getJarInfo();
+            ctx.json(jarInfo);
+        } catch (Exception e) {
+            logger.error("Error getting JAR info", e);
+            ctx.status(500).json(Map.of("error", "Failed to get JAR info: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Perform readiness check for deployment verification
+     */
+    public void getReadinessCheck(Context ctx) {
+        logger.debug("Performing readiness check");
+        try {
+            Map<String, Object> readiness = healthService.getReadinessCheck();
+
+            // Set HTTP status based on readiness
+            String status = (String) readiness.get("status");
+            if ("NOT_READY".equals(status)) {
+                ctx.status(503); // Service Unavailable
+            } else {
+                ctx.status(200); // OK
+            }
+
+            ctx.json(readiness);
+        } catch (Exception e) {
+            logger.error("Error performing readiness check", e);
+            ctx.status(500).json(Map.of("error", "Failed to perform readiness check: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Perform liveness check for deployment verification
+     */
+    public void getLivenessCheck(Context ctx) {
+        logger.debug("Performing liveness check");
+        try {
+            Map<String, Object> liveness = healthService.getLivenessCheck();
+
+            // Set HTTP status based on liveness
+            String status = (String) liveness.get("status");
+            if ("DOWN".equals(status)) {
+                ctx.status(503); // Service Unavailable
+            } else {
+                ctx.status(200); // OK
+            }
+
+            ctx.json(liveness);
+        } catch (Exception e) {
+            logger.error("Error performing liveness check", e);
+            ctx.status(500).json(Map.of("error", "Failed to perform liveness check: " + e.getMessage()));
         }
     }
     

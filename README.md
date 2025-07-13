@@ -375,7 +375,47 @@ cd metrics-service
 mvn exec:java -Dexec.mainClass="dev.mars.metrics.MetricsApplication"
 ```
 
-#### **4. Access the Applications**
+#### **4. Quick Start with Executable JARs** (Recommended)
+```bash
+# Build fat JARs (default - includes all dependencies)
+./scripts/build-executable-jars.sh
+
+# Start all services
+./scripts/start-all-services.sh
+
+# Or start individual services
+./scripts/start-generic-api-service.sh
+./scripts/start-metrics-service.sh
+```
+
+#### **5. Alternative JAR Types**
+```bash
+# Build optimized JARs (smaller size, production-ready)
+./scripts/build-executable-jars.sh --optimized-jar
+
+# Build development JARs (fastest build, for development)
+./scripts/build-executable-jars.sh --dev
+
+# Build thin JARs (minimal size, requires classpath)
+./scripts/build-executable-jars.sh --thin-jar
+
+# Build with analysis
+./scripts/build-executable-jars.sh --optimized-jar --analyze
+```
+
+#### **6. JAR Analysis**
+```bash
+# Analyze all built JARs
+./scripts/analyze-jars.sh
+
+# Analyze specific profile
+./scripts/analyze-jars.sh --profile optimized
+
+# Show sizes only
+./scripts/analyze-jars.sh --sizes
+```
+
+#### **7. Access the Applications**
 - **Generic API Service**: http://localhost:8080
 - **Swagger Documentation**: http://localhost:8080/swagger
 - **Metrics Service**: http://localhost:8081
@@ -444,6 +484,33 @@ curl "http://localhost:8080/api/generic/config/queries"
 
 # Health check
 curl "http://localhost:8080/api/health"
+```
+
+#### **Health Monitoring & Deployment Verification**
+```bash
+# Comprehensive health status
+curl "http://localhost:8080/api/management/health"
+
+# Database health
+curl "http://localhost:8080/api/management/health/databases"
+
+# Specific database health
+curl "http://localhost:8080/api/management/health/databases/stocktrades"
+
+# Readiness check (Kubernetes ready probe)
+curl "http://localhost:8080/api/management/readiness"
+
+# Liveness check (Kubernetes liveness probe)
+curl "http://localhost:8080/api/management/liveness"
+
+# Deployment information
+curl "http://localhost:8080/api/management/deployment"
+
+# JAR information and dependencies
+curl "http://localhost:8080/api/management/jar"
+
+# Management dashboard
+curl "http://localhost:8080/api/management/dashboard"
 ```
 
 ### **Metrics Service** (Port 8081)

@@ -223,15 +223,201 @@ public class HealthMonitoringService {
         long totalMemory = runtime.totalMemory();
         long freeMemory = runtime.freeMemory();
         long usedMemory = totalMemory - freeMemory;
-        
+
         Map<String, Object> memory = new HashMap<>();
         memory.put("maxMemoryMB", maxMemory / (1024 * 1024));
         memory.put("totalMemoryMB", totalMemory / (1024 * 1024));
         memory.put("usedMemoryMB", usedMemory / (1024 * 1024));
         memory.put("freeMemoryMB", freeMemory / (1024 * 1024));
         memory.put("usagePercentage", Math.round((double) usedMemory / totalMemory * 100));
-        
+
         return memory;
+    }
+
+    /**
+     * Get deployment verification information
+     */
+    public Map<String, Object> getDeploymentInfo() {
+        Map<String, Object> deploymentInfo = new HashMap<>();
+
+        try {
+            // JAR information
+            String jarPath = getJarPath();
+            deploymentInfo.put("jarPath", jarPath);
+            deploymentInfo.put("jarType", determineJarType(jarPath));
+
+            // Java runtime information
+            deploymentInfo.put("javaVersion", System.getProperty("java.version"));
+            deploymentInfo.put("javaVendor", System.getProperty("java.vendor"));
+            deploymentInfo.put("javaHome", System.getProperty("java.home"));
+
+            // System information
+            deploymentInfo.put("osName", System.getProperty("os.name"));
+            deploymentInfo.put("osVersion", System.getProperty("os.version"));
+            deploymentInfo.put("osArch", System.getProperty("os.arch"));
+
+            // Application information
+            deploymentInfo.put("applicationName", "Generic API Service");
+            deploymentInfo.put("version", getApplicationVersion());
+            deploymentInfo.put("startTime", getStartTime());
+            deploymentInfo.put("workingDirectory", System.getProperty("user.dir"));
+
+            deploymentInfo.put("status", "DEPLOYED");
+
+        } catch (Exception e) {
+            logger.error("Error getting deployment info", e);
+            deploymentInfo.put("status", "ERROR");
+            deploymentInfo.put("error", e.getMessage());
+        }
+
+        return deploymentInfo;
+    }
+
+    /**
+     * Get JAR information and dependencies
+     */
+    public Map<String, Object> getJarInfo() {
+        Map<String, Object> jarInfo = new HashMap<>();
+
+        try {
+            String jarPath = getJarPath();
+            jarInfo.put("jarPath", jarPath);
+            jarInfo.put("jarType", determineJarType(jarPath));
+
+            // Manifest information
+            Package pkg = this.getClass().getPackage();
+            jarInfo.put("implementationTitle", pkg.getImplementationTitle());
+            jarInfo.put("implementationVersion", pkg.getImplementationVersion());
+            jarInfo.put("implementationVendor", pkg.getImplementationVendor());
+
+            // Classpath information
+            jarInfo.put("classPath", System.getProperty("java.class.path"));
+            jarInfo.put("libraryPath", System.getProperty("java.library.path"));
+
+            // Module information
+            jarInfo.put("modulePath", System.getProperty("jdk.module.path"));
+
+        } catch (Exception e) {
+            logger.error("Error getting JAR info", e);
+            jarInfo.put("error", e.getMessage());
+        }
+
+        return jarInfo;
+    }
+
+    /**
+     * Perform readiness check for deployment verification
+     */
+    public Map<String, Object> getReadinessCheck() {
+        Map<String, Object> readiness = new HashMap<>();
+
+        try {
+            boolean isReady = true;
+            Map<String, String> checks = new HashMap<>();
+
+            // Check configuration loading
+            try {
+                Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
+                checks.put("configuration", databases.isEmpty() ? "NO_DATABASES" : "OK");
+                if (databases.isEmpty()) isReady = false;
+            } catch (Exception e) {
+                checks.put("configuration", "FAILED: " + e.getMessage());
+                isReady = false;
+            }
+
+            // Check database connectivity
+            try {
+                Map<String, Object> databasesHealth = getDatabasesHealth();
+                boolean anyDown = databasesHealth.values().stream()
+                    .anyMatch(health -> health instanceof DatabaseHealthStatus &&
+                             "DOWN".equals(((DatabaseHealthStatus) health).getStatus()));
+                checks.put("databases", anyDown ? "SOME_DOWN" : "OK");
+                if (anyDown) isReady = false;
+            } catch (Exception e) {
+                checks.put("databases", "FAILED: " + e.getMessage());
+                isReady = false;
+            }
+
+            // Check memory availability
+            Map<String, Object> memory = getMemoryUsage();
+            long memoryUsage = (Long) memory.get("usagePercentage");
+            checks.put("memory", memoryUsage > 90 ? "HIGH_USAGE" : "OK");
+            if (memoryUsage > 95) isReady = false;
+
+            readiness.put("status", isReady ? "READY" : "NOT_READY");
+            readiness.put("checks", checks);
+            readiness.put("timestamp", Instant.now());
+
+        } catch (Exception e) {
+            logger.error("Error performing readiness check", e);
+            readiness.put("status", "NOT_READY");
+            readiness.put("error", e.getMessage());
+        }
+
+        return readiness;
+    }
+
+    /**
+     * Perform liveness check for deployment verification
+     */
+    public Map<String, Object> getLivenessCheck() {
+        Map<String, Object> liveness = new HashMap<>();
+
+        try {
+            boolean isAlive = true;
+            Map<String, String> checks = new HashMap<>();
+
+            // Check if application is responsive
+            checks.put("application", "UP");
+
+            // Check memory usage (critical threshold)
+            Map<String, Object> memory = getMemoryUsage();
+            long memoryUsage = (Long) memory.get("usagePercentage");
+            checks.put("memory", memoryUsage > 95 ? "CRITICAL" : "OK");
+            if (memoryUsage > 98) isAlive = false;
+
+            // Check thread count
+            int threadCount = Thread.activeCount();
+            checks.put("threads", threadCount > 1000 ? "HIGH" : "OK");
+            if (threadCount > 2000) isAlive = false;
+
+            liveness.put("status", isAlive ? "UP" : "DOWN");
+            liveness.put("checks", checks);
+            liveness.put("timestamp", Instant.now());
+
+        } catch (Exception e) {
+            logger.error("Error performing liveness check", e);
+            liveness.put("status", "DOWN");
+            liveness.put("error", e.getMessage());
+        }
+
+        return liveness;
+    }
+
+    private String getJarPath() {
+        try {
+            return this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
+    private String determineJarType(String jarPath) {
+        if (jarPath.contains("executable")) return "fat-jar";
+        if (jarPath.contains("thin")) return "thin-jar";
+        if (jarPath.contains("optimized")) return "optimized-jar";
+        if (jarPath.contains("dev")) return "dev-jar";
+        return "unknown";
+    }
+
+    private String getApplicationVersion() {
+        Package pkg = this.getClass().getPackage();
+        return pkg.getImplementationVersion() != null ? pkg.getImplementationVersion() : "1.0-SNAPSHOT";
+    }
+
+    private String getStartTime() {
+        long startTime = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();
+        return Instant.ofEpochMilli(startTime).toString();
     }
     
     /**

@@ -199,6 +199,12 @@ public class GenericApiApplication extends BaseJavalinApplication {
         app.get(ApiEndpoints.Management.HEALTH_DATABASES, managementController::getDatabaseHealth);
         app.get(ApiEndpoints.Management.HEALTH_DATABASE_SPECIFIC, managementController::getSpecificDatabaseHealth);
 
+        // Deployment verification endpoints
+        app.get(ApiEndpoints.Management.DEPLOYMENT_INFO, managementController::getDeploymentInfo);
+        app.get(ApiEndpoints.Management.JAR_INFO, managementController::getJarInfo);
+        app.get(ApiEndpoints.Management.READINESS, managementController::getReadinessCheck);
+        app.get(ApiEndpoints.Management.LIVENESS, managementController::getLivenessCheck);
+
         // Comprehensive dashboard endpoint
         app.get(ApiEndpoints.Management.DASHBOARD, managementController::getManagementDashboard);
 
@@ -539,7 +545,11 @@ public class GenericApiApplication extends BaseJavalinApplication {
         logger.info("   ├─ Database Stats:  GET  {}/api/management/statistics/databases", baseUrl);
         logger.info("   ├─ Health Status:   GET  {}/api/management/health", baseUrl);
         logger.info("   ├─ DB Health:       GET  {}/api/management/health/databases", baseUrl);
-        logger.info("   └─ Specific DB:     GET  {}/api/management/health/databases/{{name}}", baseUrl);
+        logger.info("   ├─ Specific DB:     GET  {}/api/management/health/databases/{{name}}", baseUrl);
+        logger.info("   ├─ Deployment Info: GET  {}/api/management/deployment", baseUrl);
+        logger.info("   ├─ JAR Info:        GET  {}/api/management/jar", baseUrl);
+        logger.info("   ├─ Readiness:       GET  {}/api/management/readiness", baseUrl);
+        logger.info("   └─ Liveness:        GET  {}/api/management/liveness", baseUrl);
         logger.info("");
 
         // API Documentation

@@ -56,7 +56,13 @@ public final class ApiEndpoints {
         public static final String HEALTH = MANAGEMENT_BASE + "/health";
         public static final String HEALTH_DATABASES = MANAGEMENT_BASE + "/health/databases";
         public static final String HEALTH_DATABASE_SPECIFIC = MANAGEMENT_BASE + "/health/databases/{databaseName}";
-        
+
+        // Deployment Verification
+        public static final String DEPLOYMENT_INFO = MANAGEMENT_BASE + "/deployment";
+        public static final String JAR_INFO = MANAGEMENT_BASE + "/jar";
+        public static final String READINESS = MANAGEMENT_BASE + "/readiness";
+        public static final String LIVENESS = MANAGEMENT_BASE + "/liveness";
+
         // Dashboard
         public static final String DASHBOARD = MANAGEMENT_BASE + "/dashboard";
     }

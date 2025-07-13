@@ -26,7 +26,7 @@ public class DatabaseConfigurationRepository {
     }
 
     /**
-     * Load all database configurations from the database
+     * Load all database configurations from the config datastore
      */
     public Map<String, DatabaseConfig> loadAll() {
         logger.info("Loading all database configurations from database");

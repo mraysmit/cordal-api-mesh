@@ -32,6 +32,11 @@
         <snakeyaml.version>2.4</snakeyaml.version>
         <logback.version>1.5.6</logback.version>
         <junit.version>5.10.2</junit.version>
+
+        <!-- Build Profile Properties -->
+        <jar.classifier>executable</jar.classifier>
+        <shade.minimizeJar>false</shade.minimizeJar>
+        <shade.createDependencyReducedPom>false</shade.createDependencyReducedPom>
     </properties>
 
     <dependencyManagement>
@@ -188,8 +193,62 @@
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>
+
+                <!-- Maven Shade Plugin for creating executable fat JARs -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <!-- Distribution Profiles for Different JAR Types -->
+    <profiles>
+        <!-- Fat JAR Profile (Default) - Includes all dependencies -->
+        <profile>
+            <id>fat-jar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <jar.classifier>executable</jar.classifier>
+                <shade.minimizeJar>false</shade.minimizeJar>
+                <shade.createDependencyReducedPom>false</shade.createDependencyReducedPom>
+            </properties>
+        </profile>
+
+        <!-- Thin JAR Profile - Minimal dependencies only -->
+        <profile>
+            <id>thin-jar</id>
+            <properties>
+                <jar.classifier>thin</jar.classifier>
+                <shade.minimizeJar>true</shade.minimizeJar>
+                <shade.createDependencyReducedPom>true</shade.createDependencyReducedPom>
+            </properties>
+        </profile>
+
+        <!-- Optimized JAR Profile - Fat JAR with minimization -->
+        <profile>
+            <id>optimized-jar</id>
+            <properties>
+                <jar.classifier>optimized</jar.classifier>
+                <shade.minimizeJar>true</shade.minimizeJar>
+                <shade.createDependencyReducedPom>false</shade.createDependencyReducedPom>
+            </properties>
+        </profile>
+
+        <!-- Development Profile - Fast builds, skip optimization -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <jar.classifier>dev</jar.classifier>
+                <shade.minimizeJar>false</shade.minimizeJar>
+                <shade.createDependencyReducedPom>false</shade.createDependencyReducedPom>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
