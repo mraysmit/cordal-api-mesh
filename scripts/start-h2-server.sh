@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start H2 Database Server for javalin-api-mesh application
+# Start H2 Database Server for cordal application
 # This script starts H2 in TCP server mode to allow multiple connections
 
 echo "Starting H2 Database Server..."

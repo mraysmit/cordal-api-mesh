@@ -4,19 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dev.mars</groupId>
-    <artifactId>javalin-api-mesh</artifactId>
+    <groupId>dev.cordal</groupId>
+    <artifactId>cordal</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Javalin API Mesh - Parent</name>
-    <description>Parent POM for modular Javalin API Mesh project</description>
+    <name>CORDAL - Parent</name>
+    <description>Parent POM for CORDAL - Configuration Orchestrated REST Dynamic API Layer</description>
 
     <modules>
-        <module>common-library</module>
-        <module>generic-api-service</module>
-        <module>metrics-service</module>
-        <module>integration-tests</module>
+        <module>cordal-common-library</module>
+        <module>cordal-api-service</module>
+        <module>cordal-metrics-service</module>
+        <module>cordal-integration-tests</module>
     </modules>
 
     <properties>

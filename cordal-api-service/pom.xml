@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.cordal</groupId>
+        <artifactId>cordal</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>cordal-api-service</artifactId>
+    <packaging>jar</packaging>
+
+    <name>CORDAL Generic API Service</name>
+    <description>CORDAL Generic API service with YAML-configured endpoints and database connections</description>
+
+    <dependencies>
+        <!-- Common Library - Provides core framework dependencies -->
+        <dependency>
+            <groupId>dev.cordal</groupId>
+            <artifactId>cordal-common-library</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Additional Database Support - PostgreSQL for generic API service -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
+        <!-- Swagger/OpenAPI - UI for API documentation -->
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin-testtools</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Test Profiling Dependencies -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-reporting</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Enable detailed test reporting for profiling -->
+                    <reportFormat>xml</reportFormat>
+                    <useFile>true</useFile>
+                    <printSummary>true</printSummary>
+                    <redirectTestOutputToFile>false</redirectTestOutputToFile>
+
+                    <!-- Enable test timing and profiling -->
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>dev.mars.test.profiling.TestTimingExtension</value>
+                        </property>
+                    </properties>
+
+                    <!-- System properties for test profiling -->
+                    <systemPropertyVariables>
+                        <test.profiling.enabled>true</test.profiling.enabled>
+                        <test.profiling.detailed>false</test.profiling.detailed>
+                        <test.profiling.output.dir>${project.build.directory}/test-profiling</test.profiling.output.dir>
+                    </systemPropertyVariables>
+
+                    <!-- Include all test classes -->
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>dev.cordal.generic.GenericApiApplication</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Shade Plugin for creating executable fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Use profile-based configuration -->
+                            <createDependencyReducedPom>${shade.createDependencyReducedPom}</createDependencyReducedPom>
+                            <minimizeJar>${shade.minimizeJar}</minimizeJar>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+
+                            <transformers>
+                                <!-- Main class manifest with enhanced metadata -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>dev.cordal.generic.GenericApiApplication</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Title>${project.name}</Implementation-Title>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
+                                        <Implementation-Vendor>dev.cordal</Implementation-Vendor>
+                                        <Build-Time>${maven.build.timestamp}</Build-Time>
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
+                                </transformer>
+
+                                <!-- Handle service files for dependency injection -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+
+                                <!-- Handle META-INF files -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.handlers</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.schemas</resource>
+                                </transformer>
+
+                                <!-- Handle properties files -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.factories</resource>
+                                </transformer>
+                            </transformers>
+
+                            <!-- Enhanced filters to exclude unnecessary files -->
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>META-INF/DEPENDENCIES*</exclude>
+                                        <exclude>**/*.kotlin_metadata</exclude>
+                                        <exclude>**/*.kotlin_builtins</exclude>
+                                        <exclude>**/*.kotlin_module</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+                            <!-- Relocations to avoid conflicts -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons</pattern>
+                                    <shadedPattern>dev.mars.shaded.commons</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                            <finalName>generic-api-service-${project.version}-executable</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Profile for detailed test profiling -->
+        <profile>
+            <id>test-profiling</id>
+            <properties>
+                <test.profiling.enabled>true</test.profiling.enabled>
+                <test.profiling.detailed>true</test.profiling.detailed>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.profiling.enabled>true</test.profiling.enabled>
+                                <test.profiling.detailed>true</test.profiling.detailed>
+                                <test.profiling.output.dir>${project.build.directory}/test-profiling-detailed</test.profiling.output.dir>
+                            </systemPropertyVariables>
+                            <reportFormat>xml</reportFormat>
+                            <useFile>true</useFile>
+                            <printSummary>true</printSummary>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Profile for performance benchmarking -->
+        <profile>
+            <id>test-benchmark</id>
+            <properties>
+                <test.profiling.enabled>true</test.profiling.enabled>
+                <test.profiling.detailed>false</test.profiling.detailed>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.profiling.enabled>true</test.profiling.enabled>
+                                <test.profiling.detailed>false</test.profiling.detailed>
+                                <test.profiling.output.dir>${project.build.directory}/test-benchmark</test.profiling.output.dir>
+                            </systemPropertyVariables>
+                            <!-- Run tests multiple times for better benchmarking -->
+                            <rerunFailingTestsCount>0</rerunFailingTestsCount>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

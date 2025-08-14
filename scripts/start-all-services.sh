@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 echo "================================================================================"
-echo "                        Javalin API Mesh - All Services"
+echo "                        CORDAL - All Services"
 echo "================================================================================"
 echo
 
@@ -19,7 +19,7 @@ METRICS_JAR=""
 
 # Find Generic API Service JAR
 for jar_pattern in "executable" "optimized" "dev" "thin"; do
-    jar_file="$PROJECT_ROOT/generic-api-service/target/generic-api-service-1.0-SNAPSHOT-$jar_pattern.jar"
+    jar_file="$PROJECT_ROOT/cordal-api-service/target/cordal-api-service-1.0-SNAPSHOT-$jar_pattern.jar"
     if [ -f "$jar_file" ]; then
         GENERIC_API_JAR="$jar_file"
         GENERIC_API_TYPE="$jar_pattern"
@@ -29,7 +29,7 @@ done
 
 # Find Metrics Service JAR
 for jar_pattern in "executable" "optimized" "dev" "thin"; do
-    jar_file="$PROJECT_ROOT/metrics-service/target/metrics-service-1.0-SNAPSHOT-$jar_pattern.jar"
+    jar_file="$PROJECT_ROOT/cordal-metrics-service/target/cordal-metrics-service-1.0-SNAPSHOT-$jar_pattern.jar"
     if [ -f "$jar_file" ]; then
         METRICS_JAR="$jar_file"
         METRICS_TYPE="$jar_pattern"
@@ -39,12 +39,12 @@ done
 
 MISSING_JARS=false
 if [ -z "$GENERIC_API_JAR" ]; then
-    echo "[ERROR] Generic API Service JAR not found in: $PROJECT_ROOT/generic-api-service/target/"
+    echo "[ERROR] Generic API Service JAR not found in: $PROJECT_ROOT/cordal-api-service/target/"
     echo "Looked for patterns: *-executable.jar, *-optimized.jar, *-dev.jar, *-thin.jar"
     MISSING_JARS=true
 fi
 if [ -z "$METRICS_JAR" ]; then
-    echo "[ERROR] Metrics Service JAR not found in: $PROJECT_ROOT/metrics-service/target/"
+    echo "[ERROR] Metrics Service JAR not found in: $PROJECT_ROOT/cordal-metrics-service/target/"
     echo "Looked for patterns: *-executable.jar, *-optimized.jar, *-dev.jar, *-thin.jar"
     MISSING_JARS=true
 fi
@@ -147,14 +147,14 @@ start_services() {
 start_generic_api_only() {
     echo "[INFO] Starting Generic API Service only..."
     if [ "$VALIDATE_ONLY" = true ]; then
-        "$SCRIPT_DIR/start-generic-api-service.sh" --validate-only
+        "$SCRIPT_DIR/start-cordal-api-service.sh" --validate-only
     else
         if [ "$BACKGROUND" = true ]; then
-            nohup "$SCRIPT_DIR/start-generic-api-service.sh" > "$PROJECT_ROOT/logs/generic-api-service.log" 2>&1 &
+            nohup "$SCRIPT_DIR/start-cordal-api-service.sh" > "$PROJECT_ROOT/logs/cordal-api-service.log" 2>&1 &
             echo "[INFO] Generic API Service started in background (PID: $!)"
-            echo "[INFO] Log file: $PROJECT_ROOT/logs/generic-api-service.log"
+            echo "[INFO] Log file: $PROJECT_ROOT/logs/cordal-api-service.log"
         else
-            "$SCRIPT_DIR/start-generic-api-service.sh"
+            "$SCRIPT_DIR/start-cordal-api-service.sh"
         fi
     fi
 }
@@ -162,11 +162,11 @@ start_generic_api_only() {
 start_metrics_only() {
     echo "[INFO] Starting Metrics Service only..."
     if [ "$BACKGROUND" = true ]; then
-        nohup "$SCRIPT_DIR/start-metrics-service.sh" > "$PROJECT_ROOT/logs/metrics-service.log" 2>&1 &
+        nohup "$SCRIPT_DIR/start-cordal-metrics-service.sh" > "$PROJECT_ROOT/logs/cordal-metrics-service.log" 2>&1 &
         echo "[INFO] Metrics Service started in background (PID: $!)"
-        echo "[INFO] Log file: $PROJECT_ROOT/logs/metrics-service.log"
+        echo "[INFO] Log file: $PROJECT_ROOT/logs/cordal-metrics-service.log"
     else
-        "$SCRIPT_DIR/start-metrics-service.sh"
+        "$SCRIPT_DIR/start-cordal-metrics-service.sh"
     fi
 }
 
@@ -175,7 +175,7 @@ start_both_services() {
     
     if [ "$VALIDATE_ONLY" = true ]; then
         echo "[INFO] Validating Generic API Service configuration..."
-        "$SCRIPT_DIR/start-generic-api-service.sh" --validate-only
+        "$SCRIPT_DIR/start-cordal-api-service.sh" --validate-only
         return
     fi
     
@@ -184,20 +184,20 @@ start_both_services() {
         mkdir -p "$PROJECT_ROOT/logs"
         
         echo "[INFO] Starting Generic API Service in background..."
-        nohup "$SCRIPT_DIR/start-generic-api-service.sh" > "$PROJECT_ROOT/logs/generic-api-service.log" 2>&1 &
+        nohup "$SCRIPT_DIR/start-cordal-api-service.sh" > "$PROJECT_ROOT/logs/cordal-api-service.log" 2>&1 &
         GENERIC_API_PID=$!
         
         echo "[INFO] Waiting 5 seconds before starting Metrics Service..."
         sleep 5
         
         echo "[INFO] Starting Metrics Service in background..."
-        nohup "$SCRIPT_DIR/start-metrics-service.sh" > "$PROJECT_ROOT/logs/metrics-service.log" 2>&1 &
+        nohup "$SCRIPT_DIR/start-cordal-metrics-service.sh" > "$PROJECT_ROOT/logs/cordal-metrics-service.log" 2>&1 &
         METRICS_PID=$!
         
         echo
         echo "[INFO] Both services started in background:"
-        echo "[INFO] Generic API Service: PID $GENERIC_API_PID, Log: $PROJECT_ROOT/logs/generic-api-service.log"
-        echo "[INFO] Metrics Service: PID $METRICS_PID, Log: $PROJECT_ROOT/logs/metrics-service.log"
+        echo "[INFO] Generic API Service: PID $GENERIC_API_PID, Log: $PROJECT_ROOT/logs/cordal-api-service.log"
+        echo "[INFO] Metrics Service: PID $METRICS_PID, Log: $PROJECT_ROOT/logs/cordal-metrics-service.log"
         echo "[INFO] Generic API Service: http://localhost:8080"
         echo "[INFO] Metrics Service: http://localhost:8081"
         echo
@@ -210,14 +210,14 @@ start_both_services() {
         echo
         
         # Start Generic API Service in background
-        "$SCRIPT_DIR/start-generic-api-service.sh" &
+        "$SCRIPT_DIR/start-cordal-api-service.sh" &
         GENERIC_API_PID=$!
         
         # Wait a moment
         sleep 5
         
         # Start Metrics Service in foreground (this will block)
-        "$SCRIPT_DIR/start-metrics-service.sh" &
+        "$SCRIPT_DIR/start-cordal-metrics-service.sh" &
         METRICS_PID=$!
         
         # Set up signal handlers

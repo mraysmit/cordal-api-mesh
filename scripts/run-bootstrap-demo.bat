@@ -23,7 +23,7 @@ if %ERRORLEVEL% neq 0 (
 echo.
 echo Starting bootstrap demonstration...
 echo.
-cd generic-api-service
+cd cordal-api-service
 call mvn exec:java -Dexec.mainClass="dev.mars.bootstrap.SystemBootstrapDemo" -q
 
 echo.

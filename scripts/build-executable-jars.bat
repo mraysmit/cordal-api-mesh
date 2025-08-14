@@ -97,8 +97,8 @@ echo ===========================================================================
 echo.
 
 REM Check if executable JARs were created
-set GENERIC_API_JAR=%PROJECT_ROOT%\generic-api-service\target\generic-api-service-1.0-SNAPSHOT-executable.jar
-set METRICS_JAR=%PROJECT_ROOT%\metrics-service\target\metrics-service-1.0-SNAPSHOT-executable.jar
+set GENERIC_API_JAR=%PROJECT_ROOT%\cordal-api-service\target\cordal-api-service-1.0-SNAPSHOT-executable.jar
+set METRICS_JAR=%PROJECT_ROOT%\cordal-metrics-service\target\cordal-metrics-service-1.0-SNAPSHOT-executable.jar
 
 echo [INFO] Checking created artifacts:
 if exist "%GENERIC_API_JAR%" (
@@ -118,8 +118,8 @@ if exist "%METRICS_JAR%" (
 echo.
 echo [INFO] You can now start the services using:
 echo [INFO]   %SCRIPT_DIR%start-all-services.bat
-echo [INFO]   %SCRIPT_DIR%start-generic-api-service.bat
-echo [INFO]   %SCRIPT_DIR%start-metrics-service.bat
+echo [INFO]   %SCRIPT_DIR%start-cordal-api-service.bat
+echo [INFO]   %SCRIPT_DIR%start-cordal-metrics-service.bat
 echo.
 
 endlocal

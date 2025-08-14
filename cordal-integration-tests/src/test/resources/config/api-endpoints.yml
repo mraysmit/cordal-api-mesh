@@ -1,0 +1,352 @@
+# Integration Test API Endpoints Configuration
+# Contains endpoints for stock trades (H2) and PostgreSQL databases
+
+endpoints:
+  # Stock Trades Endpoints - EXAMPLE IMPLEMENTATIONS
+  stock-trades-list:
+    path: "/api/generic/stock-trades"
+    method: "GET"
+    description: "Get all stock trades with pagination"
+    query: "stock-trades-all"
+    countQuery: "stock-trades-count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  stock-trades-by-symbol:
+    path: "/api/generic/stock-trades/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol with pagination"
+    query: "stock-trades-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        description: "Stock symbol (e.g., AAPL, GOOGL)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  stock-trades-by-trader:
+    path: "/api/generic/stock-trades/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader ID with pagination"
+    query: "stock-trades-by-trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+        description: "Trader ID (e.g., TRADER_001)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  stock-trades-by-date-range:
+    path: "/api/generic/stock-trades/date-range"
+    method: "GET"
+    description: "Get stock trades by date range with pagination"
+    query: "stock-trades-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "start_date"
+        type: "STRING"
+        required: true
+        description: "Start date (YYYY-MM-DD format)"
+      - name: "end_date"
+        type: "STRING"
+        required: true
+        description: "End date (YYYY-MM-DD format)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+  # Endpoints for trades-db-1
+  trades-db-1-list:
+    path: "/api/generic/trades-db-1"
+    method: "GET"
+    description: "Get all stock trades from trades-db-1 with pagination"
+    query: "trades-db-1-all"
+    countQuery: "trades-db-1-count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  trades-db-1-by-symbol:
+    path: "/api/generic/trades-db-1/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol from trades-db-1"
+    query: "trades-db-1-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        source: "PATH"
+        required: true
+        description: "Stock symbol"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"
+
+  trades-db-1-by-trader:
+    path: "/api/generic/trades-db-1/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader from trades-db-1"
+    query: "trades-db-1-by-trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        source: "PATH"
+        required: true
+        description: "Trader ID"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"
+
+  trades-db-1-by-id:
+    path: "/api/generic/trades-db-1/{id}"
+    method: "GET"
+    description: "Get stock trade by ID from trades-db-1"
+    query: "trades-db-1-by-id"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        source: "PATH"
+        required: true
+        description: "Trade ID"
+    response:
+      type: "SINGLE"
+
+  trades-db-1-by-date-range:
+    path: "/api/generic/trades-db-1/date-range"
+    method: "GET"
+    description: "Get stock trades by date range from trades-db-1"
+    query: "trades-db-1-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+        description: "Start date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)"
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+        description: "End date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"
+
+  # Endpoints for trades-db-2
+  trades-db-2-list:
+    path: "/api/generic/trades-db-2"
+    method: "GET"
+    description: "Get all stock trades from trades-db-2 with pagination"
+    query: "trades-db-2-all"
+    countQuery: "trades-db-2-count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  trades-db-2-by-symbol:
+    path: "/api/generic/trades-db-2/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol from trades-db-2"
+    query: "trades-db-2-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        source: "PATH"
+        required: true
+        description: "Stock symbol"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"
+
+  trades-db-2-by-trader:
+    path: "/api/generic/trades-db-2/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader from trades-db-2"
+    query: "trades-db-2-by-trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        source: "PATH"
+        required: true
+        description: "Trader ID"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"
+
+  trades-db-2-by-id:
+    path: "/api/generic/trades-db-2/{id}"
+    method: "GET"
+    description: "Get stock trade by ID from trades-db-2"
+    query: "trades-db-2-by-id"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        source: "PATH"
+        required: true
+        description: "Trade ID"
+    response:
+      type: "SINGLE"
+
+  trades-db-2-by-date-range:
+    path: "/api/generic/trades-db-2/date-range"
+    method: "GET"
+    description: "Get stock trades by date range from trades-db-2"
+    query: "trades-db-2-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+        description: "Start date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)"
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+        description: "End date (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+    response:
+      type: "PAGED"

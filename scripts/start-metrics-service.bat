@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 REM Set script directory and project root
 set SCRIPT_DIR=%~dp0
 set PROJECT_ROOT=%SCRIPT_DIR%..
-set SERVICE_DIR=%PROJECT_ROOT%\metrics-service
+set SERVICE_DIR=%PROJECT_ROOT%\cordal-metrics-service
 
 echo ================================================================================
 echo                          Metrics Service Startup
@@ -15,7 +15,7 @@ echo ===========================================================================
 echo.
 
 REM Check if executable JAR exists
-set EXECUTABLE_JAR=%SERVICE_DIR%\target\metrics-service-1.0-SNAPSHOT-executable.jar
+set EXECUTABLE_JAR=%SERVICE_DIR%\target\cordal-metrics-service-1.0-SNAPSHOT-executable.jar
 if not exist "%EXECUTABLE_JAR%" (
     echo [ERROR] Executable JAR not found: %EXECUTABLE_JAR%
     echo.

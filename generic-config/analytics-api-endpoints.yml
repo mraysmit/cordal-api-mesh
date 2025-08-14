@@ -49,3 +49,6 @@ endpoints:
       - name: "end_date"
         type: "query"
         required: true
+      - name: "limit"
+        type: "query"
+        required: false

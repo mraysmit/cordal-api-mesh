@@ -1,0 +1,54 @@
+# Integration Test Database Configuration
+# This file combines all database configurations needed for integration testing
+# Including both the stock trades example and other test databases
+
+databases:
+  # Stock trades database - example external database for stock trading data
+  stocktrades:
+    name: "stocktrades"
+    description: "Example external database for stock trading data and transactions (integration testing only)"
+    url: "jdbc:h2:mem:stocktrades;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  # PostgreSQL test databases for dual database testing
+  trades-db-1:
+    name: "trades-db-1"
+    description: "First PostgreSQL database for dual database integration testing"
+    url: "jdbc:postgresql://localhost:5432/trades_db_1"
+    username: "testuser"
+    password: "testpass"
+    driver: "org.postgresql.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  trades-db-2:
+    name: "trades-db-2"
+    description: "Second PostgreSQL database for dual database integration testing"
+    url: "jdbc:postgresql://localhost:5432/trades_db_2"
+    username: "testuser"
+    password: "testpass"
+    driver: "org.postgresql.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"

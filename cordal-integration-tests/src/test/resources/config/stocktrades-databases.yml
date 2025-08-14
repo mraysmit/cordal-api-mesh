@@ -1,0 +1,21 @@
+# EXAMPLE IMPLEMENTATION: StockTrades External Database Connections Configuration
+# This file contains example external database connection configurations for integration testing
+# This is NOT part of the core system and should only be used for integration testing
+
+databases:
+  # Stock trades database - example external database for stock trading data
+  stocktrades:
+    name: "stocktrades"
+    description: "Example external database for stock trading data and transactions (integration testing only)"
+    url: "jdbc:h2:mem:stocktrades;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"

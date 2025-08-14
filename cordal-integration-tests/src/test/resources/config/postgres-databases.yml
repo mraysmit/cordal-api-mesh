@@ -1,0 +1,20 @@
+# EXAMPLE IMPLEMENTATION: PostgreSQL-style database configuration for integration testing
+# This file contains example database configurations for PostgreSQL-style testing
+# This is NOT part of the core system and should only be used for integration testing
+
+databases:
+  postgres-trades:
+    name: postgres-trades
+    description: "EXAMPLE: H2 database for PostgreSQL-style stock trading data (integration testing only)"
+    url: "jdbc:h2:../data/postgres-trades;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: sa
+    password: ""
+    driver: org.h2.Driver
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"

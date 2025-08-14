@@ -1,5 +1,5 @@
 @echo off
-REM Start H2 Database Server for javalin-api-mesh application
+REM Start H2 Database Server for cordal application
 REM This script starts H2 in TCP server mode to allow multiple connections
 
 echo Starting H2 Database Server...

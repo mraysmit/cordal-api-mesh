@@ -62,3 +62,4 @@ application*.log
 server*.log
 access*.log
 error*.log
+.idea/AugmentWebviewStateStore.xml

@@ -7,7 +7,7 @@ set -e
 # Set script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-SERVICE_DIR="$PROJECT_ROOT/generic-api-service"
+SERVICE_DIR="$PROJECT_ROOT/cordal-api-service"
 
 echo "================================================================================"
 echo "                        Generic API Service Startup"
@@ -17,7 +17,7 @@ echo
 # Find the most recent executable JAR (supports different profiles)
 EXECUTABLE_JAR=""
 for jar_pattern in "executable" "optimized" "dev" "thin"; do
-    jar_file="$SERVICE_DIR/target/generic-api-service-1.0-SNAPSHOT-$jar_pattern.jar"
+    jar_file="$SERVICE_DIR/target/cordal-api-service-1.0-SNAPSHOT-$jar_pattern.jar"
     if [ -f "$jar_file" ]; then
         EXECUTABLE_JAR="$jar_file"
         JAR_TYPE="$jar_pattern"

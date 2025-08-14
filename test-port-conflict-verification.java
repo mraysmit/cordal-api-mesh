@@ -3,10 +3,10 @@
  * This test demonstrates that multiple application tests can run simultaneously
  * without "Address already in use" errors.
  */
-package dev.mars.test;
+package dev.cordal.test;
 
-import dev.mars.generic.GenericApiApplication;
-import dev.mars.metrics.MetricsApplication;
+import dev.cordal.generic.GenericApiApplication;
+import dev.cordal.metrics.MetricsApplication;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;

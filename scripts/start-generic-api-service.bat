@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 REM Set script directory and project root
 set SCRIPT_DIR=%~dp0
 set PROJECT_ROOT=%SCRIPT_DIR%..
-set SERVICE_DIR=%PROJECT_ROOT%\generic-api-service
+set SERVICE_DIR=%PROJECT_ROOT%\cordal-api-service
 
 echo ================================================================================
 echo                        Generic API Service Startup
@@ -15,7 +15,7 @@ echo ===========================================================================
 echo.
 
 REM Check if executable JAR exists
-set EXECUTABLE_JAR=%SERVICE_DIR%\target\generic-api-service-1.0-SNAPSHOT-executable.jar
+set EXECUTABLE_JAR=%SERVICE_DIR%\target\cordal-api-service-1.0-SNAPSHOT-executable.jar
 if not exist "%EXECUTABLE_JAR%" (
     echo [ERROR] Executable JAR not found: %EXECUTABLE_JAR%
     echo.

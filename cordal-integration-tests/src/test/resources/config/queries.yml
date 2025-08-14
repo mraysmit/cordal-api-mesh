@@ -1,0 +1,315 @@
+# Integration Test Query Configuration
+# Contains queries for stock trades (H2) and PostgreSQL databases
+
+queries:
+  # Stock Trades Queries - EXAMPLE IMPLEMENTATIONS
+  stock-trades-all:
+    name: "stock-trades-all"
+    description: "Get all stock trades with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count:
+    name: "stock-trades-count"
+    description: "Count all stock trades"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  stock-trades-by-symbol:
+    name: "stock-trades-by-symbol"
+    description: "Get stock trades by symbol with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE symbol = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-by-trader:
+    name: "stock-trades-by-trader"
+    description: "Get stock trades by trader ID with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-by-date-range:
+    name: "stock-trades-by-date-range"
+    description: "Get stock trades by date range with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "STRING"
+        required: true
+      - name: "end_date"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+  # Queries for trades-db-1
+  trades-db-1-all:
+    name: "trades-db-1-all"
+    description: "Get all stock trades from trades-db-1 with pagination"
+    database: "trades-db-1"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-1-count:
+    name: "trades-db-1-count"
+    description: "Count all stock trades in trades-db-1"
+    database: "trades-db-1"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  trades-db-1-by-symbol:
+    name: "trades-db-1-by-symbol"
+    description: "Get stock trades by symbol from trades-db-1"
+    database: "trades-db-1"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE symbol = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-1-by-trader:
+    name: "trades-db-1-by-trader"
+    description: "Get stock trades by trader from trades-db-1"
+    database: "trades-db-1"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-1-by-id:
+    name: "trades-db-1-by-id"
+    description: "Get stock trade by ID from trades-db-1"
+    database: "trades-db-1"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE id = ?
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+
+  trades-db-1-by-date-range:
+    name: "trades-db-1-by-date-range"
+    description: "Get stock trades by date range from trades-db-1"
+    database: "trades-db-1"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  # Queries for trades-db-2
+  trades-db-2-all:
+    name: "trades-db-2-all"
+    description: "Get all stock trades from trades-db-2 with pagination"
+    database: "trades-db-2"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-2-count:
+    name: "trades-db-2-count"
+    description: "Count all stock trades in trades-db-2"
+    database: "trades-db-2"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  trades-db-2-by-symbol:
+    name: "trades-db-2-by-symbol"
+    description: "Get stock trades by symbol from trades-db-2"
+    database: "trades-db-2"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE symbol = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-2-by-trader:
+    name: "trades-db-2-by-trader"
+    description: "Get stock trades by trader from trades-db-2"
+    database: "trades-db-2"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades-db-2-by-id:
+    name: "trades-db-2-by-id"
+    description: "Get stock trade by ID from trades-db-2"
+    database: "trades-db-2"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE id = ?
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+
+  trades-db-2-by-date-range:
+    name: "trades-db-2-by-date-range"
+    description: "Get stock trades by date range from trades-db-2"
+    database: "trades-db-2"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true

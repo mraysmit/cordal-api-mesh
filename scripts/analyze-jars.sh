@@ -1,5 +1,5 @@
 #!/bin/bash
-# JAR Analysis Tool for Javalin API Mesh
+# JAR Analysis Tool for CORDAL
 # This script analyzes built JARs to show dependencies, sizes, and contents
 
 set -e
@@ -23,13 +23,13 @@ show_help() {
     echo "  -d, --dependencies      Show dependency analysis"
     echo "  -c, --contents          Show JAR contents"
     echo "  -a, --all               Show all analysis (default)"
-    echo "  -m, --module MODULE     Analyze specific module (generic-api-service, metrics-service)"
+    echo "  -m, --module MODULE     Analyze specific module (cordal-api-service, cordal-metrics-service)"
     echo "  -p, --profile PROFILE   Analyze specific profile JARs (executable, thin, optimized, dev)"
     echo
     echo "Examples:"
     echo "  $0                      # Analyze all JARs"
     echo "  $0 --sizes              # Show sizes only"
-    echo "  $0 --module generic-api-service --profile executable"
+    echo "  $0 --module cordal-api-service --profile executable"
     echo "  $0 --dependencies       # Show dependency breakdown"
 }
 
@@ -114,7 +114,7 @@ find_jars() {
     elif [ -n "$profile" ]; then
         find "$PROJECT_ROOT" -path "*/target/*-$profile.jar" 2>/dev/null || true
     else
-        find "$PROJECT_ROOT" -path "*/target/*.jar" -not -path "*/integration-tests/*" 2>/dev/null || true
+        find "$PROJECT_ROOT" -path "*/target/*.jar" -not -path "*/cordal-integration-tests/*" 2>/dev/null || true
     fi
 }
 

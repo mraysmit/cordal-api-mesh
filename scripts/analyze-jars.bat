@@ -1,5 +1,5 @@
 @echo off
-REM JAR Analysis Tool for Javalin API Mesh (Windows)
+REM JAR Analysis Tool for CORDAL (Windows)
 REM This script analyzes built JARs to show dependencies, sizes, and contents
 
 setlocal enabledelayedexpansion
@@ -133,13 +133,13 @@ echo   -s, --sizes             Show JAR sizes only
 echo   -d, --dependencies      Show dependency analysis
 echo   -c, --contents          Show JAR contents
 echo   -a, --all               Show all analysis (default)
-echo   -m, --module MODULE     Analyze specific module (generic-api-service, metrics-service)
+echo   -m, --module MODULE     Analyze specific module (cordal-api-service, cordal-metrics-service)
 echo   -p, --profile PROFILE   Analyze specific profile JARs (executable, thin, optimized, dev)
 echo.
 echo Examples:
 echo   %0                      # Analyze all JARs
 echo   %0 --sizes              # Show sizes only
-echo   %0 --module generic-api-service --profile executable
+echo   %0 --module cordal-api-service --profile executable
 echo   %0 --dependencies       # Show dependency breakdown
 exit /b 0
 
@@ -169,7 +169,7 @@ if defined TARGET_MODULE (
     if defined TARGET_PROFILE (
         for /r "%PROJECT_ROOT%" %%f in (*-%TARGET_PROFILE%.jar) do (
             if exist "%%f" (
-                echo %%f | findstr /v "integration-tests" >nul
+                echo %%f | findstr /v "cordal-integration-tests" >nul
                 if !errorlevel! equ 0 (
                     set /a JAR_COUNT+=1
                     set JAR_!JAR_COUNT!=%%f
@@ -179,7 +179,7 @@ if defined TARGET_MODULE (
     ) else (
         for /r "%PROJECT_ROOT%" %%f in (*.jar) do (
             if exist "%%f" (
-                echo %%f | findstr /v "integration-tests" >nul
+                echo %%f | findstr /v "cordal-integration-tests" >nul
                 if !errorlevel! equ 0 (
                     set /a JAR_COUNT+=1
                     set JAR_!JAR_COUNT!=%%f

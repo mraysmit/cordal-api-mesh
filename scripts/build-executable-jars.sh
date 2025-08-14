@@ -143,8 +143,8 @@ start_build() {
     fi
 
     # Check if JARs were created
-    GENERIC_API_JAR="$PROJECT_ROOT/generic-api-service/target/generic-api-service-1.0-SNAPSHOT-$JAR_CLASSIFIER.jar"
-    METRICS_JAR="$PROJECT_ROOT/metrics-service/target/metrics-service-1.0-SNAPSHOT-$JAR_CLASSIFIER.jar"
+    GENERIC_API_JAR="$PROJECT_ROOT/cordal-api-service/target/cordal-api-service-1.0-SNAPSHOT-$JAR_CLASSIFIER.jar"
+    METRICS_JAR="$PROJECT_ROOT/cordal-metrics-service/target/cordal-metrics-service-1.0-SNAPSHOT-$JAR_CLASSIFIER.jar"
 
     echo "[INFO] Checking created artifacts ($JAR_CLASSIFIER profile):"
     if [ -f "$GENERIC_API_JAR" ]; then
@@ -177,8 +177,8 @@ start_build() {
     echo
     echo "[INFO] You can now start the services using:"
     echo "[INFO]   $SCRIPT_DIR/start-all-services.sh"
-    echo "[INFO]   $SCRIPT_DIR/start-generic-api-service.sh"
-    echo "[INFO]   $SCRIPT_DIR/start-metrics-service.sh"
+    echo "[INFO]   $SCRIPT_DIR/start-cordal-api-service.sh"
+    echo "[INFO]   $SCRIPT_DIR/start-cordal-metrics-service.sh"
     echo
     echo "[INFO] For JAR analysis, run:"
     echo "[INFO]   $SCRIPT_DIR/analyze-jars.sh --profile $JAR_CLASSIFIER"

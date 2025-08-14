@@ -116,7 +116,7 @@ After PostgreSQL setup, test the connection:
 scripts\run-bootstrap-demo.bat
 
 # Or start the service directly
-cd generic-api-service
+cd cordal-api-service
 mvn exec:java
 ```
 

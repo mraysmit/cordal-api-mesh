@@ -1,630 +1,163 @@
-# Javalin API Mesh 😍
+# CORDAL - Configuration Orchestrated REST Dynamic API Layer
 
-A highly modularized, YAML-configured REST API mesh with automatic performance monitoring and dynamic endpoint creation.
+## 🚀 **What is CORDAL?**
 
-## 🏗️ **Architecture Overview**
+CORDAL is a **generic, configuration-driven REST API framework** built on Java 21 and Javalin 6.1.3. It enables you to create dynamic REST APIs for **any domain** through YAML configuration files rather than hardcoded endpoints.
 
-The project is organized into multiple independent modules with shared common utilities:
+## 🏗️ **CRITICAL: Core vs. Example Architecture**
 
+### **CORDAL CORE SYSTEM** (Generic Framework)
 ```
-javalin-api-mesh/
-├── common-library/          # 🔧 Shared utilities and base classes
-├── generic-api-service/     # 🌐 Dynamic API service (Port 8080)
-├── metrics-service/         # 📊 Performance monitoring (Port 8081)
-├── integration-tests/       # 🧪 Cross-module integration testing
-├── javalin-api-mesh/config/ # ⚙️ Shared YAML configuration files
-└── pom.xml                 # 📦 Parent POM with shared dependencies
-```
-😊
-## ✨ **Key Features**
-
-### **🌐 Generic API Service**
-- **YAML-Driven APIs** - Define REST endpoints without coding
-- **Dynamic Query Configuration** - SQL queries externalized to YAML
-- **Multi-Database Support** - Connect different endpoints to different databases
-- **Swagger Integration** - Auto-generated API documentation
-- **Configuration Management APIs** - Runtime configuration inspection and validation
-- **Comprehensive Validation** - Configuration, database schema, and endpoint connectivity validation
-- **Bootstrap Validation** - Startup validation with configurable options
-- **Endpoint Testing** - HTTP connectivity testing with performance monitoring
-
-### **📊 Metrics Service**
-- **Automatic Metrics Collection** - Zero-code performance monitoring
-- **Real-time Analytics** - Live performance dashboards
-- **Historical Data Storage** - Persistent metrics with trend analysis
-- **Grafana Integration** - Export to Prometheus/Grafana
-- **Custom Dashboards** - Built-in performance visualization
-
-### **🔧 Common Library**
-- **Shared Database Management** - Common database utilities and connection pooling
-- **Configuration Framework** - YAML configuration loading and validation
-- **Exception Handling** - Standardized error handling across modules
-- **Application Framework** - Base classes for Javalin applications
-- **Metrics Collection Framework** - Reusable performance monitoring components
-
-### **🧪 Integration Testing**
-- **Cross-Module Testing** - Validate inter-service communication
-- **Configuration Validation** - Test YAML configuration loading
-- **Performance Testing** - Load testing and metrics validation
-- **Real Database Testing** - Integration tests with actual databases
-
-## 🌐 **API Endpoints**
-
-### **Generic API Service** (Port 8080)
-
-The Generic API Service provides YAML-configured REST endpoints for data access:
-
-#### **Dynamic API Endpoints**
-The Generic API Service provides YAML or database-configured REST endpoints. Available endpoints depend on your configuration source:
-
-**When using YAML configuration:**
-- `GET /api/generic/stock-trades` - Get all stock trades with pagination
-  - Query parameters: `page` (default: 1), `size` (default: 20), `async` (default: false)
-- `GET /api/generic/stock-trades/{id}` - Get stock trade by ID
-- `GET /api/generic/stock-trades/symbol/{symbol}` - Get stock trades by symbol with pagination
-- `GET /api/generic/stock-trades/trader/{trader_id}` - Get stock trades by trader ID
-- `GET /api/generic/stock-trades/date-range` - Get stock trades by date range
-  - Query parameters: `start_date`, `end_date`, `page`, `size`
-
-**When using database configuration:**
-- `GET /api/config/databases` - List all database configurations
-- `GET /api/config/queries` - List all query configurations
-- `GET /api/config/endpoints` - List all endpoint configurations
-
-#### **Configuration Management API**
-- `GET /api/generic/config/validate` - Validate all configurations
-- `GET /api/generic/config/validate/endpoints` - Validate endpoint configurations
-- `GET /api/generic/config/validate/queries` - Validate query configurations
-- `GET /api/generic/config/validate/databases` - Validate database configurations
-- `GET /api/generic/config/validate/relationships` - Validate configuration relationships
-- `GET /api/generic/config/validate/endpoint-connectivity` - Test HTTP endpoint connectivity
-- `GET /api/generic/config/endpoints` - List all configured endpoints
-- `GET /api/generic/config/queries` - List all configured queries
-- `GET /api/generic/config/databases` - List all configured databases
-
-#### **Documentation & Health**
-- `GET /swagger` - Swagger UI for API documentation
-- `GET /api-docs` - OpenAPI specification
-- `GET /api/health` - Health check endpoint
-
-### **Metrics Service** (Port 8081)
-
-The Metrics Service provides performance monitoring and analytics:
-
-#### **Performance Metrics API**
-- `GET /api/performance-metrics` - Get all performance metrics with pagination
-- `GET /api/performance-metrics/{id}` - Get specific performance metrics by ID
-- `GET /api/performance-metrics/summary` - Get performance summary statistics
-- `GET /api/metrics/endpoints` - Get real-time endpoint metrics
-- `GET /api/metrics/system` - Get system performance metrics
-
-#### **Dashboard & Monitoring**
-- `GET /dashboard` - Performance monitoring dashboard
-- `GET /api/metrics/prometheus` - Prometheus metrics endpoint (if enabled)
-- `GET /swagger` - Swagger UI for metrics API documentation
-
-## ⚙️ **Configuration System**
-
-The system supports two configuration sources: **YAML files** (default) and **database storage**. This flexible approach allows you to choose the configuration method that best fits your deployment and management needs.
-
-### **Configuration Source Selection**
-
-Configure the source in `application.yml`:
-```yaml
-config:
-  source: yaml      # Options: yaml, database
-  paths:            # YAML file paths (used when source=yaml)
-    databases: "config/stocktrades-databases.yml"
-    queries: "config/stocktrades-queries.yml"
-    endpoints: "config/stocktrades-api-endpoints.yml"
+cordal-api-service/          # ✅ Generic REST API framework
+cordal-common-library/       # ✅ Shared utilities and models  
+cordal-metrics-service/      # ✅ Performance monitoring
+generic-config/              # ✅ Core configuration (generic only)
+scripts/                     # ✅ Build and deployment scripts
 ```
 
-- **`yaml`** (default) - Load configurations from YAML files
-- **`database`** - Load configurations from database tables
-
-### **YAML Configuration (Traditional Approach)**
-
-The system uses a sophisticated YAML-based configuration approach with three main configuration files:
-
-#### **1. Database Connections** (`javalin-api-mesh/config/databases.yml`)
-```yaml
-databases:
-  api-service-config-db:
-    name: "api-service-config-db"
-    description: "Main database for API service configuration data"
-    url: "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
-    username: "sa"
-    password: ""
-    driver: "org.h2.Driver"
-    pool:
-      minimumIdle: 2
-      maximumPoolSize: 10
-      connectionTimeout: 30000
-      idleTimeout: 600000
-      maxLifetime: 1800000
+### **EXAMPLE IMPLEMENTATIONS** (Domain-Specific)
+```
+cordal-integration-tests/
+├── src/test/java/dev/cordal/integration/examples/     # 📋 Stock trades example classes
+├── src/test/resources/config/                         # 📋 Stock trades example configs
+└── src/test/resources/sql/                           # 📋 Stock trades example SQL
 ```
 
-#### **2. SQL Queries** (`javalin-api-mesh/config/queries.yml`)
-```yaml
-queries:
-  stock-trades-all:
-    name: "stock-trades-all"
-    description: "Get all stock trades with pagination"
-    sql: "SELECT * FROM stock_trades ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
-    database: "stock-trades-db"
-    parameters:
-      - name: "limit"
-        type: "INTEGER"
-        required: true
-      - name: "offset"
-        type: "INTEGER"
-        required: true
-```
+### **🎯 Key Principle**
+- **CORE SYSTEM**: Completely generic and domain-agnostic
+- **STOCK TRADES**: Pure example to demonstrate framework usage
+- **YOUR IMPLEMENTATION**: Replace stock trades with your actual domain
 
-#### **3. API Endpoints** (`javalin-api-mesh/config/api-endpoints.yml`)
-```yaml
-endpoints:
-  stock-trades-list:
-    path: "/api/generic/stock-trades"
-    method: "GET"
-    query: "stock-trades-all"
-    countQuery: "stock-trades-count"
-    description: "Get all stock trades with pagination"
-    pagination:
-      enabled: true
-      defaultSize: 20
-      maxSize: 100
-    parameters:
-      - name: "page"
-        type: "INTEGER"
-        source: "QUERY"
-        required: false
-        defaultValue: "1"
-```
+## 🚨 **Important Notice**
 
-### **Database Configuration (New Approach)**
+**Stock trades functionality is NOT part of the core system!** It's an example implementation used for:
+- Demonstrating framework capabilities
+- Integration testing
+- Providing implementation templates
+- Showing best practices
 
-When `config.source: database`, configurations are stored in database tables instead of YAML files. This approach provides:
+When building your application, replace all stock trades references with your actual domain entities.
 
-- **Centralized Management** - All configurations in one database
-- **Runtime Updates** - Modify configurations without file system access
-- **Version Control** - Database-level configuration versioning
-- **Multi-Environment** - Environment-specific configuration management
+## ⚡ **Quick Start**
 
-#### **Database Schema**
-
-The system automatically creates these tables in the `api-service-config` database:
-
-**`config_databases`** - Database connection configurations
-```sql
-CREATE TABLE config_databases (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    url VARCHAR(500) NOT NULL,
-    username VARCHAR(255),
-    password VARCHAR(255),
-    driver VARCHAR(255) NOT NULL,
-    maximum_pool_size INTEGER DEFAULT 10,
-    minimum_idle INTEGER DEFAULT 2,
-    connection_timeout BIGINT DEFAULT 30000,
-    idle_timeout BIGINT DEFAULT 600000,
-    max_lifetime BIGINT DEFAULT 1800000,
-    leak_detection_threshold BIGINT DEFAULT 60000,
-    connection_test_query VARCHAR(255) DEFAULT 'SELECT 1',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-**`config_queries`** - SQL query definitions
-```sql
-CREATE TABLE config_queries (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    database_name VARCHAR(255) NOT NULL,
-    sql_query TEXT NOT NULL,
-    query_type VARCHAR(50) DEFAULT 'SELECT',
-    timeout_seconds INTEGER DEFAULT 30,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-**`config_endpoints`** - API endpoint configurations
-```sql
-CREATE TABLE config_endpoints (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    path VARCHAR(500) NOT NULL,
-    method VARCHAR(10) NOT NULL,
-    query_name VARCHAR(255) NOT NULL,
-    response_format VARCHAR(50) DEFAULT 'json',
-    cache_enabled BOOLEAN DEFAULT false,
-    cache_ttl_seconds INTEGER DEFAULT 300,
-    rate_limit_enabled BOOLEAN DEFAULT false,
-    rate_limit_requests INTEGER DEFAULT 100,
-    rate_limit_window_seconds INTEGER DEFAULT 60,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-#### **Sample Configuration Data**
-
-When using database source, the system loads sample configurations:
-
-**Database Configurations:**
-- `api-service-config-db` - Main configuration database
-- `metrics-db` - Performance metrics database
-
-**Query Configurations:**
-- `get-all-databases` - Retrieve all database configurations
-- `get-all-queries` - Retrieve all query configurations
-- `get-all-endpoints` - Retrieve all endpoint configurations
-
-**Endpoint Configurations:**
-- `GET /api/config/databases` - List database configurations
-- `GET /api/config/queries` - List query configurations
-- `GET /api/config/endpoints` - List endpoint configurations
-
-#### **Configuration Management APIs**
-
-When using database source, these APIs provide access to stored configurations:
-
-- `GET /api/config/databases` - List all database configurations
-- `GET /api/config/queries` - List all query configurations
-- `GET /api/config/endpoints` - List all endpoint configurations
-
-### **Configuration Benefits**
-
-**YAML Configuration:**
-- ✅ **Zero-Code API Creation** - Add new endpoints without programming
-- ✅ **Multi-Database Support** - Different endpoints can use different databases
-- ✅ **Automatic Validation** - Configuration integrity checks at startup
-- ✅ **Runtime Inspection** - APIs to view and validate configurations
-- ✅ **Environment Flexibility** - Easy configuration changes per environment
-- ✅ **Version Control** - Track configuration changes in Git
-- ✅ **File-Based Management** - Simple text file editing
-
-**Database Configuration:**
-- ✅ **Centralized Storage** - All configurations in one database
-- ✅ **Runtime Updates** - Modify configurations without file system access
-- ✅ **Multi-Environment Support** - Environment-specific configuration management
-- ✅ **Database-Level Security** - Leverage database access controls
-- ✅ **Audit Trail** - Track configuration changes with timestamps
-- ✅ **Scalable Management** - Handle large numbers of configurations efficiently
-- ✅ **API-Driven Updates** - Programmatic configuration management
-
-## ✅ **Configuration Validation**
-
-The system provides comprehensive configuration validation to ensure all configurations are correct before deployment:
-
-### **Validation Modes**
-
-#### **1. Startup Validation**
-Run validation during normal application startup:
-```yaml
-# application.yml
-validation:
-  runOnStartup: true   # Enable validation on every startup
-  validateOnly: false  # Continue with normal startup after validation
-```
-
-#### **2. Standalone Validation**
-Run validation only and exit (perfect for CI/CD pipelines):
-```yaml
-# application.yml
-validation:
-  runOnStartup: false  # Not needed when validateOnly is true
-  validateOnly: true   # Run validation and exit without starting server
-```
-
-#### **3. Command Line Validation**
-Override configuration with command line arguments:
-```bash
-# Run validation only and exit
-java -jar generic-api-service.jar --validate-only
-
-# Alternative short form
-java -jar generic-api-service.jar --validate
-```
-
-### **Validation Process**
-- **Configuration Chain Validation** - Verifies endpoints → queries → databases relationships
-- **Database Schema Validation** - Checks table existence, field availability, and query compatibility
-- **Endpoint Connectivity Validation** - Tests HTTP endpoints with actual requests and performance monitoring
-- **Detailed Error Reporting** - ASCII tables with clear, readable validation results
-- **Fatal Error Handling** - Application exits with proper error codes on validation failure
-
-### **Use Cases**
-- **CI/CD Integration** - Validate configurations in deployment pipelines
-- **Development Verification** - Quickly check configuration setup during development
-- **Production Pre-checks** - Validate configurations before starting services
-- **Troubleshooting** - Identify configuration issues without full application startup
-
-## 🚀 **Getting Started**
-
-### **Prerequisites**
-- Java 21 or higher
-- Maven 3.8 or higher
-
-### **Build & Run**
-
-#### **1. Build All Modules**
+### 1. **Core System Setup**
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd javalin-api-mesh
+cd cordal-api-mesh
 
-# Build all modules
+# Build the core system
 mvn clean install
+
+# Run the generic API service
+cd cordal-api-service
+mvn spring-boot:run
 ```
 
-#### **2. Run Generic API Service** (Port 8080)
+### 2. **Configure Your Domain**
+Create your domain-specific configuration files in `generic-config/`:
+
+**your-domain-databases.yml**:
+```yaml
+databases:
+  your_database:
+    name: "your_database"
+    url: "jdbc:h2:./data/your-data"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+```
+
+**your-domain-queries.yml**:
+```yaml
+queries:
+  get_your_entities:
+    database: "your_database"
+    sql: "SELECT * FROM your_table ORDER BY created_date DESC"
+    parameters: []
+```
+
+**your-domain-endpoints.yml**:
+```yaml
+endpoints:
+  your_entities_list:
+    path: "/api/your-entities"
+    method: "GET"
+    query: "get_your_entities"
+    pagination:
+      enabled: true
+      defaultSize: 20
+```
+
+### 3. **Access Your APIs**
 ```bash
-cd generic-api-service
-mvn exec:java -Dexec.mainClass="dev.mars.generic.GenericApiApplication"
+# Your configured endpoints
+curl http://localhost:8080/api/your-entities
+
+# Core system endpoints
+curl http://localhost:8080/api/health
+curl http://localhost:8080/dashboard
 ```
 
-#### **3. Run Metrics Service** (Port 8081)
-```bash
-cd metrics-service
-mvn exec:java -Dexec.mainClass="dev.mars.metrics.MetricsApplication"
-```
+## 📚 **Documentation**
 
-#### **4. Quick Start with Executable JARs** (Recommended)
-```bash
-# Build fat JARs (default - includes all dependencies)
-./scripts/build-executable-jars.sh
+- **[Comprehensive Guide](docs/CORDAL_COMPREHENSIVE_GUIDE.md)** - Complete framework documentation
+- **[API Reference](docs/API_REFERENCE.md)** - Detailed API documentation
+- **[Configuration Guide](docs/CONFIGURATION_GUIDE.md)** - Configuration examples and best practices
 
-# Start all services
-./scripts/start-all-services.sh
+## 🧪 **Example Implementation**
 
-# Or start individual services
-./scripts/start-generic-api-service.sh
-./scripts/start-metrics-service.sh
-```
+The stock trades example in `cordal-integration-tests/` demonstrates:
+- Database configuration and connection management
+- Query definition and parameter handling
+- REST endpoint configuration and routing
+- Pagination and response formatting
+- Integration testing patterns
 
-#### **5. Alternative JAR Types**
-```bash
-# Build optimized JARs (smaller size, production-ready)
-./scripts/build-executable-jars.sh --optimized-jar
+**Use it as a template** for your own domain implementation.
 
-# Build development JARs (fastest build, for development)
-./scripts/build-executable-jars.sh --dev
+## 🛠️ **Technology Stack**
 
-# Build thin JARs (minimal size, requires classpath)
-./scripts/build-executable-jars.sh --thin-jar
-
-# Build with analysis
-./scripts/build-executable-jars.sh --optimized-jar --analyze
-```
-
-#### **6. JAR Analysis**
-```bash
-# Analyze all built JARs
-./scripts/analyze-jars.sh
-
-# Analyze specific profile
-./scripts/analyze-jars.sh --profile optimized
-
-# Show sizes only
-./scripts/analyze-jars.sh --sizes
-```
-
-#### **7. Access the Applications**
-- **Generic API Service**: http://localhost:8080
-- **Swagger Documentation**: http://localhost:8080/swagger
-- **Metrics Service**: http://localhost:8081
-- **Performance Dashboard**: http://localhost:8081/dashboard
-
-### **Testing**
-
-#### **Run All Tests**
-```bash
-mvn test
-```
-
-#### **Run Module-Specific Tests**
-```bash
-# Generic API Service tests
-mvn test -pl generic-api-service
-
-# Metrics Service tests
-mvn test -pl metrics-service
-
-# Integration tests
-mvn test -pl integration-tests
-```
-
-#### **Run Specific Test Classes**
-```bash
-mvn test -Dtest=GenericApiApplicationTest
-mvn test -Dtest=ConfigurationIntegrationTest
-```
-
-## 📡 **Sample API Calls**
-
-### **Generic API Service** (Port 8080)
-
-#### **Stock Trades API**
-```bash
-# Get all stock trades with pagination
-curl "http://localhost:8080/api/generic/stock-trades?page=1&size=10"
-
-# Get stock trade by ID
-curl "http://localhost:8080/api/generic/stock-trades/1"
-
-# Get stock trades by symbol
-curl "http://localhost:8080/api/generic/stock-trades/symbol/AAPL?page=1&size=5"
-
-# Get stock trades by trader
-curl "http://localhost:8080/api/generic/stock-trades/trader/TRADER001?page=1&size=10"
-
-# Get stock trades by date range
-curl "http://localhost:8080/api/generic/stock-trades/date-range?start_date=2024-01-01&end_date=2024-12-31&page=1&size=20"
-
-# Async operations
-curl "http://localhost:8080/api/generic/stock-trades?async=true&page=1&size=10"
-```
-
-#### **Configuration Management**
-```bash
-# Validate all configurations
-curl "http://localhost:8080/api/generic/config/validate"
-
-# List all endpoints
-curl "http://localhost:8080/api/generic/config/endpoints"
-
-# List all queries
-curl "http://localhost:8080/api/generic/config/queries"
-
-# Health check
-curl "http://localhost:8080/api/health"
-```
-
-#### **Health Monitoring & Deployment Verification**
-```bash
-# Comprehensive health status
-curl "http://localhost:8080/api/management/health"
-
-# Database health
-curl "http://localhost:8080/api/management/health/databases"
-
-# Specific database health
-curl "http://localhost:8080/api/management/health/databases/stocktrades"
-
-# Readiness check (Kubernetes ready probe)
-curl "http://localhost:8080/api/management/readiness"
-
-# Liveness check (Kubernetes liveness probe)
-curl "http://localhost:8080/api/management/liveness"
-
-# Deployment information
-curl "http://localhost:8080/api/management/deployment"
-
-# JAR information and dependencies
-curl "http://localhost:8080/api/management/jar"
-
-# Management dashboard
-curl "http://localhost:8080/api/management/dashboard"
-```
-
-### **Metrics Service** (Port 8081)
-
-#### **Performance Metrics**
-```bash
-# Get performance metrics
-curl "http://localhost:8081/api/performance-metrics?page=1&size=10"
-
-# Get performance summary
-curl "http://localhost:8081/api/performance-metrics/summary"
-
-# Get real-time endpoint metrics
-curl "http://localhost:8081/api/metrics/endpoints"
-
-# Get system metrics
-curl "http://localhost:8081/api/metrics/system"
-```
-
-## 🗄️ **Database Architecture**
-
-The system uses **separate H2 file-based databases** for different concerns:
-
-### **Application Data Database**
-- **Location**: `./data/stocktrades.mv.db`
-- **Purpose**: Stock trades and business data
-- **Schema**: Automatically created on startup
-
-```sql
-CREATE TABLE stock_trades (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    symbol VARCHAR(10) NOT NULL,
-    trade_type VARCHAR(4) NOT NULL CHECK (trade_type IN ('BUY', 'SELL')),
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
-    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
-    total_value DECIMAL(15,2) NOT NULL,
-    trade_date_time TIMESTAMP NOT NULL,
-    trader_id VARCHAR(50) NOT NULL,
-    exchange VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-### **Metrics Database**
-- **Location**: `./data/metrics.mv.db`
-- **Purpose**: Performance metrics and monitoring data
-- **Schema**: Automatically created by metrics service
-
-```sql
-CREATE TABLE performance_metrics (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    test_name VARCHAR(255) NOT NULL,
-    test_type VARCHAR(50) NOT NULL,
-    response_time_ms BIGINT NOT NULL,
-    success BOOLEAN NOT NULL,
-    timestamp TIMESTAMP NOT NULL,
-    additional_data TEXT
-);
-```
-
-## 📊 **Monitoring & Observability**
-
-### **Automatic Metrics Collection**
-- ✅ **Response Times** - Automatic tracking for all endpoints
-- ✅ **Success Rates** - HTTP status code monitoring
-- ✅ **Memory Usage** - Optional memory consumption tracking
-- ✅ **Request Counts** - Per-endpoint request statistics
-
-### **Performance Dashboard**
-- 📈 **Real-time Charts** - Live performance visualization
-- 📊 **Historical Trends** - Performance over time analysis
-- 🎯 **Endpoint Analytics** - Per-endpoint performance breakdown
-- 🔍 **System Metrics** - Memory, CPU, and system health
-
-### **Grafana Integration**
-- 📡 **Prometheus Metrics** - Export metrics to Prometheus
-- 📊 **Custom Dashboards** - Grafana dashboard templates
-- 🚨 **Alerting** - Performance threshold monitoring
-
-## 🛠️ **Technologies Used**
-
-### **Core Framework**
+- **Java 21** - Modern Java features and performance
 - **Javalin 6.1.3** - Lightweight web framework
-- **Google Guice 7.0.0** - Dependency injection
-- **Jackson 2.17.1** - JSON serialization
-- **SnakeYAML 2.2** - YAML configuration
+- **H2/PostgreSQL** - Database support with connection pooling
+- **HikariCP** - High-performance connection pooling
+- **Jackson** - JSON processing
+- **SLF4J + Logback** - Comprehensive logging
+- **Maven** - Build and dependency management
 
-### **Database & Persistence**
-- **H2 Database 2.2.224** - Embedded database
-- **HikariCP 5.1.0** - Connection pooling
+## 🏃‍♂️ **Development Workflow**
 
-### **Testing & Quality**
-- **JUnit 5.10.2** - Testing framework
-- **Logback 1.5.6** - Logging framework
+1. **Define your domain** (replace stock trades examples)
+2. **Configure databases** in `generic-config/your-domain-databases.yml`
+3. **Define queries** in `generic-config/your-domain-queries.yml`
+4. **Configure endpoints** in `generic-config/your-domain-endpoints.yml`
+5. **Run and test** your APIs
+6. **Monitor performance** via the dashboard
 
-### **Documentation & Monitoring**
-- **Swagger/OpenAPI** - API documentation
-- **Custom Performance Dashboard** - Built-in monitoring
-- **Prometheus Integration** - Metrics export
+## 📊 **Built-in Features**
 
-## 📚 **Additional Documentation**
+- ✅ **Configuration-driven** - No hardcoded endpoints
+- ✅ **Automatic metrics** - Zero-code performance monitoring
+- ✅ **Multi-database support** - H2, PostgreSQL, and more
+- ✅ **Connection pooling** - Production-ready database connections
+- ✅ **Real-time dashboard** - Performance monitoring with charts
+- ✅ **Health checks** - Application and database health monitoring
+- ✅ **Comprehensive validation** - Configuration validation with detailed errors
+- ✅ **Production ready** - Multiple deployment profiles and monitoring
 
-- [Architecture Guide](docs/ARCHITECTURE_GUIDE.md) - Detailed system architecture
-- [Configuration Schema Reference](docs/CONFIGURATION_SCHEMA_REFERENCE.md) - Complete YAML configuration guide
-- [Configuration Validation](docs/CONFIGURATION_VALIDATION.md) - Configuration validation guide and best practices
-- [Endpoint Validation](docs/ENDPOINT_VALIDATION.md) - HTTP endpoint connectivity testing guide
-- [Bootstrap Demo](docs/BOOTSTRAP_DEMO.md) - System demonstration and validation showcase
-- [Common Library Implementation](docs/COMMON_LIBRARY_IMPLEMENTATION.md) - Shared utilities guide
-- [Metrics Collection Architecture](docs/METRICS_COLLECTION_ARCHITECTURE.md) - Performance monitoring details
-- [Metrics Collection Implementation](docs/METRICS_COLLECTION_IMPLEMENTATION.md) - Implementation guide
-- [Metrics Collection Quick Reference](docs/METRICS_COLLECTION_QUICK_REFERENCE.md) - Quick start guide
-- [Dashboard Configuration](docs/DASHBOARD_CONFIGURATION.md) - Dashboard setup and configuration
-- [Performance Dashboard](docs/PERFORMANCE_DASHBOARD.md) - Dashboard features and usage
-- [Test Documentation](docs/TEST_DOCUMENTATION.md) - Testing guide and best practices
-- [Metrics Collection Tests](docs/METRICS_COLLECTION_TESTS.md) - Metrics testing documentation
-- [Configuration Examples](config/) - YAML configuration samples
+## 🤝 **Contributing**
+
+When contributing to CORDAL:
+1. **Keep the core system generic** - No domain-specific code in core modules
+2. **Add examples to integration tests** - Domain-specific examples belong in `cordal-integration-tests/`
+3. **Update documentation** - Clearly distinguish between core framework and examples
+4. **Follow the architecture** - Maintain separation between generic framework and specific implementations
+
+## 📄 **License**
+
+[Add your license information here]
+
+---
+
+**Remember**: CORDAL is a generic framework. Stock trades is just an example. Build amazing APIs for YOUR domain! 🚀

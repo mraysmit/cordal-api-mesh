@@ -1,639 +1,132 @@
-2025-06-29 01:02:47.126531+08:00 jdbc[3]: exception
+2025-07-07 22:33:16.967790+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.172017+08:00 jdbc[4]: exception
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:33:16.968790+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.188646+08:00 jdbc[5]: exception
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:33:16.968790+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.195299+08:00 jdbc[6]: exception
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:33:16.978224+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.203297+08:00 jdbc[7]: exception
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:33:19.838634+08:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.210298+08:00 jdbc[8]: exception
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:33:19.838634+08:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.218360+08:00 jdbc[9]: exception
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:33:19.839636+08:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.223896+08:00 jdbc[10]: exception
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:33:19.839636+08:00 jdbc[4]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.231203+08:00 jdbc[12]: exception
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:44:16.472398+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.239279+08:00 jdbc[13]: exception
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:44:16.473397+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 01:02:47.247974+08:00 jdbc[14]: exception
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:44:16.473397+08:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
-INSERT INTO stock_trades (symbol, trade_type, quantity, price, total_value,
-                        trade_date_time, trader_id, exchange)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
- [42104-224]
-2025-06-29 03:39:39.190279Z database: flush
-org.h2.message.DbException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.message.DbException.convert(DbException.java:407)
-	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
-	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
-	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
-	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
-	at org.h2.mvstore.db.Store.<init>(Store.java:133)
-	at org.h2.engine.Database.<init>(Database.java:326)
-	at org.h2.engine.Engine.openSession(Engine.java:92)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:344)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.intellij.database.remote.jdbc.helpers.JdbcHelperImpl.connect(JdbcHelperImpl.java:769)
-	at com.intellij.database.remote.jdbc.impl.RemoteDriverImpl.connect(RemoteDriverImpl.java:152)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 32 more
-Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
-	... 26 more
-2025-06-29 03:40:06.180283Z jdbc[3]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-06-29 03:44:24.868750Z jdbc[3]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-06-29 03:44:33.471846Z jdbc[3]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-06-29 03:44:48.106638Z jdbc[4]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-06-29 03:45:01.921683Z jdbc[5]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-06-29 12:00:57.251558+08:00 database: flush
-org.h2.message.DbException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.2.224/7]" [50000-224]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.message.DbException.convert(DbException.java:407)
-	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
-	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
-	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
-	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
-	at org.h2.mvstore.db.Store.<init>(Store.java:133)
-	at org.h2.engine.Database.<init>(Database.java:326)
-	at org.h2.engine.Engine.openSession(Engine.java:92)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:343)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:125)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137)
-	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360)
-	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202)
-	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461)
-	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550)
-	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98)
-	at com.zaxxer.hikari.HikariDataSource.<init>(HikariDataSource.java:80)
-	at dev.mars.config.DatabaseConfig.initializeDataSource(DatabaseConfig.java:51)
-	at dev.mars.config.DatabaseConfig.<init>(DatabaseConfig.java:21)
-	at dev.mars.config.GuiceModule.provideDatabaseConfig(GuiceModule.java:45)
-	at dev.mars.config.GuiceModule$$FastClassByGuice$$7aa33.GUICE$TRAMPOLINE(<generated>)
-	at dev.mars.config.GuiceModule$$FastClassByGuice$$7aa33.apply(<generated>)
-	at com.google.inject.internal.ProviderMethod$FastClassProviderMethod.doProvision(ProviderMethod.java:260)
-	at com.google.inject.internal.ProviderMethod.doProvision(ProviderMethod.java:171)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.provision(InternalProviderInstanceBindingImpl.java:185)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.get(InternalProviderInstanceBindingImpl.java:162)
-	at com.google.inject.internal.ProviderToInternalFactoryAdapter.get(ProviderToInternalFactoryAdapter.java:40)
-	at com.google.inject.internal.SingletonScope$1.get(SingletonScope.java:169)
-	at com.google.inject.internal.InternalFactoryToProviderAdapter.get(InternalFactoryToProviderAdapter.java:45)
-	at com.google.inject.internal.SingleParameterInjector.inject(SingleParameterInjector.java:40)
-	at com.google.inject.internal.SingleParameterInjector.getAll(SingleParameterInjector.java:60)
-	at com.google.inject.internal.ProviderMethod.doProvision(ProviderMethod.java:171)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.provision(InternalProviderInstanceBindingImpl.java:185)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.get(InternalProviderInstanceBindingImpl.java:162)
-	at com.google.inject.internal.ProviderToInternalFactoryAdapter.get(ProviderToInternalFactoryAdapter.java:40)
-	at com.google.inject.internal.SingletonScope$1.get(SingletonScope.java:169)
-	at com.google.inject.internal.InternalFactoryToProviderAdapter.get(InternalFactoryToProviderAdapter.java:45)
-	at com.google.inject.internal.SingleParameterInjector.inject(SingleParameterInjector.java:40)
-	at com.google.inject.internal.SingleParameterInjector.getAll(SingleParameterInjector.java:60)
-	at com.google.inject.internal.ProviderMethod.doProvision(ProviderMethod.java:171)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.provision(InternalProviderInstanceBindingImpl.java:185)
-	at com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory.get(InternalProviderInstanceBindingImpl.java:162)
-	at com.google.inject.internal.ProviderToInternalFactoryAdapter.get(ProviderToInternalFactoryAdapter.java:40)
-	at com.google.inject.internal.SingletonScope$1.get(SingletonScope.java:169)
-	at com.google.inject.internal.InternalFactoryToProviderAdapter.get(InternalFactoryToProviderAdapter.java:45)
-	at com.google.inject.internal.InjectorImpl$1.get(InjectorImpl.java:1148)
-	at com.google.inject.internal.InjectorImpl.getInstance(InjectorImpl.java:1186)
-	at dev.mars.Application.start(Application.java:52)
-	at dev.mars.Application.main(Application.java:30)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.2.224/7]" [50000-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 54 more
-Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.2.224/7]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
-	... 48 more
-2025-07-03 15:45:43.642429Z database: wrong user or password; user: ""
-org.h2.message.DbException: Wrong user name or password [28000-232]
-	at org.h2.message.DbException.get(DbException.java:223)
-	at org.h2.message.DbException.get(DbException.java:199)
-	at org.h2.message.DbException.get(DbException.java:188)
-	at org.h2.engine.Engine.openSession(Engine.java:154)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:344)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.intellij.database.remote.jdbc.helpers.JdbcHelperImpl.connect(JdbcHelperImpl.java:769)
-	at com.intellij.database.remote.jdbc.impl.RemoteDriverImpl.connect(RemoteDriverImpl.java:152)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: org.h2.jdbc.JdbcSQLInvalidAuthorizationSpecException: Wrong user name or password [28000-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:522)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 26 more
-2025-07-03 15:45:57.261602Z database: flush
-org.h2.message.DbException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.message.DbException.convert(DbException.java:407)
-	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
-	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
-	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
-	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
-	at org.h2.mvstore.db.Store.<init>(Store.java:133)
-	at org.h2.engine.Database.<init>(Database.java:326)
-	at org.h2.engine.Engine.openSession(Engine.java:92)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:344)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.intellij.database.remote.jdbc.helpers.JdbcHelperImpl.connect(JdbcHelperImpl.java:769)
-	at com.intellij.database.remote.jdbc.impl.RemoteDriverImpl.connect(RemoteDriverImpl.java:152)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 32 more
-Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
-	... 26 more
-2025-07-03 15:47:33.209855Z database: flush
-org.h2.message.DbException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.message.DbException.convert(DbException.java:407)
-	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
-	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
-	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
-	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
-	at org.h2.mvstore.db.Store.<init>(Store.java:133)
-	at org.h2.engine.Database.<init>(Database.java:326)
-	at org.h2.engine.Engine.openSession(Engine.java:92)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:344)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.intellij.database.remote.jdbc.helpers.JdbcHelperImpl.connect(JdbcHelperImpl.java:769)
-	at com.intellij.database.remote.jdbc.impl.RemoteDriverImpl.connect(RemoteDriverImpl.java:152)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 32 more
-Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
-	... 26 more
-2025-07-03 15:47:40.837123Z database: flush
-org.h2.message.DbException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.message.DbException.convert(DbException.java:407)
-	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
-	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
-	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
-	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
-	at org.h2.mvstore.db.Store.<init>(Store.java:133)
-	at org.h2.engine.Database.<init>(Database.java:326)
-	at org.h2.engine.Engine.openSession(Engine.java:92)
-	at org.h2.engine.Engine.openSession(Engine.java:222)
-	at org.h2.engine.Engine.createSession(Engine.java:201)
-	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:344)
-	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
-	at org.h2.Driver.connect(Driver.java:59)
-	at com.intellij.database.remote.jdbc.helpers.JdbcHelperImpl.connect(JdbcHelperImpl.java:769)
-	at com.intellij.database.remote.jdbc.impl.RemoteDriverImpl.connect(RemoteDriverImpl.java:152)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]" [50000-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 32 more
-Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/mraysmit/dev/idea-projects/javalin-api-mesh/data/stocktrades.mv.db [2.3.232/7]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
-	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
-	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
-	... 26 more
-2025-07-03 15:47:44.992883Z jdbc[3]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-07-03 15:47:45.220950Z jdbc[4]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-07-03 15:48:49.703154Z jdbc[3]: exception
-java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
-	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
-	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
-	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
-	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
-	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
-	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
-	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-2025-07-04 12:13:50.546324+08:00 database: close
-org.h2.message.DbException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.mvstore.db.Store.close(Store.java:374)
-	at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:1293)
-	at org.h2.engine.Database.closeImpl(Database.java:1255)
-	at org.h2.engine.Database.close(Database.java:1174)
-	at org.h2.engine.Database.onShutdown(Database.java:1159)
-	at org.h2.engine.OnExitDatabaseCloser.onShutdown(OnExitDatabaseCloser.java:85)
-	at org.h2.engine.OnExitDatabaseCloser.run(OnExitDatabaseCloser.java:114)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 8 more
-Caused by: org.h2.mvstore.MVStoreException: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator [2.2.224/3]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:926)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:463)
-	at org.h2.mvstore.RandomAccessStore.compactStore(RandomAccessStore.java:443)
-	at org.h2.mvstore.FileStore.compactStore(FileStore.java:888)
-	at org.h2.mvstore.FileStore.stop(FileStore.java:275)
-	at org.h2.mvstore.MVStore.closeStore(MVStore.java:693)
-	at org.h2.mvstore.MVStore.close(MVStore.java:643)
-	at org.h2.mvstore.db.Store.close(Store.java:364)
-	... 6 more
-Caused by: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator
-	at org.h2.mvstore.RandomAccessStore.findChunksToMove(RandomAccessStore.java:516)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:479)
-	at org.h2.mvstore.RandomAccessStore.lambda$compactMoveChunks$1(RandomAccessStore.java:468)
-	at org.h2.mvstore.FileStore.executeFileStoreOperation(FileStore.java:1888)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:922)
-	... 13 more
-Caused by: java.lang.ClassNotFoundException: org.h2.mvstore.Chunk$PositionComparator
-	... 18 more
-2025-07-04 12:25:39.570544+08:00 database: close
-org.h2.message.DbException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.mvstore.db.Store.close(Store.java:374)
-	at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:1293)
-	at org.h2.engine.Database.closeImpl(Database.java:1255)
-	at org.h2.engine.Database.close(Database.java:1174)
-	at org.h2.engine.Database.onShutdown(Database.java:1159)
-	at org.h2.engine.OnExitDatabaseCloser.onShutdown(OnExitDatabaseCloser.java:85)
-	at org.h2.engine.OnExitDatabaseCloser.run(OnExitDatabaseCloser.java:114)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 8 more
-Caused by: org.h2.mvstore.MVStoreException: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator [2.2.224/3]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:926)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:463)
-	at org.h2.mvstore.RandomAccessStore.compactStore(RandomAccessStore.java:443)
-	at org.h2.mvstore.FileStore.compactStore(FileStore.java:888)
-	at org.h2.mvstore.FileStore.stop(FileStore.java:275)
-	at org.h2.mvstore.MVStore.closeStore(MVStore.java:693)
-	at org.h2.mvstore.MVStore.close(MVStore.java:643)
-	at org.h2.mvstore.db.Store.close(Store.java:364)
-	... 6 more
-Caused by: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator
-	at org.h2.mvstore.RandomAccessStore.findChunksToMove(RandomAccessStore.java:516)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:479)
-	at org.h2.mvstore.RandomAccessStore.lambda$compactMoveChunks$1(RandomAccessStore.java:468)
-	at org.h2.mvstore.FileStore.executeFileStoreOperation(FileStore.java:1888)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:922)
-	... 13 more
-Caused by: java.lang.ClassNotFoundException: org.h2.mvstore.Chunk$PositionComparator
-	at org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader.loadClass(URLClassLoaderBuilder.java:198)
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:528)
-	... 18 more
-2025-07-04 12:29:46.110279+08:00 database: close
-org.h2.message.DbException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.mvstore.db.Store.close(Store.java:374)
-	at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:1293)
-	at org.h2.engine.Database.closeImpl(Database.java:1255)
-	at org.h2.engine.Database.close(Database.java:1174)
-	at org.h2.engine.Database.onShutdown(Database.java:1159)
-	at org.h2.engine.OnExitDatabaseCloser.onShutdown(OnExitDatabaseCloser.java:85)
-	at org.h2.engine.OnExitDatabaseCloser.run(OnExitDatabaseCloser.java:114)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 8 more
-Caused by: org.h2.mvstore.MVStoreException: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator [2.2.224/3]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:926)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:463)
-	at org.h2.mvstore.RandomAccessStore.compactStore(RandomAccessStore.java:443)
-	at org.h2.mvstore.FileStore.compactStore(FileStore.java:888)
-	at org.h2.mvstore.FileStore.stop(FileStore.java:275)
-	at org.h2.mvstore.MVStore.closeStore(MVStore.java:693)
-	at org.h2.mvstore.MVStore.close(MVStore.java:643)
-	at org.h2.mvstore.db.Store.close(Store.java:364)
-	... 6 more
-Caused by: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator
-	at org.h2.mvstore.RandomAccessStore.findChunksToMove(RandomAccessStore.java:516)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:479)
-	at org.h2.mvstore.RandomAccessStore.lambda$compactMoveChunks$1(RandomAccessStore.java:468)
-	at org.h2.mvstore.FileStore.executeFileStoreOperation(FileStore.java:1888)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:922)
-	... 13 more
-Caused by: java.lang.ClassNotFoundException: org.h2.mvstore.Chunk$PositionComparator
-	at org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader.loadClass(URLClassLoaderBuilder.java:198)
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:528)
-	... 18 more
-2025-07-04 14:30:29.819136+08:00 database: close
-org.h2.message.DbException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.get(DbException.java:212)
-	at org.h2.mvstore.db.Store.close(Store.java:374)
-	at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:1293)
-	at org.h2.engine.Database.closeImpl(Database.java:1255)
-	at org.h2.engine.Database.close(Database.java:1174)
-	at org.h2.engine.Database.onShutdown(Database.java:1159)
-	at org.h2.engine.OnExitDatabaseCloser.onShutdown(OnExitDatabaseCloser.java:85)
-	at org.h2.engine.OnExitDatabaseCloser.run(OnExitDatabaseCloser.java:114)
-Caused by: org.h2.jdbc.JdbcSQLNonTransientException: IO Exception: "Closing" [90028-224]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	... 8 more
-Caused by: org.h2.mvstore.MVStoreException: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator [2.2.224/3]
-	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:926)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:463)
-	at org.h2.mvstore.RandomAccessStore.compactStore(RandomAccessStore.java:443)
-	at org.h2.mvstore.FileStore.compactStore(FileStore.java:888)
-	at org.h2.mvstore.FileStore.stop(FileStore.java:275)
-	at org.h2.mvstore.MVStore.closeStore(MVStore.java:693)
-	at org.h2.mvstore.MVStore.close(MVStore.java:643)
-	at org.h2.mvstore.db.Store.close(Store.java:364)
-	... 6 more
-Caused by: java.lang.NoClassDefFoundError: org/h2/mvstore/Chunk$PositionComparator
-	at org.h2.mvstore.RandomAccessStore.findChunksToMove(RandomAccessStore.java:516)
-	at org.h2.mvstore.RandomAccessStore.compactMoveChunks(RandomAccessStore.java:479)
-	at org.h2.mvstore.RandomAccessStore.lambda$compactMoveChunks$1(RandomAccessStore.java:468)
-	at org.h2.mvstore.FileStore.executeFileStoreOperation(FileStore.java:1888)
-	at org.h2.mvstore.MVStore.executeFilestoreOperation(MVStore.java:922)
-	... 13 more
-Caused by: java.lang.ClassNotFoundException: org.h2.mvstore.Chunk$PositionComparator
-	at org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader.loadClass(URLClassLoaderBuilder.java:198)
-	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:528)
-	... 18 more
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:44:16.473397+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:44:19.243623+08:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:44:19.244625+08:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-07 22:44:19.244625+08:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-07 22:44:19.244625+08:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:10:35.883264+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:10:35.885372+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:10:35.886370+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:10:35.887367+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:17:42.519012+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:17:42.520787+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:17:42.521310+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:17:42.522193+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:19:24.872305+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:19:24.874306+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:19:24.874306+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:19:24.875307+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:50:49.018224+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:50:49.020221+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-07-13 16:50:49.020221+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-07-13 16:50:49.021216+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:06:04.879196+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:06:04.881596+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:06:04.882107+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:06:04.882107+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:22:58.650593+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:22:58.651595+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:22:58.651595+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:22:58.651595+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:31:00.419177+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:31:00.420772+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM STOCK_TRADES LIMIT 1 [42104-232]
+2025-08-14 13:31:00.420772+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.stock_trades LIMIT 1 [42104-232]
+2025-08-14 13:31:00.420772+08:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "STOCK_TRADES" not found (this database is empty); SQL statement:
+SELECT 1 FROM PUBLIC.STOCK_TRADES LIMIT 1 [42104-232]

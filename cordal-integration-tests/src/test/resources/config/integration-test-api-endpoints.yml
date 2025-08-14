@@ -1,0 +1,175 @@
+# Integration Test API Endpoints Configuration
+# This file combines all endpoint configurations needed for integration testing
+# Including both the stock trades example and other test endpoints
+
+endpoints:
+  # Stock Trades Endpoints - EXAMPLE IMPLEMENTATIONS
+  stock-trades-list:
+    path: "/api/generic/stock-trades"
+    method: "GET"
+    description: "EXAMPLE: Get all stock trades with pagination"
+    query: "stock-trades-all"
+    countQuery: "stock-trades-count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  stock-trades-by-symbol:
+    path: "/api/generic/stock-trades/symbol/{symbol}"
+    method: "GET"
+    description: "EXAMPLE: Get stock trades by symbol with pagination"
+    query: "stock-trades-by-symbol"
+    countQuery: "stock-trades-count-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        source: "PATH"
+        description: "Stock symbol"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  stock-trades-by-date-range:
+    path: "/api/generic/stock-trades/date-range"
+    method: "GET"
+    description: "EXAMPLE: Get stock trades by date range with pagination"
+    query: "stock-trades-by-date-range"
+    countQuery: "stock-trades-count-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+        source: "QUERY"
+        description: "Start date (YYYY-MM-DD HH:MM:SS)"
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+        source: "QUERY"
+        description: "End date (YYYY-MM-DD HH:MM:SS)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 20
+        description: "Page size"
+    response:
+      type: "PAGED"
+
+  # PostgreSQL test endpoints for dual database testing
+  trades_db_1_stock_trades_list:
+    path: "/api/trades-db-1/stock-trades"
+    method: "GET"
+    description: "Get all stock trades from PostgreSQL database 1"
+    query: "trades_db_1_stock_trades_all"
+    countQuery: "trades_db_1_stock_trades_count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+
+  trades_db_1_stock_trades_by_symbol:
+    path: "/api/trades-db-1/stock-trades/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol from PostgreSQL database 1"
+    query: "trades_db_1_stock_trades_by_symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        source: "PATH"
+
+  trades_db_1_stock_trades_by_trader:
+    path: "/api/trades-db-1/stock-trades/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader from PostgreSQL database 1"
+    query: "trades_db_1_stock_trades_by_trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+        source: "PATH"
+
+  trades_db_2_stock_trades_list:
+    path: "/api/trades-db-2/stock-trades"
+    method: "GET"
+    description: "Get all stock trades from PostgreSQL database 2"
+    query: "trades_db_2_stock_trades_all"
+    countQuery: "trades_db_2_stock_trades_count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+
+  trades_db_2_stock_trades_by_symbol:
+    path: "/api/trades-db-2/stock-trades/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol from PostgreSQL database 2"
+    query: "trades_db_2_stock_trades_by_symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+        source: "PATH"
+
+  trades_db_2_stock_trades_by_trader:
+    path: "/api/trades-db-2/stock-trades/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader from PostgreSQL database 2"
+    query: "trades_db_2_stock_trades_by_trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+        source: "PATH"

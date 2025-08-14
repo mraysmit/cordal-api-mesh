@@ -131,7 +131,7 @@ echo 1. Run the bootstrap demo to test the connection:
 echo    scripts\run-bootstrap-demo.bat
 echo.
 echo 2. Or test the Generic API Service directly:
-echo    cd generic-api-service
+echo    cd cordal-api-service
 echo    mvn exec:java
 echo.
 echo The postgres-trades database is now ready for use with the Generic API Service!

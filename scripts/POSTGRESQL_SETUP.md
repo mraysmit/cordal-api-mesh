@@ -75,7 +75,7 @@ After setup, you can verify the configuration by:
 
 1. **Running the Generic API Service**:
    ```bash
-   cd generic-api-service
+   cd cordal-api-service
    mvn exec:java
    ```
 

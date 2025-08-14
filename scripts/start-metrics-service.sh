@@ -7,7 +7,7 @@ set -e
 # Set script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-SERVICE_DIR="$PROJECT_ROOT/metrics-service"
+SERVICE_DIR="$PROJECT_ROOT/cordal-metrics-service"
 
 echo "================================================================================"
 echo "                          Metrics Service Startup"
@@ -17,7 +17,7 @@ echo
 # Find the most recent executable JAR (supports different profiles)
 EXECUTABLE_JAR=""
 for jar_pattern in "executable" "optimized" "dev" "thin"; do
-    jar_file="$SERVICE_DIR/target/metrics-service-1.0-SNAPSHOT-$jar_pattern.jar"
+    jar_file="$SERVICE_DIR/target/cordal-metrics-service-1.0-SNAPSHOT-$jar_pattern.jar"
     if [ -f "$jar_file" ]; then
         EXECUTABLE_JAR="$jar_file"
         JAR_TYPE="$jar_pattern"

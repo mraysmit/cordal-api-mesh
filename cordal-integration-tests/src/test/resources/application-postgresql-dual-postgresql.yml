@@ -1,0 +1,40 @@
+# Application Configuration for PostgreSQL Dual Database Integration Test
+# Generated for test: dual-postgresql
+
+server:
+  host: localhost
+  port: 19080
+  cors:
+    enabled: true
+
+database:
+  url: "jdbc:h2:mem:api-service-config-dual-postgresql;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+  username: "sa"
+  password: ""
+  driver: "org.h2.Driver"
+  createIfMissing: true
+
+config:
+  source: yaml
+  loadFromYaml: true
+  paths:
+    databases: config/databases.yml
+    queries: config/queries.yml
+    endpoints: config/api-endpoints.yml
+
+validation:
+  runOnStartup: true
+  validateOnly: false
+
+swagger:
+  enabled: true
+  path: /swagger
+
+metrics:
+  enabled: true
+  collectResponseTimes: true
+  collectMemoryUsage: false
+
+logging:
+  level: INFO
+  requestLogging: true

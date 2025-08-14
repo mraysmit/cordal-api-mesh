@@ -1,0 +1,205 @@
+# Integration Test Query Configuration
+# This file combines all query configurations needed for integration testing
+# Including both the stock trades example and other test queries
+
+queries:
+  # Stock Trades Queries - EXAMPLE IMPLEMENTATIONS
+  stock-trades-all:
+    name: "stock-trades-all"
+    description: "EXAMPLE: Get All Stock Trades - Retrieve all stock trades with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count:
+    name: "stock-trades-count"
+    description: "EXAMPLE: Count All Stock Trades - Get total count of stock trades"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  stock-trades-by-symbol:
+    name: "stock-trades-by-symbol"
+    description: "EXAMPLE: Get Stock Trades by Symbol - Retrieve stock trades filtered by symbol with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE symbol = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count-by-symbol:
+    name: "stock-trades-count-by-symbol"
+    description: "EXAMPLE: Count Stock Trades by Symbol - Get total count of stock trades for a specific symbol"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+
+  stock-trades-by-date-range:
+    name: "stock-trades-by-date-range"
+    description: "EXAMPLE: Get Stock Trades by Date Range - Retrieve stock trades within a date range with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT id, symbol, trade_type, quantity, price, total_value,
+             trade_date_time, trader_id, exchange
+      FROM stock_trades
+      WHERE trade_date_time BETWEEN ? AND ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  stock-trades-count-by-date-range:
+    name: "stock-trades-count-by-date-range"
+    description: "EXAMPLE: Count Stock Trades by Date Range - Get total count of stock trades within a date range"
+    database: "stocktrades"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE trade_date_time BETWEEN ? AND ?"
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+
+  # PostgreSQL test queries for dual database testing
+  trades_db_1_stock_trades_all:
+    name: "trades_db_1_stock_trades_all"
+    description: "Get all stock trades from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades_db_1_stock_trades_count:
+    name: "trades_db_1_stock_trades_count"
+    description: "Count stock trades from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  trades_db_1_stock_trades_by_symbol:
+    name: "trades_db_1_stock_trades_by_symbol"
+    description: "Get stock trades by symbol from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades WHERE symbol = ? ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades_db_1_stock_trades_by_trader:
+    name: "trades_db_1_stock_trades_by_trader"
+    description: "Get stock trades by trader from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades WHERE trader_id = ? ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades_db_2_stock_trades_all:
+    name: "trades_db_2_stock_trades_all"
+    description: "Get all stock trades from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades_db_2_stock_trades_count:
+    name: "trades_db_2_stock_trades_count"
+    description: "Count stock trades from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT COUNT(*) as total FROM stock_trades"
+    parameters: []
+
+  trades_db_2_stock_trades_by_symbol:
+    name: "trades_db_2_stock_trades_by_symbol"
+    description: "Get stock trades by symbol from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades WHERE symbol = ? ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+
+  trades_db_2_stock_trades_by_trader:
+    name: "trades_db_2_stock_trades_by_trader"
+    description: "Get stock trades by trader from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT id, symbol, trade_type, quantity, price, total_value, trade_date_time, trader_id, exchange FROM stock_trades WHERE trader_id = ? ORDER BY trade_date_time DESC LIMIT ? OFFSET ?"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true

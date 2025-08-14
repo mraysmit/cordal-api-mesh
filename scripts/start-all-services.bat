@@ -9,13 +9,13 @@ set SCRIPT_DIR=%~dp0
 set PROJECT_ROOT=%SCRIPT_DIR%..
 
 echo ================================================================================
-echo                        Javalin API Mesh - All Services
+echo                        CORDAL - All Services
 echo ================================================================================
 echo.
 
 REM Check if both executable JARs exist
-set GENERIC_API_JAR=%PROJECT_ROOT%\generic-api-service\target\generic-api-service-1.0-SNAPSHOT-executable.jar
-set METRICS_JAR=%PROJECT_ROOT%\metrics-service\target\metrics-service-1.0-SNAPSHOT-executable.jar
+set GENERIC_API_JAR=%PROJECT_ROOT%\cordal-api-service\target\cordal-api-service-1.0-SNAPSHOT-executable.jar
+set METRICS_JAR=%PROJECT_ROOT%\cordal-metrics-service\target\cordal-metrics-service-1.0-SNAPSHOT-executable.jar
 
 set MISSING_JARS=false
 if not exist "%GENERIC_API_JAR%" (
@@ -93,15 +93,15 @@ if "%START_MODE%"=="both" goto start_both_services
 :start_generic_api_only
 echo [INFO] Starting Generic API Service only...
 if "%VALIDATE_ONLY%"=="true" (
-    call "%SCRIPT_DIR%start-generic-api-service.bat" --validate-only
+    call "%SCRIPT_DIR%start-cordal-api-service.bat" --validate-only
 ) else (
-    call "%SCRIPT_DIR%start-generic-api-service.bat"
+    call "%SCRIPT_DIR%start-cordal-api-service.bat"
 )
 goto end
 
 :start_metrics_only
 echo [INFO] Starting Metrics Service only...
-call "%SCRIPT_DIR%start-metrics-service.bat"
+call "%SCRIPT_DIR%start-cordal-metrics-service.bat"
 goto end
 
 :start_both_services
@@ -111,9 +111,9 @@ echo.
 REM Start Generic API Service in a new window
 echo [INFO] Starting Generic API Service in new window...
 if "%VALIDATE_ONLY%"=="true" (
-    start "Generic API Service" cmd /k ""%SCRIPT_DIR%start-generic-api-service.bat" --validate-only"
+    start "Generic API Service" cmd /k ""%SCRIPT_DIR%start-cordal-api-service.bat" --validate-only"
 ) else (
-    start "Generic API Service" cmd /k ""%SCRIPT_DIR%start-generic-api-service.bat""
+    start "Generic API Service" cmd /k ""%SCRIPT_DIR%start-cordal-api-service.bat""
 )
 
 REM Wait a moment before starting the second service
@@ -122,7 +122,7 @@ timeout /t 3 /nobreak >nul
 REM Start Metrics Service in a new window (only if not in validation mode)
 if not "%VALIDATE_ONLY%"=="true" (
     echo [INFO] Starting Metrics Service in new window...
-    start "Metrics Service" cmd /k ""%SCRIPT_DIR%start-metrics-service.bat""
+    start "Metrics Service" cmd /k ""%SCRIPT_DIR%start-cordal-metrics-service.bat""
 )
 
 echo.

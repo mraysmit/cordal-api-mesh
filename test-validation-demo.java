@@ -1,7 +1,7 @@
 // Simple test to demonstrate validation error handling
 // This shows that the SystemBootstrapDemo validation methods work correctly
 
-import dev.mars.bootstrap.SystemBootstrapDemo;
+import dev.cordal.bootstrap.SystemBootstrapDemo;
 import java.lang.reflect.Method;
 
 public class TestValidationDemo {
