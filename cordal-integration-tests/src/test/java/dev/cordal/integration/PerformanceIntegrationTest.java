@@ -71,10 +71,21 @@ class PerformanceIntegrationTest {
     }
 
     private void startApplications() {
+        // Clear any existing system properties that might interfere
+        System.clearProperty("database.patterns");
+        System.clearProperty("query.patterns");
+        System.clearProperty("endpoint.patterns");
+        System.clearProperty("config.directories");
+
         // Start Generic API Service first
         Thread genericApiThread = new Thread(() -> {
             System.setProperty("generic.config.file", "application-generic-api.yml");
             System.setProperty("test.data.loading.enabled", "true");
+            // Use integration test configuration files specifically for this test
+            System.setProperty("config.directories", "src/test/resources/config");
+            System.setProperty("database.patterns", "integration-test-databases.yml");
+            System.setProperty("query.patterns", "integration-test-queries.yml");
+            System.setProperty("endpoint.patterns", "integration-test-api-endpoints.yml");
             System.out.println("DEBUG: Set generic.config.file = " + System.getProperty("generic.config.file"));
             try {
                 genericApiApp = new GenericApiApplication();
@@ -82,6 +93,10 @@ class PerformanceIntegrationTest {
             } finally {
                 System.clearProperty("generic.config.file");
                 System.clearProperty("test.data.loading.enabled");
+                System.clearProperty("config.directories");
+                System.clearProperty("database.patterns");
+                System.clearProperty("query.patterns");
+                System.clearProperty("endpoint.patterns");
             }
         });
         genericApiThread.start();

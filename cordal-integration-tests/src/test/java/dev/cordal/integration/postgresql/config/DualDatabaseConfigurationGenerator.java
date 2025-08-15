@@ -147,7 +147,18 @@ public class DualDatabaseConfigurationGenerator {
             yaml.append("      - name: \"offset\"\n");
             yaml.append("        type: \"INTEGER\"\n");
             yaml.append("        required: true\n\n");
-            
+
+            // Count by symbol query
+            yaml.append("  ").append(dbPrefix).append("_stock_trades_count_by_symbol:\n");
+            yaml.append("    name: \"").append(dbPrefix).append("_stock_trades_count_by_symbol\"\n");
+            yaml.append("    description: \"Count stock trades by symbol from ").append(dbName).append("\"\n");
+            yaml.append("    database: \"").append(dbName).append("\"\n");
+            yaml.append("    sql: \"SELECT COUNT(*) as total FROM stock_trades WHERE symbol = ?\"\n");
+            yaml.append("    parameters:\n");
+            yaml.append("      - name: \"symbol\"\n");
+            yaml.append("        type: \"STRING\"\n");
+            yaml.append("        required: true\n\n");
+
             // By trader query
             yaml.append("  ").append(dbPrefix).append("_stock_trades_by_trader:\n");
             yaml.append("    name: \"").append(dbPrefix).append("_stock_trades_by_trader\"\n");
@@ -170,10 +181,21 @@ public class DualDatabaseConfigurationGenerator {
             yaml.append("      - name: \"offset\"\n");
             yaml.append("        type: \"INTEGER\"\n");
             yaml.append("        required: true\n\n");
+
+            // Count by trader query
+            yaml.append("  ").append(dbPrefix).append("_stock_trades_count_by_trader:\n");
+            yaml.append("    name: \"").append(dbPrefix).append("_stock_trades_count_by_trader\"\n");
+            yaml.append("    description: \"Count stock trades by trader from ").append(dbName).append("\"\n");
+            yaml.append("    database: \"").append(dbName).append("\"\n");
+            yaml.append("    sql: \"SELECT COUNT(*) as total FROM stock_trades WHERE trader_id = ?\"\n");
+            yaml.append("    parameters:\n");
+            yaml.append("      - name: \"trader_id\"\n");
+            yaml.append("        type: \"STRING\"\n");
+            yaml.append("        required: true\n\n");
         }
         
         String result = yaml.toString();
-        logger.debug("Generated query configuration with {} queries", databases.size() * 4);
+        logger.debug("Generated query configuration with {} queries", databases.size() * 6);
         return result;
     }
 
@@ -230,6 +252,7 @@ public class DualDatabaseConfigurationGenerator {
             yaml.append("    method: \"GET\"\n");
             yaml.append("    description: \"Get stock trades by symbol from ").append(dbName).append("\"\n");
             yaml.append("    query: \"").append(dbPrefix).append("_stock_trades_by_symbol\"\n");
+            yaml.append("    countQuery: \"").append(dbPrefix).append("_stock_trades_count_by_symbol\"\n");
             yaml.append("    pagination:\n");
             yaml.append("      enabled: true\n");
             yaml.append("      defaultSize: 20\n");
@@ -257,6 +280,7 @@ public class DualDatabaseConfigurationGenerator {
             yaml.append("    method: \"GET\"\n");
             yaml.append("    description: \"Get stock trades by trader from ").append(dbName).append("\"\n");
             yaml.append("    query: \"").append(dbPrefix).append("_stock_trades_by_trader\"\n");
+            yaml.append("    countQuery: \"").append(dbPrefix).append("_stock_trades_count_by_trader\"\n");
             yaml.append("    pagination:\n");
             yaml.append("      enabled: true\n");
             yaml.append("      defaultSize: 20\n");

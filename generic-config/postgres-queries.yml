@@ -1,0 +1,595 @@
+# PostgreSQL Stock Trades Query Configurations
+# This file contains query configurations for PostgreSQL stock trades operations
+
+queries:
+  # Stock trades queries for stocktrades database (expected by tests)
+  stock-trades-all:
+    name: "Get All Stock Trades"
+    description: "Retrieve all stock trades with pagination support"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  stock-trades-count:
+    name: "Count All Stock Trades"
+    description: "Get total count of all stock trades"
+    database: "stocktrades"
+    sql: |
+      SELECT COUNT(*) as total_trades
+      FROM stock_trades
+
+  stock-trades-by-symbol:
+    name: "Get Stock Trades by Symbol"
+    description: "Retrieve stock trades filtered by symbol with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE symb = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  stock-trades-count-by-symbol:
+    name: "Count Stock Trades by Symbol"
+    description: "Get count of stock trades for a specific symbol"
+    database: "stocktrades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE symb = ?
+    parameters:
+      - name: "symbol"
+        type: "string"
+        required: true
+
+  stock-trades-by-id:
+    name: "Get Stock Trade by ID"
+    description: "Retrieve a specific stock trade by its ID"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE id = ?
+    parameters:
+      - name: "id"
+        type: "long"
+        required: true
+
+  stock-trades-by-trader:
+    name: "Get Stock Trades by Trader"
+    description: "Retrieve stock trades filtered by trader ID with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  stock-trades-count-by-trader:
+    name: "Count Stock Trades by Trader"
+    description: "Get count of stock trades for a specific trader"
+    database: "stocktrades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE trader_id = ?
+    parameters:
+      - name: "trader_id"
+        type: "string"
+        required: true
+
+  stock-trades-by-date-range:
+    name: "Get Stock Trades by Date Range"
+    description: "Retrieve stock trades within a specific date range with pagination"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "string"
+        required: true
+      - name: "end_date"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  stock-trades-count-by-date-range:
+    name: "Count Stock Trades by Date Range"
+    description: "Get count of stock trades within a specific date range"
+    database: "stocktrades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+    parameters:
+      - name: "start_date"
+        type: "string"
+        required: true
+      - name: "end_date"
+        type: "string"
+        required: true
+
+  # Test query for test endpoints
+  test-query:
+    name: "Test Query"
+    description: "Simple test query for testing purposes"
+    database: "stocktrades"
+    sql: |
+      SELECT
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price
+      FROM stock_trades
+      LIMIT ?
+    parameters:
+      - name: "limit"
+        type: "integer"
+        required: true
+
+  test-count-query:
+    name: "Test Count Query"
+    description: "Simple test count query for testing purposes"
+    database: "stocktrades"
+    sql: |
+      SELECT COUNT(*) as total
+      FROM stock_trades
+  # Get all stock trades with pagination
+  postgres-trades-all:
+    name: "Get All Stock Trades"
+    description: "Retrieve all stock trades with pagination support"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count all stock trades
+  postgres-trades-count:
+    name: "Count All Stock Trades"
+    description: "Get total count of all stock trades"
+    database: "postgres-trades"
+    sql: |
+      SELECT COUNT(*) as total_trades
+      FROM stock_trades
+
+  # Get stock trades by symbol
+  postgres-trades-by-symbol:
+    name: "Get Stock Trades by Symbol"
+    description: "Retrieve stock trades filtered by symbol with pagination"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE symb = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "symbol"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count stock trades by symbol
+  postgres-trades-count-by-symbol:
+    name: "Count Stock Trades by Symbol"
+    description: "Get count of stock trades for a specific symbol"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        COUNT(*) as trade_count,
+        ? as symbol
+      FROM stock_trades
+      WHERE symb = ?
+    parameters:
+      - name: "symbol"
+        type: "string"
+        required: true
+      - name: "symbol"
+        type: "string"
+        required: true
+
+  # Get stock trade by ID
+  postgres-trades-by-id:
+    name: "Get Stock Trade by ID"
+    description: "Retrieve a specific stock trade by its ID"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE id = ?
+    parameters:
+      - name: "id"
+        type: "long"
+        required: true
+
+  # Get stock trades by trader
+  postgres-trades-by-trader:
+    name: "Get Stock Trades by Trader"
+    description: "Retrieve stock trades filtered by trader ID with pagination"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE trader_id = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trader_id"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count stock trades by trader
+  postgres-trades-count-by-trader:
+    name: "Count Stock Trades by Trader"
+    description: "Get count of stock trades for a specific trader"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        COUNT(*) as trade_count,
+        ? as trader_id
+      FROM stock_trades
+      WHERE trader_id = ?
+    parameters:
+      - name: "trader_id"
+        type: "string"
+        required: true
+      - name: "trader_id"
+        type: "string"
+        required: true
+
+  # Get stock trades by date range
+  postgres-trades-by-date-range:
+    name: "Get Stock Trades by Date Range"
+    description: "Retrieve stock trades within a specific date range with pagination"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "start_date"
+        type: "string"
+        required: true
+      - name: "end_date"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count stock trades by date range
+  postgres-trades-count-by-date-range:
+    name: "Count Stock Trades by Date Range"
+    description: "Get count of stock trades within a specific date range"
+    database: "postgres-trades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE trade_date_time >= ? AND trade_date_time <= ?
+    parameters:
+      - name: "start_date"
+        type: "string"
+        required: true
+      - name: "end_date"
+        type: "string"
+        required: true
+
+  # Get stock trades by exchange
+  postgres-trades-by-exchange:
+    name: "Get Stock Trades by Exchange"
+    description: "Retrieve stock trades filtered by exchange with pagination"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE exchange = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "exchange"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count stock trades by exchange
+  postgres-trades-count-by-exchange:
+    name: "Count Stock Trades by Exchange"
+    description: "Get count of stock trades for a specific exchange"
+    database: "postgres-trades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE exchange = ?
+    parameters:
+      - name: "exchange"
+        type: "string"
+        required: true
+
+  # Get trading summary by symbol
+  postgres-trades-summary-by-symbol:
+    name: "Get Trading Summary by Symbol"
+    description: "Get trading statistics summary for a specific symbol"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        ? as symbol,
+        COUNT(*) as trade_count,
+        SUM(quantity) as total_quantity,
+        AVG(price) as avg_price,
+        MIN(price) as min_price,
+        MAX(price) as max_price,
+        SUM(total_val) as total_value
+      FROM stock_trades
+      WHERE symb = ?
+    parameters:
+      - name: "symbol"
+        type: "string"
+        required: true
+      - name: "symbol"
+        type: "string"
+        required: true
+
+  # Get recent stock trades
+  postgres-trades-recent:
+    name: "Get Recent Stock Trades"
+    description: "Retrieve the most recent stock trades"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      ORDER BY trade_date_time DESC
+      LIMIT ?
+    parameters:
+      - name: "limit"
+        type: "integer"
+        required: true
+
+  # Get stock trades by type
+  postgres-trades-by-type:
+    name: "Get Stock Trades by Type"
+    description: "Retrieve stock trades filtered by trade type (BUY/SELL) with pagination"
+    database: "postgres-trades"
+    sql: |
+      SELECT 
+        id,
+        symb as symbol,
+        trade_type,
+        quantity,
+        price,
+        total_val as total_value,
+        trade_date_time,
+        trader_id,
+        exchange,
+        created_at,
+        updated_at
+      FROM stock_trades
+      WHERE trade_type = ?
+      ORDER BY trade_date_time DESC
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "trade_type"
+        type: "string"
+        required: true
+      - name: "limit"
+        type: "integer"
+        required: true
+      - name: "offset"
+        type: "integer"
+        required: true
+
+  # Count stock trades by type
+  postgres-trades-count-by-type:
+    name: "Count Stock Trades by Type"
+    description: "Get count of stock trades for a specific trade type"
+    database: "postgres-trades"
+    sql: |
+      SELECT COUNT(*) as trade_count
+      FROM stock_trades
+      WHERE trade_type = ?
+    parameters:
+      - name: "trade_type"
+        type: "string"
+        required: true

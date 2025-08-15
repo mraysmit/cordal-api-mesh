@@ -66,16 +66,31 @@ class ModularServicesIntegrationTest {
     }
 
     private void startApplications() {
+        // Clear any existing system properties that might interfere
+        System.clearProperty("database.patterns");
+        System.clearProperty("query.patterns");
+        System.clearProperty("endpoint.patterns");
+        System.clearProperty("config.directories");
+
         // Start Generic API Service first
         Thread genericApiThread = new Thread(() -> {
             System.setProperty("generic.config.file", "application-generic-api.yml");
             System.setProperty("test.data.loading.enabled", "false"); // Disable test data loading - use test utilities instead
+            // Use integration test configuration files specifically for this test
+            System.setProperty("config.directories", "src/test/resources/config");
+            System.setProperty("database.patterns", "integration-test-databases.yml");
+            System.setProperty("query.patterns", "integration-test-queries.yml");
+            System.setProperty("endpoint.patterns", "integration-test-api-endpoints.yml");
             try {
                 genericApiApp = new GenericApiApplication();
                 genericApiApp.start();
             } finally {
                 System.clearProperty("generic.config.file");
                 System.clearProperty("test.data.loading.enabled");
+                System.clearProperty("config.directories");
+                System.clearProperty("database.patterns");
+                System.clearProperty("query.patterns");
+                System.clearProperty("endpoint.patterns");
             }
         });
         genericApiThread.start();

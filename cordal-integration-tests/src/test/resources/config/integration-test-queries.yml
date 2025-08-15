@@ -188,6 +188,26 @@ queries:
         type: "INTEGER"
         required: true
 
+  trades_db_1_stock_trades_count_by_symbol:
+    name: "trades_db_1_stock_trades_count_by_symbol"
+    description: "Count stock trades by symbol from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+
+  trades_db_1_stock_trades_count_by_trader:
+    name: "trades_db_1_stock_trades_count_by_trader"
+    description: "Count stock trades by trader from PostgreSQL database 1"
+    database: "trades-db-1"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE trader_id = ?"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
+        required: true
+
   trades_db_2_stock_trades_by_trader:
     name: "trades_db_2_stock_trades_by_trader"
     description: "Get stock trades by trader from PostgreSQL database 2"
@@ -202,4 +222,24 @@ queries:
         required: true
       - name: "offset"
         type: "INTEGER"
+        required: true
+
+  trades_db_2_stock_trades_count_by_symbol:
+    name: "trades_db_2_stock_trades_count_by_symbol"
+    description: "Count stock trades by symbol from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+
+  trades_db_2_stock_trades_count_by_trader:
+    name: "trades_db_2_stock_trades_count_by_trader"
+    description: "Count stock trades by trader from PostgreSQL database 2"
+    database: "trades-db-2"
+    sql: "SELECT COUNT(*) as total FROM stock_trades WHERE trader_id = ?"
+    parameters:
+      - name: "trader_id"
+        type: "STRING"
         required: true

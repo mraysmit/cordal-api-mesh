@@ -108,6 +108,7 @@ endpoints:
     method: "GET"
     description: "Get stock trades by symbol from PostgreSQL database 1"
     query: "trades_db_1_stock_trades_by_symbol"
+    countQuery: "trades_db_1_stock_trades_count_by_symbol"
     pagination:
       enabled: true
       defaultSize: 20
@@ -123,6 +124,7 @@ endpoints:
     method: "GET"
     description: "Get stock trades by trader from PostgreSQL database 1"
     query: "trades_db_1_stock_trades_by_trader"
+    countQuery: "trades_db_1_stock_trades_count_by_trader"
     pagination:
       enabled: true
       defaultSize: 20
@@ -149,6 +151,7 @@ endpoints:
     method: "GET"
     description: "Get stock trades by symbol from PostgreSQL database 2"
     query: "trades_db_2_stock_trades_by_symbol"
+    countQuery: "trades_db_2_stock_trades_count_by_symbol"
     pagination:
       enabled: true
       defaultSize: 20
@@ -164,6 +167,7 @@ endpoints:
     method: "GET"
     description: "Get stock trades by trader from PostgreSQL database 2"
     query: "trades_db_2_stock_trades_by_trader"
+    countQuery: "trades_db_2_stock_trades_count_by_trader"
     pagination:
       enabled: true
       defaultSize: 20

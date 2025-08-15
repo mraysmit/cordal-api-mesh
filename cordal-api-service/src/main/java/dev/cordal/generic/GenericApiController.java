@@ -66,8 +66,18 @@ public class GenericApiController {
 
             success = true;
 
+        } catch (dev.cordal.common.exception.ApiException e) {
+            // ApiExceptions are expected validation/business logic errors - log as info/warn, not error
+            if (e.getStatusCode() >= 400 && e.getStatusCode() < 500) {
+                logger.info("VALIDATION ERROR (Expected): Endpoint '{}' returned {} - {} (This is normal client validation behavior)",
+                           endpointName, e.getStatusCode(), e.getMessage());
+            } else {
+                logger.warn("SERVER ERROR: Endpoint '{}' returned {} - {}",
+                           endpointName, e.getStatusCode(), e.getMessage());
+            }
+            throw e;
         } catch (Exception e) {
-            logger.error("Error handling endpoint request: {}", endpointName, e);
+            logger.error("UNEXPECTED ERROR: Error handling endpoint request: {}", endpointName, e);
             throw e;
         } finally {
             // Record usage statistics

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.cordal.generic.GenericApiApplication;
+import dev.cordal.integration.postgresql.client.ApiTestResult;
 import dev.cordal.integration.postgresql.client.StockTradesApiClient;
 import dev.cordal.integration.postgresql.config.DualDatabaseConfigurationGenerator;
 import dev.cordal.integration.postgresql.config.TestConfigurationFileManager;
@@ -122,7 +123,17 @@ class DualPostgreSQLIntegrationTest {
             if (containerManager != null) {
                 containerManager.stopAllContainers();
             }
-            
+
+            // Clean up system properties to avoid interfering with other tests
+            logger.info("Cleaning up system properties");
+            System.clearProperty("database.patterns");
+            System.clearProperty("query.patterns");
+            System.clearProperty("endpoint.patterns");
+            System.clearProperty("config.directories");
+            System.clearProperty("generic.config.file");
+            System.clearProperty("metrics.config.file");
+            System.clearProperty("test.data.loading.enabled");
+
         } catch (Exception e) {
             logger.error("Error during cleanup", e);
         } finally {
@@ -212,8 +223,7 @@ class DualPostgreSQLIntegrationTest {
             assertThat(count1).isEqualTo(SAMPLE_DATA_SIZE);
             assertThat(count2).isEqualTo(SAMPLE_DATA_SIZE);
             
-            logger.info("Inserted {} records into {} and {} records into {}", 
-                       count1, DATABASE_1_NAME, count2, DATABASE_2_NAME);
+            logger.info("Inserted {} records into {} and {} records into {}", count1, DATABASE_1_NAME, count2, DATABASE_2_NAME);
         }
         
         executionTimer.endPhase("Schema and Data");
@@ -231,13 +241,12 @@ class DualPostgreSQLIntegrationTest {
         defaultConfigBackupPath = configFileManager.temporarilyDisableDefaultConfigurations();
 
         // Generate all configurations
-        Map<String, String> configurations = configGenerator.generateCompleteConfiguration(
-            DATABASE_1_NAME, DATABASE_2_NAME);
+        Map<String, String> configurations = configGenerator.generateCompleteConfiguration(DATABASE_1_NAME, DATABASE_2_NAME);
 
-        // Write configuration files to temporary directory
+        // Write configuration files to the temporary directory
         Map<String, Path> configFilePaths = configFileManager.writeConfigurationFiles(configurations);
 
-        // Copy configuration files to test classpath directory so the application can find them
+        // Copy configuration files to the test classpath directory so the application can find them
         configFileManager.copyConfigurationsToTestClasspath(configFilePaths);
 
         // Update the existing application-generic-api.yml to use our test port and enable YAML loading
@@ -422,8 +431,7 @@ class DualPostgreSQLIntegrationTest {
         for (JsonNode trade : symbolTrades.get("data")) {
             assertThat(trade.get("symbol").asText()).isEqualTo(testSymbol);
         }
-        logger.info("✓ GET /api/{}/stock-trades/symbol/{} - returned {} records",
-                   pathPrefix, testSymbol, symbolTrades.get("data").size());
+        logger.info("✓ GET /api/{}/stock-trades/symbol/{} - returned {} records", pathPrefix, testSymbol, symbolTrades.get("data").size());
 
         // Test filter by trader
         String testTrader = PostgreSQLTestDataGenerator.getTestTraderIds().get(0);
@@ -434,8 +442,7 @@ class DualPostgreSQLIntegrationTest {
         for (JsonNode trade : traderTrades.get("data")) {
             assertThat(trade.get("trader_id").asText()).isEqualTo(testTrader);
         }
-        logger.info("✓ GET /api/{}/stock-trades/trader/{} - returned {} records",
-                   pathPrefix, testTrader, traderTrades.get("data").size());
+        logger.info("✓ GET /api/{}/stock-trades/trader/{} - returned {} records", pathPrefix, testTrader, traderTrades.get("data").size());
 
         logger.info("All endpoints tested successfully for database: {}", databaseName);
     }
@@ -487,8 +494,7 @@ class DualPostgreSQLIntegrationTest {
                     "id", "symbol", "trade_type", "quantity", "price",
                     "total_value", "trade_date_time", "trader_id", "exchange"
                 );
-                boolean structureValid = PostgreSQLTestUtils.validateTableStructure(
-                    connection, "stock_trades", expectedColumns);
+                boolean structureValid = PostgreSQLTestUtils.validateTableStructure(connection, "stock_trades", expectedColumns);
                 assertThat(structureValid).isTrue();
 
                 logger.info("✓ Database diagnostics passed for: {}", databaseName);
@@ -498,38 +504,42 @@ class DualPostgreSQLIntegrationTest {
 
     /**
      * Test API error handling scenarios
+     * NOTE: This method tests INTENTIONAL error scenarios to validate proper error handling.
+     * All errors logged here are EXPECTED and indicate correct system behavior.
      */
     private void testApiErrorHandling() throws Exception {
         logger.info("Testing API error handling scenarios");
+        logger.info("NOTE: The following error tests are INTENTIONAL - errors indicate correct behavior");
 
         // Test invalid endpoints (should return 404)
-        try {
-            apiClient.getAllStockTrades("invalid-database", 0, 10);
-            // If we get here without exception, that's unexpected
-            logger.warn("Expected 404 for invalid database path, but request succeeded");
-        } catch (Exception e) {
-            logger.info("✓ Correctly handled invalid database path: {}", e.getMessage());
+        logger.info("INTENTIONAL ERROR TEST: Testing invalid database path (expecting 404)...");
+        ApiTestResult invalidDbResult = apiClient.testInvalidDatabasePath("invalid-database", 0, 10);
+        if (invalidDbResult.isExpectedError()) {
+            logger.info("✓ INTENTIONAL ERROR TEST PASSED: Invalid database path correctly returned {}: {}", invalidDbResult.getStatusCode(), invalidDbResult.getMessage());
+        } else {
+            logger.warn("INTENTIONAL ERROR TEST FAILED: Expected 404 for invalid database path, but got: {}", invalidDbResult.getMessage());
         }
 
         // Test invalid parameters
-        try {
-            apiClient.getAllStockTrades("trades-db-1", -1, 10); // Invalid page
-            logger.warn("Expected error for negative page number, but request succeeded");
-        } catch (Exception e) {
-            logger.info("✓ Correctly handled invalid page parameter: {}", e.getMessage());
+        logger.info("INTENTIONAL ERROR TEST: Testing negative page number (expecting 400/500)...");
+        ApiTestResult invalidPageResult = apiClient.testInvalidPageParameter("trades-db-1", -1, 10);
+        if (invalidPageResult.isExpectedError()) {
+            logger.info("✓ INTENTIONAL ERROR TEST PASSED: Negative page number correctly returned {}: {}", invalidPageResult.getStatusCode(), invalidPageResult.getMessage());
+        } else {
+            logger.warn("INTENTIONAL ERROR TEST FAILED: Expected error for negative page number, but got: {}", invalidPageResult.getMessage());
         }
 
-        // Test configuration validation endpoint
+        // Test configuration validation endpoint (this should succeed)
         try {
             JsonNode validation = apiClient.getConfigurationValidation();
             assertThat(validation).isNotNull();
-            logger.info("✓ Configuration validation endpoint working");
+            logger.info("✓ Configuration validation endpoint working correctly");
         } catch (Exception e) {
-            logger.error("Configuration validation endpoint failed", e);
+            logger.error("UNEXPECTED ERROR: Configuration validation endpoint failed", e);
             throw e;
         }
 
-        logger.info("API error handling tests completed");
+        logger.info("API error handling tests completed - all intentional error tests validated");
     }
 
     /**

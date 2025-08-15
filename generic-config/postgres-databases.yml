@@ -1,0 +1,37 @@
+# PostgreSQL Database Connections Configuration
+# This file contains PostgreSQL database connection configurations
+
+databases:
+  # PostgreSQL trades database - using H2 as PostgreSQL alternative for testing
+  postgres-trades:
+    name: "postgres-trades"
+    description: "PostgreSQL-compatible trades database using H2"
+    url: "jdbc:h2:tcp://localhost:9092/./data/postgres-trades;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 20
+      minimumIdle: 5
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"
+
+  # Stock trades database - H2 version for compatibility
+  stocktrades:
+    name: "stocktrades"
+    description: "Stock trades database using H2"
+    url: "jdbc:h2:tcp://localhost:9092/./data/stocktrades;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 15
+      minimumIdle: 3
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+      connectionTestQuery: "SELECT 1"

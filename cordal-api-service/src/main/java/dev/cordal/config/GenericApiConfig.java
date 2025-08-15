@@ -82,8 +82,13 @@ public class GenericApiConfig extends BaseConfig {
     }
 
     private void loadDirectoryConfiguration() {
-        // Check for system property override (used by IDE execution)
-        String systemPropertyDirs = System.getProperty("generic.config.directories");
+        // Check for system property override (used by testing and IDE execution)
+        String systemPropertyDirs = System.getProperty("config.directories");
+        if (systemPropertyDirs == null) {
+            // Also check the legacy property name for backward compatibility
+            systemPropertyDirs = System.getProperty("generic.config.directories");
+        }
+
         java.util.List<String> directories;
 
         if (systemPropertyDirs != null) {
@@ -103,21 +108,43 @@ public class GenericApiConfig extends BaseConfig {
 
     private void loadPatternConfiguration() {
         // Load naming patterns for each configuration type
-        java.util.List<String> databasePatterns = getStringList("config.patterns.databases");
-        if (databasePatterns == null || databasePatterns.isEmpty()) {
-            databasePatterns = java.util.Arrays.asList("*-database.yml", "*-databases.yml");
+        // Check for system property overrides first (used by testing)
+        String systemDatabasePatterns = System.getProperty("database.patterns");
+        java.util.List<String> databasePatterns;
+        if (systemDatabasePatterns != null) {
+            databasePatterns = java.util.Arrays.asList(systemDatabasePatterns.split(","));
+            logger.info("Using database patterns from system property: {}", databasePatterns);
+        } else {
+            databasePatterns = getStringList("config.patterns.databases");
+            if (databasePatterns == null || databasePatterns.isEmpty()) {
+                databasePatterns = java.util.Arrays.asList("*-database.yml", "*-databases.yml");
+            }
         }
         config.setDatabasePatterns(databasePatterns);
 
-        java.util.List<String> queryPatterns = getStringList("config.patterns.queries");
-        if (queryPatterns == null || queryPatterns.isEmpty()) {
-            queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
+        String systemQueryPatterns = System.getProperty("query.patterns");
+        java.util.List<String> queryPatterns;
+        if (systemQueryPatterns != null) {
+            queryPatterns = java.util.Arrays.asList(systemQueryPatterns.split(","));
+            logger.info("Using query patterns from system property: {}", queryPatterns);
+        } else {
+            queryPatterns = getStringList("config.patterns.queries");
+            if (queryPatterns == null || queryPatterns.isEmpty()) {
+                queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
+            }
         }
         config.setQueryPatterns(queryPatterns);
 
-        java.util.List<String> endpointPatterns = getStringList("config.patterns.endpoints");
-        if (endpointPatterns == null || endpointPatterns.isEmpty()) {
-            endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
+        String systemEndpointPatterns = System.getProperty("endpoint.patterns");
+        java.util.List<String> endpointPatterns;
+        if (systemEndpointPatterns != null) {
+            endpointPatterns = java.util.Arrays.asList(systemEndpointPatterns.split(","));
+            logger.info("Using endpoint patterns from system property: {}", endpointPatterns);
+        } else {
+            endpointPatterns = getStringList("config.patterns.endpoints");
+            if (endpointPatterns == null || endpointPatterns.isEmpty()) {
+                endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
+            }
         }
         config.setEndpointPatterns(endpointPatterns);
     }

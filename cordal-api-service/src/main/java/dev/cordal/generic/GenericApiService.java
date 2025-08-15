@@ -230,15 +230,15 @@ public class GenericApiService {
      */
     private void validatePaginationParameters(int page, int size, int maxSize) {
         if (page < 0) {
-            throw ApiException.badRequest("Page number cannot be negative");
+            throw ApiException.badRequest("VALIDATION ERROR: Page number cannot be negative (received: " + page + ")");
         }
-        
+
         if (size <= 0) {
-            throw ApiException.badRequest("Page size must be positive");
+            throw ApiException.badRequest("VALIDATION ERROR: Page size must be positive (received: " + size + ")");
         }
-        
+
         if (size > maxSize) {
-            throw ApiException.badRequest("Page size cannot exceed " + maxSize);
+            throw ApiException.badRequest("VALIDATION ERROR: Page size cannot exceed " + maxSize + " (received: " + size + ")");
         }
     }
     

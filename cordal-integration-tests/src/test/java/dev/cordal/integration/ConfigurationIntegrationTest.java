@@ -63,13 +63,19 @@ class ConfigurationIntegrationTest {
     private void startApplications() {
         System.out.println("DEBUG: Starting applications...");
 
+        // Clear any existing system properties that might interfere
+        System.clearProperty("database.patterns");
+        System.clearProperty("query.patterns");
+        System.clearProperty("endpoint.patterns");
+        System.clearProperty("config.directories");
+
         // Start Generic API Service first
         Thread genericApiThread = new Thread(() -> {
             System.setProperty("generic.config.file", "application-generic-api.yml");
             System.setProperty("test.data.loading.enabled", "true");
             // Use the integration test configuration directory where stock trades examples are located
             System.setProperty("config.directories", "src/test/resources/config");
-            // Use integration test configuration files that include stock trades examples
+            // Use integration test configuration files specifically for this test
             System.setProperty("database.patterns", "integration-test-databases.yml");
             System.setProperty("query.patterns", "integration-test-queries.yml");
             System.setProperty("endpoint.patterns", "integration-test-api-endpoints.yml");

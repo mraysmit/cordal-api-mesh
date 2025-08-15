@@ -222,7 +222,41 @@ public class StockTradesApiClient {
             return -1;
         }
     }
-    
+
+    /**
+     * Test invalid database path (intentional error test)
+     * This method is designed for testing error handling and will NOT throw exceptions for expected errors
+     *
+     * @param invalidDatabasePath Invalid database path to test
+     * @param page Page number
+     * @param size Page size
+     * @return ApiTestResult indicating success or expected error
+     */
+    public ApiTestResult testInvalidDatabasePath(String invalidDatabasePath, int page, int size) {
+        String url = String.format("%s/api/%s/stock-trades?page=%d&size=%d",
+                                  baseUrl, invalidDatabasePath, page, size);
+
+        logger.debug("INTENTIONAL ERROR TEST: Testing invalid database path: {}", url);
+        return makeGetRequestForTest(url, true, "Invalid database path test");
+    }
+
+    /**
+     * Test invalid page parameter (intentional error test)
+     * This method is designed for testing error handling and will NOT throw exceptions for expected errors
+     *
+     * @param databasePath Valid database path
+     * @param invalidPage Invalid page number (e.g., negative)
+     * @param size Page size
+     * @return ApiTestResult indicating success or expected error
+     */
+    public ApiTestResult testInvalidPageParameter(String databasePath, int invalidPage, int size) {
+        String url = String.format("%s/api/%s/stock-trades?page=%d&size=%d",
+                                  baseUrl, databasePath, invalidPage, size);
+
+        logger.debug("INTENTIONAL ERROR TEST: Testing invalid page parameter: {}", url);
+        return makeGetRequestForTest(url, true, "Invalid page parameter test");
+    }
+
     /**
      * Make a GET request and parse the JSON response
      * 
@@ -249,7 +283,53 @@ public class StockTradesApiClient {
             return jsonResponse;
         }
     }
-    
+
+    /**
+     * Make a GET request for testing purposes (does not throw exceptions for expected errors)
+     *
+     * @param url URL to request
+     * @param expectError Whether an error is expected (for intentional error testing)
+     * @param testDescription Description of the test for logging
+     * @return ApiTestResult with success/error information
+     */
+    private ApiTestResult makeGetRequestForTest(String url, boolean expectError, String testDescription) {
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+
+            if (response.isSuccessful()) {
+                if (expectError) {
+                    logger.debug("INTENTIONAL ERROR TEST: {} - Expected error but got success: {}",
+                               testDescription, response.code());
+                    return ApiTestResult.unexpectedError(response.code(),
+                        "Expected error but got success", responseBody);
+                } else {
+                    logger.debug("Test request successful: {} - {}", testDescription, response.code());
+                    return ApiTestResult.success(response.code(), responseBody);
+                }
+            } else {
+                if (expectError) {
+                    logger.debug("INTENTIONAL ERROR TEST: {} - Got expected error: {} {}",
+                               testDescription, response.code(), response.message());
+                    return ApiTestResult.expectedError(response.code(),
+                        response.code() + " " + response.message(), responseBody);
+                } else {
+                    logger.debug("Test request failed unexpectedly: {} - {} {}",
+                               testDescription, response.code(), response.message());
+                    return ApiTestResult.unexpectedError(response.code(),
+                        response.code() + " " + response.message(), responseBody);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Test request exception: {} - {}", testDescription, e.getMessage());
+            return ApiTestResult.exception(e);
+        }
+    }
+
     /**
      * Close the HTTP client and release resources
      */

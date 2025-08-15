@@ -1,0 +1,286 @@
+# Stock Trades API Endpoints Configuration
+# This file contains endpoint configurations for stock trades operations
+
+endpoints:
+  # Stock trades endpoints for testing
+  stock-trades-list:
+    path: "/api/generic/stock-trades"
+    method: "GET"
+    description: "Get all stock trades with pagination"
+    query: "stock-trades-all"
+    countQuery: "stock-trades-count"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+        description: "Page size"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "long"
+          description: "Trade ID"
+        - name: "symbol"
+          type: "string"
+          description: "Stock symbol"
+        - name: "trade_type"
+          type: "string"
+          description: "Trade type (BUY/SELL)"
+        - name: "quantity"
+          type: "integer"
+          description: "Number of shares"
+        - name: "price"
+          type: "decimal"
+          description: "Price per share"
+        - name: "total_value"
+          type: "decimal"
+          description: "Total trade value"
+        - name: "trade_date_time"
+          type: "timestamp"
+          description: "Trade timestamp"
+        - name: "trader_id"
+          type: "string"
+          description: "Trader ID"
+        - name: "exchange"
+          type: "string"
+          description: "Exchange name"
+
+  stock-trades-by-symbol:
+    path: "/api/generic/stock-trades/symbol/{symbol}"
+    method: "GET"
+    description: "Get stock trades by symbol with pagination"
+    query: "stock-trades-by-symbol"
+    countQuery: "stock-trades-count-by-symbol"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "symbol"
+        type: "string"
+        source: "PATH"
+        required: true
+        description: "Stock symbol"
+      - name: "page"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+        description: "Page size"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "long"
+        - name: "symbol"
+          type: "string"
+        - name: "trade_type"
+          type: "string"
+        - name: "quantity"
+          type: "integer"
+        - name: "price"
+          type: "decimal"
+        - name: "total_value"
+          type: "decimal"
+        - name: "trade_date_time"
+          type: "timestamp"
+        - name: "trader_id"
+          type: "string"
+        - name: "exchange"
+          type: "string"
+
+  stock-trades-by-id:
+    path: "/api/generic/stock-trades/{id}"
+    method: "GET"
+    description: "Get stock trade by ID"
+    query: "stock-trades-by-id"
+    pagination:
+      enabled: false
+    parameters:
+      - name: "id"
+        type: "long"
+        source: "PATH"
+        required: true
+        description: "Trade ID"
+    response:
+      type: "SINGLE"
+      fields:
+        - name: "id"
+          type: "long"
+        - name: "symbol"
+          type: "string"
+        - name: "trade_type"
+          type: "string"
+        - name: "quantity"
+          type: "integer"
+        - name: "price"
+          type: "decimal"
+        - name: "total_value"
+          type: "decimal"
+        - name: "trade_date_time"
+          type: "timestamp"
+        - name: "trader_id"
+          type: "string"
+        - name: "exchange"
+          type: "string"
+
+  stock-trades-by-trader:
+    path: "/api/generic/stock-trades/trader/{trader_id}"
+    method: "GET"
+    description: "Get stock trades by trader ID with pagination"
+    query: "stock-trades-by-trader"
+    countQuery: "stock-trades-count-by-trader"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "trader_id"
+        type: "string"
+        source: "PATH"
+        required: true
+        description: "Trader ID"
+      - name: "page"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+        description: "Page size"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "long"
+        - name: "symbol"
+          type: "string"
+        - name: "trade_type"
+          type: "string"
+        - name: "quantity"
+          type: "integer"
+        - name: "price"
+          type: "decimal"
+        - name: "total_value"
+          type: "decimal"
+        - name: "trade_date_time"
+          type: "timestamp"
+        - name: "trader_id"
+          type: "string"
+        - name: "exchange"
+          type: "string"
+
+  stock-trades-by-date-range:
+    path: "/api/generic/stock-trades/date-range"
+    method: "GET"
+    description: "Get stock trades by date range with pagination"
+    query: "stock-trades-by-date-range"
+    countQuery: "stock-trades-count-by-date-range"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "start_date"
+        type: "string"
+        source: "QUERY"
+        required: true
+        description: "Start date (YYYY-MM-DD)"
+      - name: "end_date"
+        type: "string"
+        source: "QUERY"
+        required: true
+        description: "End date (YYYY-MM-DD)"
+      - name: "page"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+        description: "Page size"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "long"
+        - name: "symbol"
+          type: "string"
+        - name: "trade_type"
+          type: "string"
+        - name: "quantity"
+          type: "integer"
+        - name: "price"
+          type: "decimal"
+        - name: "total_value"
+          type: "decimal"
+        - name: "trade_date_time"
+          type: "timestamp"
+        - name: "trader_id"
+          type: "string"
+        - name: "exchange"
+          type: "string"
+
+  # Test endpoint for testing purposes
+  test-endpoint:
+    path: "/api/test/endpoint"
+    method: "GET"
+    description: "Test endpoint for unit testing"
+    query: "test-query"
+    countQuery: "test-count-query"
+    pagination:
+      enabled: true
+      defaultSize: 20
+      maxSize: 100
+    parameters:
+      - name: "page"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "0"
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "integer"
+        source: "QUERY"
+        required: false
+        defaultValue: "20"
+        description: "Page size"
+    response:
+      type: "PAGED"
+      fields:
+        - name: "id"
+          type: "long"
+        - name: "symbol"
+          type: "string"
+        - name: "trade_type"
+          type: "string"
+        - name: "quantity"
+          type: "integer"
+        - name: "price"
+          type: "decimal"

@@ -373,8 +373,22 @@ public class GenericApiApplication extends BaseJavalinApplication {
         io.javalin.http.Handler handler = ctx -> {
             try {
                 genericApiController.handleEndpointRequest(ctx, endpointName);
+            } catch (dev.cordal.common.exception.ApiException e) {
+                // ApiExceptions are expected validation/business logic errors
+                if (e.getStatusCode() >= 400 && e.getStatusCode() < 500) {
+                    logger.info("VALIDATION ERROR (Expected): {} {} returned {} - {} (Normal client validation)",
+                               method, path, e.getStatusCode(), e.getMessage());
+                } else {
+                    logger.warn("SERVER ERROR: {} {} returned {} - {}",
+                               method, path, e.getStatusCode(), e.getMessage());
+                }
+                ctx.status(e.getStatusCode()).json(java.util.Map.of(
+                    "error", "Internal server error",
+                    "endpoint", endpointName,
+                    "message", e.getMessage()
+                ));
             } catch (Exception e) {
-                logger.error("Failed to handle endpoint request: {} {}", method, path, e);
+                logger.error("UNEXPECTED ERROR: Failed to handle endpoint request: {} {}", method, path, e);
                 ctx.status(500).json(java.util.Map.of(
                     "error", "Internal server error",
                     "endpoint", endpointName,
