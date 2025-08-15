@@ -51,6 +51,9 @@ build/
 # All log files
 *.log
 **/*.log
+# Rotated and suffixed log files
+*.log.*
+**/*.log.*
 # Log directories
 **/logs/
 logs/

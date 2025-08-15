@@ -20,7 +20,7 @@
         <!-- Common Library - Provides all core framework dependencies -->
         <dependency>
             <groupId>dev.cordal</groupId>
-            <artifactId>common-library</artifactId>
+            <artifactId>cordal-common-library</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

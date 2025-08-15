@@ -6,6 +6,8 @@
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/common-library/pom.xml" />
+        <option value="$PROJECT_DIR$/cordal-api-service/pom.xml" />
+        <option value="$PROJECT_DIR$/cordal-common-library/pom.xml" />
       </list>
     </option>
   </component>
