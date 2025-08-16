@@ -39,6 +39,20 @@ config:
     queries: ["*-query.yml", "*-queries.yml"]
     endpoints: ["*-endpoint.yml", "*-endpoints.yml", "*-api.yml"]
 
+  # Hot reload configuration
+  hotReload:
+    enabled: false  # Set to true to enable hot reload functionality
+    watchDirectories: true  # Monitor configuration directories for file changes
+    debounceMs: 300  # Debounce delay in milliseconds to prevent reload storms
+    maxReloadAttempts: 3  # Maximum number of reload attempts before giving up
+    rollbackOnFailure: true  # Automatically rollback to previous configuration on failure
+    validateBeforeApply: true  # Validate configuration changes before applying them
+
+  fileWatcher:
+    enabled: true  # Enable file system monitoring
+    pollInterval: 1000  # Fallback polling interval for systems without native file watching
+    includeSubdirectories: false  # Monitor subdirectories (not recommended for performance)
+
 # Configuration validation settings
 validation:
   # Run validation during normal application startup

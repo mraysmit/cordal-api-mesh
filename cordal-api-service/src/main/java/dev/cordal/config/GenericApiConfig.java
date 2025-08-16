@@ -17,6 +17,8 @@ public class GenericApiConfig extends BaseConfig {
     private SwaggerSettings swagger = new SwaggerSettings();
     private ConfigPaths config = new ConfigPaths();
     private ValidationSettings validation = new ValidationSettings();
+    private HotReloadSettings hotReload = new HotReloadSettings();
+    private FileWatcherSettings fileWatcher = new FileWatcherSettings();
 
     public GenericApiConfig() {
         super();
@@ -36,6 +38,8 @@ public class GenericApiConfig extends BaseConfig {
         loadSwaggerConfig();
         loadConfigPaths();
         loadValidationConfig();
+        loadHotReloadConfig();
+        loadFileWatcherConfig();
     }
 
     private void loadDatabaseConfig() {
@@ -163,6 +167,40 @@ public class GenericApiConfig extends BaseConfig {
                    runOnStartup, validateOnly, validateEndpoints);
     }
 
+    private void loadHotReloadConfig() {
+        // Load hot reload configuration
+        Boolean enabled = getBoolean("config.hotReload.enabled", false);
+        Boolean watchDirectories = getBoolean("config.hotReload.watchDirectories", true);
+        Long debounceMs = getLong("config.hotReload.debounceMs", 300L);
+        Integer maxReloadAttempts = getInteger("config.hotReload.maxReloadAttempts", 3);
+        Boolean rollbackOnFailure = getBoolean("config.hotReload.rollbackOnFailure", true);
+        Boolean validateBeforeApply = getBoolean("config.hotReload.validateBeforeApply", true);
+
+        hotReload.setEnabled(enabled);
+        hotReload.setWatchDirectories(watchDirectories);
+        hotReload.setDebounceMs(debounceMs);
+        hotReload.setMaxReloadAttempts(maxReloadAttempts);
+        hotReload.setRollbackOnFailure(rollbackOnFailure);
+        hotReload.setValidateBeforeApply(validateBeforeApply);
+
+        logger.info("Hot reload configuration: enabled={}, watchDirectories={}, debounceMs={}, maxAttempts={}, rollback={}, validate={}",
+                   enabled, watchDirectories, debounceMs, maxReloadAttempts, rollbackOnFailure, validateBeforeApply);
+    }
+
+    private void loadFileWatcherConfig() {
+        // Load file watcher configuration
+        Boolean enabled = getBoolean("config.fileWatcher.enabled", true);
+        Long pollInterval = getLong("config.fileWatcher.pollInterval", 1000L);
+        Boolean includeSubdirectories = getBoolean("config.fileWatcher.includeSubdirectories", false);
+
+        fileWatcher.setEnabled(enabled);
+        fileWatcher.setPollInterval(pollInterval);
+        fileWatcher.setIncludeSubdirectories(includeSubdirectories);
+
+        logger.info("File watcher configuration: enabled={}, pollInterval={}, includeSubdirectories={}",
+                   enabled, pollInterval, includeSubdirectories);
+    }
+
     @Override
     protected String getConfigFileName() {
         // Check for custom config file system property (for testing)
@@ -199,6 +237,10 @@ public class GenericApiConfig extends BaseConfig {
 
     protected Double getDouble(String path, Double defaultValue) {
         return getNestedValue(path, Double.class, defaultValue);
+    }
+
+    protected Long getLong(String path, Long defaultValue) {
+        return getNestedValue(path, Long.class, defaultValue);
     }
 
     @SuppressWarnings("unchecked")
@@ -300,6 +342,52 @@ public class GenericApiConfig extends BaseConfig {
         return validation.validateEndpoints;
     }
 
+    // Hot reload configuration getters
+    public HotReloadSettings getHotReloadSettings() {
+        return hotReload;
+    }
+
+    public boolean isHotReloadEnabled() {
+        return hotReload.enabled;
+    }
+
+    public boolean isHotReloadWatchDirectories() {
+        return hotReload.watchDirectories;
+    }
+
+    public long getHotReloadDebounceMs() {
+        return hotReload.debounceMs;
+    }
+
+    public int getHotReloadMaxAttempts() {
+        return hotReload.maxReloadAttempts;
+    }
+
+    public boolean isHotReloadRollbackOnFailure() {
+        return hotReload.rollbackOnFailure;
+    }
+
+    public boolean isHotReloadValidateBeforeApply() {
+        return hotReload.validateBeforeApply;
+    }
+
+    // File watcher configuration getters
+    public FileWatcherSettings getFileWatcherSettings() {
+        return fileWatcher;
+    }
+
+    public boolean isFileWatcherEnabled() {
+        return fileWatcher.enabled;
+    }
+
+    public long getFileWatcherPollInterval() {
+        return fileWatcher.pollInterval;
+    }
+
+    public boolean isFileWatcherIncludeSubdirectories() {
+        return fileWatcher.includeSubdirectories;
+    }
+
     // Inner classes for configuration structure
     public static class DatabaseSettings {
         private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
@@ -371,5 +459,42 @@ public class GenericApiConfig extends BaseConfig {
         public void setValidateOnly(boolean validateOnly) { this.validateOnly = validateOnly; }
         public boolean isValidateEndpoints() { return validateEndpoints; }
         public void setValidateEndpoints(boolean validateEndpoints) { this.validateEndpoints = validateEndpoints; }
+    }
+
+    public static class HotReloadSettings {
+        private boolean enabled = false;
+        private boolean watchDirectories = true;
+        private long debounceMs = 300;
+        private int maxReloadAttempts = 3;
+        private boolean rollbackOnFailure = true;
+        private boolean validateBeforeApply = true;
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public boolean isWatchDirectories() { return watchDirectories; }
+        public void setWatchDirectories(boolean watchDirectories) { this.watchDirectories = watchDirectories; }
+        public long getDebounceMs() { return debounceMs; }
+        public void setDebounceMs(long debounceMs) { this.debounceMs = debounceMs; }
+        public int getMaxReloadAttempts() { return maxReloadAttempts; }
+        public void setMaxReloadAttempts(int maxReloadAttempts) { this.maxReloadAttempts = maxReloadAttempts; }
+        public boolean isRollbackOnFailure() { return rollbackOnFailure; }
+        public void setRollbackOnFailure(boolean rollbackOnFailure) { this.rollbackOnFailure = rollbackOnFailure; }
+        public boolean isValidateBeforeApply() { return validateBeforeApply; }
+        public void setValidateBeforeApply(boolean validateBeforeApply) { this.validateBeforeApply = validateBeforeApply; }
+    }
+
+    public static class FileWatcherSettings {
+        private boolean enabled = true;
+        private long pollInterval = 1000; // fallback for systems without native watching
+        private boolean includeSubdirectories = false;
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public long getPollInterval() { return pollInterval; }
+        public void setPollInterval(long pollInterval) { this.pollInterval = pollInterval; }
+        public boolean isIncludeSubdirectories() { return includeSubdirectories; }
+        public void setIncludeSubdirectories(boolean includeSubdirectories) { this.includeSubdirectories = includeSubdirectories; }
     }
 }

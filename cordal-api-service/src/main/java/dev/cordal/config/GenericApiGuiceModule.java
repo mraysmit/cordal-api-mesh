@@ -26,6 +26,12 @@ import dev.cordal.generic.migration.ConfigurationMigrationController;
 import dev.cordal.database.DatabaseManager;
 import dev.cordal.database.ConfigurationDataLoader;
 import dev.cordal.api.H2ServerController;
+import dev.cordal.hotreload.FileWatcherService;
+import dev.cordal.hotreload.ConfigurationStateManager;
+import dev.cordal.hotreload.ConfigurationReloadManager;
+import dev.cordal.hotreload.ValidationPipeline;
+import dev.cordal.hotreload.DynamicEndpointRegistry;
+import dev.cordal.hotreload.AtomicUpdateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,5 +268,56 @@ public class GenericApiGuiceModule extends AbstractModule {
     public H2ServerController provideH2ServerController(H2ServerConfig h2ServerConfig) {
         logger.info("Creating H2ServerController instance");
         return new H2ServerController(h2ServerConfig);
+    }
+
+    @Provides
+    @Singleton
+    public FileWatcherService provideFileWatcherService() {
+        logger.info("Creating FileWatcherService instance");
+        return new FileWatcherService();
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationStateManager provideConfigurationStateManager() {
+        logger.info("Creating ConfigurationStateManager instance");
+        return new ConfigurationStateManager();
+    }
+
+    @Provides
+    @Singleton
+    public ValidationPipeline provideValidationPipeline(DatabaseManager databaseManager,
+                                                       ConfigurationStateManager stateManager) {
+        logger.info("Creating ValidationPipeline instance");
+        return new ValidationPipeline(databaseManager, stateManager);
+    }
+
+    @Provides
+    @Singleton
+    public DynamicEndpointRegistry provideDynamicEndpointRegistry() {
+        logger.info("Creating DynamicEndpointRegistry instance");
+        return new DynamicEndpointRegistry();
+    }
+
+    @Provides
+    @Singleton
+    public AtomicUpdateManager provideAtomicUpdateManager(DatabaseManager databaseManager,
+                                                         DynamicEndpointRegistry endpointRegistry) {
+        logger.info("Creating AtomicUpdateManager instance");
+        return new AtomicUpdateManager(databaseManager, endpointRegistry);
+    }
+
+    @Provides
+    @Singleton
+    public ConfigurationReloadManager provideConfigurationReloadManager(
+            FileWatcherService fileWatcher,
+            ConfigurationStateManager stateManager,
+            ValidationPipeline validationPipeline,
+            DynamicEndpointRegistry endpointRegistry,
+            AtomicUpdateManager atomicUpdateManager,
+            GenericApiConfig config) {
+        logger.info("Creating ConfigurationReloadManager instance");
+        return new ConfigurationReloadManager(fileWatcher, stateManager, validationPipeline,
+                                            endpointRegistry, atomicUpdateManager, config);
     }
 }
