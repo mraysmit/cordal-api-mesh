@@ -11,6 +11,8 @@ import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.dto.ConfigurationStatisticsResponse;
 import dev.cordal.dto.ConfigurationSourceInfoResponse;
 import dev.cordal.dto.ConfigurationListResponse;
+import dev.cordal.generic.dto.ConfigurationCollectionResponse;
+import dev.cordal.generic.dto.ConfigurationOperationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing configurations stored in the database
@@ -50,20 +53,27 @@ public class ConfigurationManagementService {
     // ========== DATABASE CONFIGURATION MANAGEMENT ==========
 
     /**
-     * Get all database configurations
+     * Get all database configurations with type-safe response
      */
-    public Map<String, Object> getAllDatabaseConfigurations() {
+    public ConfigurationCollectionResponse<DatabaseConfig> getAllDatabaseConfigurations() {
         logger.debug("Getting all database configurations");
 
         // Use configuration manager to get configurations from current source (YAML or database)
         Map<String, DatabaseConfig> configurations = configurationManager.getAllDatabaseConfigurations();
 
-        return Map.of(
-            "count", configurations.size(),
-            "source", configurationLoaderFactory.getConfigurationSource(),
-            "timestamp", Instant.now(),
-            "databases", configurations
+        return ConfigurationCollectionResponse.of(
+            configurationLoaderFactory.getConfigurationSource(),
+            configurations
         );
+    }
+
+    /**
+     * Get all database configurations (DEPRECATED - use type-safe version)
+     * @deprecated Use getAllDatabaseConfigurations() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getAllDatabaseConfigurationsMap() {
+        return getAllDatabaseConfigurations().toMap();
     }
 
     /**
@@ -77,27 +87,23 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Create or update database configuration
+     * Create or update database configuration with type-safe response
      */
-    public Map<String, Object> saveDatabaseConfiguration(String name, DatabaseConfig config) {
+    public ConfigurationOperationResponse saveDatabaseConfiguration(String name, DatabaseConfig config) {
         logger.info("Saving database configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean existed = databaseRepository.exists(name);
             databaseRepository.save(name, config);
-            
-            return Map.of(
-                "success", true,
-                "action", existed ? "updated" : "created",
-                "name", name,
-                "timestamp", Instant.now()
-            );
-            
+
+            return existed ? ConfigurationOperationResponse.updated(name)
+                          : ConfigurationOperationResponse.created(name);
+
         } catch (Exception e) {
             logger.error("Failed to save database configuration: {}", name, e);
             throw new RuntimeException("Failed to save database configuration: " + e.getMessage(), e);
@@ -105,50 +111,68 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Delete database configuration
+     * Create or update database configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use saveDatabaseConfiguration(String, DatabaseConfig) for type safety
      */
-    public Map<String, Object> deleteDatabaseConfiguration(String name) {
+    @Deprecated
+    public Map<String, Object> saveDatabaseConfigurationMap(String name, DatabaseConfig config) {
+        return saveDatabaseConfiguration(name, config).toMap();
+    }
+
+    /**
+     * Delete database configuration with type-safe response
+     */
+    public ConfigurationOperationResponse deleteDatabaseConfiguration(String name) {
         logger.info("Deleting database configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean deleted = databaseRepository.delete(name);
-            
-            return Map.of(
-                "success", deleted,
-                "action", "deleted",
-                "name", name,
-                "found", deleted,
-                "timestamp", Instant.now()
-            );
-            
+            return ConfigurationOperationResponse.deleted(name, deleted);
+
         } catch (Exception e) {
             logger.error("Failed to delete database configuration: {}", name, e);
             throw new RuntimeException("Failed to delete database configuration: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * Delete database configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use deleteDatabaseConfiguration(String) for type safety
+     */
+    @Deprecated
+    public Map<String, Object> deleteDatabaseConfigurationMap(String name) {
+        return deleteDatabaseConfiguration(name).toMap();
+    }
+
     // ========== QUERY CONFIGURATION MANAGEMENT ==========
 
     /**
-     * Get all query configurations
+     * Get all query configurations with type-safe response
      */
-    public Map<String, Object> getAllQueryConfigurations() {
+    public ConfigurationCollectionResponse<QueryConfig> getAllQueryConfigurations() {
         logger.debug("Getting all query configurations");
 
         // Use configuration manager to get configurations from current source (YAML or database)
         Map<String, QueryConfig> configurations = configurationManager.getAllQueryConfigurations();
 
-        return Map.of(
-            "count", configurations.size(),
-            "source", configurationLoaderFactory.getConfigurationSource(),
-            "timestamp", Instant.now(),
-            "queries", configurations
+        return ConfigurationCollectionResponse.of(
+            configurationLoaderFactory.getConfigurationSource(),
+            configurations
         );
+    }
+
+    /**
+     * Get all query configurations (DEPRECATED - use type-safe version)
+     * @deprecated Use getAllQueryConfigurations() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getAllQueryConfigurationsMap() {
+        return getAllQueryConfigurations().toMap();
     }
 
     /**
@@ -162,44 +186,56 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Get query configurations by database
+     * Get query configurations by database with type-safe response
      */
-    public Map<String, Object> getQueryConfigurationsByDatabase(String databaseName) {
+    public ConfigurationCollectionResponse<QueryConfig> getQueryConfigurationsByDatabase(String databaseName) {
         logger.debug("Getting query configurations for database: {}", databaseName);
-        
+
         List<QueryConfig> configurations = queryRepository.loadByDatabase(databaseName);
-        
-        return Map.of(
-            "count", configurations.size(),
-            "database", databaseName,
-            "source", configurationLoaderFactory.getConfigurationSource(),
-            "timestamp", Instant.now(),
-            "queries", configurations
+
+        // Convert List to Map for ConfigurationListResponse
+        Map<String, QueryConfig> configMap = configurations.stream()
+            .collect(Collectors.toMap(
+                QueryConfig::getName,
+                config -> config,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
+
+        return ConfigurationCollectionResponse.forDatabase(
+            configurationLoaderFactory.getConfigurationSource(),
+            configMap,
+            databaseName
         );
     }
 
     /**
-     * Create or update query configuration
+     * Get query configurations by database (DEPRECATED - use type-safe version)
+     * @deprecated Use getQueryConfigurationsByDatabase(String) for type safety
      */
-    public Map<String, Object> saveQueryConfiguration(String name, QueryConfig config) {
+    @Deprecated
+    public Map<String, Object> getQueryConfigurationsByDatabaseMap(String databaseName) {
+        return getQueryConfigurationsByDatabase(databaseName).toMap();
+    }
+
+    /**
+     * Create or update query configuration with type-safe response
+     */
+    public ConfigurationOperationResponse saveQueryConfiguration(String name, QueryConfig config) {
         logger.info("Saving query configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean existed = queryRepository.exists(name);
             queryRepository.save(name, config);
-            
-            return Map.of(
-                "success", true,
-                "action", existed ? "updated" : "created",
-                "name", name,
-                "timestamp", Instant.now()
-            );
-            
+
+            return existed ? ConfigurationOperationResponse.updated(name)
+                          : ConfigurationOperationResponse.created(name);
+
         } catch (Exception e) {
             logger.error("Failed to save query configuration: {}", name, e);
             throw new RuntimeException("Failed to save query configuration: " + e.getMessage(), e);
@@ -207,50 +243,68 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Delete query configuration
+     * Create or update query configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use saveQueryConfiguration(String, QueryConfig) for type safety
      */
-    public Map<String, Object> deleteQueryConfiguration(String name) {
+    @Deprecated
+    public Map<String, Object> saveQueryConfigurationMap(String name, QueryConfig config) {
+        return saveQueryConfiguration(name, config).toMap();
+    }
+
+    /**
+     * Delete query configuration with type-safe response
+     */
+    public ConfigurationOperationResponse deleteQueryConfiguration(String name) {
         logger.info("Deleting query configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean deleted = queryRepository.delete(name);
-            
-            return Map.of(
-                "success", deleted,
-                "action", "deleted",
-                "name", name,
-                "found", deleted,
-                "timestamp", Instant.now()
-            );
-            
+            return ConfigurationOperationResponse.deleted(name, deleted);
+
         } catch (Exception e) {
             logger.error("Failed to delete query configuration: {}", name, e);
             throw new RuntimeException("Failed to delete query configuration: " + e.getMessage(), e);
         }
     }
 
+    /**
+     * Delete query configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use deleteQueryConfiguration(String) for type safety
+     */
+    @Deprecated
+    public Map<String, Object> deleteQueryConfigurationMap(String name) {
+        return deleteQueryConfiguration(name).toMap();
+    }
+
     // ========== ENDPOINT CONFIGURATION MANAGEMENT ==========
 
     /**
-     * Get all endpoint configurations
+     * Get all endpoint configurations with type-safe response
      */
-    public Map<String, Object> getAllEndpointConfigurations() {
+    public ConfigurationCollectionResponse<ApiEndpointConfig> getAllEndpointConfigurations() {
         logger.debug("Getting all endpoint configurations");
 
         // Use configuration manager to get configurations from current source (YAML or database)
         Map<String, ApiEndpointConfig> configurations = configurationManager.getAllEndpointConfigurations();
 
-        return Map.of(
-            "count", configurations.size(),
-            "source", configurationLoaderFactory.getConfigurationSource(),
-            "timestamp", Instant.now(),
-            "endpoints", configurations
+        return ConfigurationCollectionResponse.of(
+            configurationLoaderFactory.getConfigurationSource(),
+            configurations
         );
+    }
+
+    /**
+     * Get all endpoint configurations (DEPRECATED - use type-safe version)
+     * @deprecated Use getAllEndpointConfigurations() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getAllEndpointConfigurationsMap() {
+        return getAllEndpointConfigurations().toMap();
     }
 
     /**
@@ -264,44 +318,57 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Get endpoint configurations by query
+     * Get endpoint configurations by query with type-safe response
      */
-    public Map<String, Object> getEndpointConfigurationsByQuery(String queryName) {
+    public ConfigurationCollectionResponse<ApiEndpointConfig> getEndpointConfigurationsByQuery(String queryName) {
         logger.debug("Getting endpoint configurations for query: {}", queryName);
-        
+
         List<ApiEndpointConfig> configurations = endpointRepository.loadByQuery(queryName);
-        
-        return Map.of(
-            "count", configurations.size(),
-            "query", queryName,
-            "source", configurationLoaderFactory.getConfigurationSource(),
-            "timestamp", Instant.now(),
-            "endpoints", configurations
+
+        // Convert List to Map for ConfigurationCollectionResponse
+        // Since ApiEndpointConfig doesn't have getName(), we'll use the path as the key
+        Map<String, ApiEndpointConfig> configMap = configurations.stream()
+            .collect(Collectors.toMap(
+                config -> config.getPath() != null ? config.getPath() : "unknown",
+                config -> config,
+                (e1, e2) -> e1,
+                LinkedHashMap::new
+            ));
+
+        return ConfigurationCollectionResponse.forQuery(
+            configurationLoaderFactory.getConfigurationSource(),
+            configMap,
+            queryName
         );
     }
 
     /**
-     * Create or update endpoint configuration
+     * Get endpoint configurations by query (DEPRECATED - use type-safe version)
+     * @deprecated Use getEndpointConfigurationsByQuery(String) for type safety
      */
-    public Map<String, Object> saveEndpointConfiguration(String name, ApiEndpointConfig config) {
+    @Deprecated
+    public Map<String, Object> getEndpointConfigurationsByQueryMap(String queryName) {
+        return getEndpointConfigurationsByQuery(queryName).toMap();
+    }
+
+    /**
+     * Create or update endpoint configuration with type-safe response
+     */
+    public ConfigurationOperationResponse saveEndpointConfiguration(String name, ApiEndpointConfig config) {
         logger.info("Saving endpoint configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean existed = endpointRepository.exists(name);
             endpointRepository.save(name, config);
-            
-            return Map.of(
-                "success", true,
-                "action", existed ? "updated" : "created",
-                "name", name,
-                "timestamp", Instant.now()
-            );
-            
+
+            return existed ? ConfigurationOperationResponse.updated(name)
+                          : ConfigurationOperationResponse.created(name);
+
         } catch (Exception e) {
             logger.error("Failed to save endpoint configuration: {}", name, e);
             throw new RuntimeException("Failed to save endpoint configuration: " + e.getMessage(), e);
@@ -309,31 +376,42 @@ public class ConfigurationManagementService {
     }
 
     /**
-     * Delete endpoint configuration
+     * Create or update endpoint configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use saveEndpointConfiguration(String, ApiEndpointConfig) for type safety
      */
-    public Map<String, Object> deleteEndpointConfiguration(String name) {
+    @Deprecated
+    public Map<String, Object> saveEndpointConfigurationMap(String name, ApiEndpointConfig config) {
+        return saveEndpointConfiguration(name, config).toMap();
+    }
+
+    /**
+     * Delete endpoint configuration with type-safe response
+     */
+    public ConfigurationOperationResponse deleteEndpointConfiguration(String name) {
         logger.info("Deleting endpoint configuration: {}", name);
-        
+
         if (!configurationLoaderFactory.isDatabaseSource()) {
-            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " + 
+            throw new IllegalStateException("Configuration management is only available when using database source. Current source: " +
                                           configurationLoaderFactory.getConfigurationSource());
         }
-        
+
         try {
             boolean deleted = endpointRepository.delete(name);
-            
-            return Map.of(
-                "success", deleted,
-                "action", "deleted",
-                "name", name,
-                "found", deleted,
-                "timestamp", Instant.now()
-            );
-            
+            return ConfigurationOperationResponse.deleted(name, deleted);
+
         } catch (Exception e) {
             logger.error("Failed to delete endpoint configuration: {}", name, e);
             throw new RuntimeException("Failed to delete endpoint configuration: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Delete endpoint configuration (DEPRECATED - use type-safe version)
+     * @deprecated Use deleteEndpointConfiguration(String) for type safety
+     */
+    @Deprecated
+    public Map<String, Object> deleteEndpointConfigurationMap(String name) {
+        return deleteEndpointConfiguration(name).toMap();
     }
 
     // ========== CONFIGURATION STATISTICS ==========

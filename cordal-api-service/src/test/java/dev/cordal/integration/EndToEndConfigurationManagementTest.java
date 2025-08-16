@@ -222,9 +222,9 @@ class EndToEndConfigurationManagementTest {
         System.out.println("\n--- PHASE 4: Configuration Management APIs ---");
         
         // Test management service operations
-        Map<String, Object> allDatabases = managementService.getAllDatabaseConfigurations();
-        Map<String, Object> allQueries = managementService.getAllQueryConfigurations();
-        Map<String, Object> allEndpoints = managementService.getAllEndpointConfigurations();
+        Map<String, Object> allDatabases = managementService.getAllDatabaseConfigurationsMap();
+        Map<String, Object> allQueries = managementService.getAllQueryConfigurationsMap();
+        Map<String, Object> allEndpoints = managementService.getAllEndpointConfigurationsMap();
         
         assertThat(allDatabases.get("count")).isNotNull();
         assertThat(allQueries.get("count")).isNotNull();

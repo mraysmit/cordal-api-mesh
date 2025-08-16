@@ -292,7 +292,7 @@ public class GenericApiController {
         logger.debug("Validating all configurations");
 
         try {
-            var validationResults = genericApiService.validateConfigurations();
+            var validationResults = genericApiService.validateConfigurationsMap();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -308,7 +308,7 @@ public class GenericApiController {
         logger.debug("Validating endpoint configurations");
 
         try {
-            var validationResults = genericApiService.validateEndpointConfigurations();
+            var validationResults = genericApiService.validateEndpointConfigurationsMap();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -324,7 +324,7 @@ public class GenericApiController {
         logger.debug("Validating query configurations");
 
         try {
-            var validationResults = genericApiService.validateQueryConfigurations();
+            var validationResults = genericApiService.validateQueryConfigurationsMap();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -374,7 +374,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint configuration schema");
 
         try {
-            var schema = genericApiService.getEndpointConfigurationSchema();
+            var schema = genericApiService.getEndpointConfigurationSchemaMap();
             ctx.json(schema);
 
         } catch (Exception e) {
@@ -390,7 +390,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint parameters");
 
         try {
-            var parameters = genericApiService.getEndpointParameters();
+            var parameters = genericApiService.getEndpointParametersMap();
             ctx.json(parameters);
 
         } catch (Exception e) {
@@ -406,7 +406,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint database connections");
 
         try {
-            var connections = genericApiService.getEndpointDatabaseConnections();
+            var connections = genericApiService.getEndpointDatabaseConnectionsMap();
             ctx.json(connections);
 
         } catch (Exception e) {
@@ -422,7 +422,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint configuration summary");
 
         try {
-            var summary = genericApiService.getEndpointConfigurationSummary();
+            var summary = genericApiService.getEndpointConfigurationSummaryMap();
             ctx.json(summary);
 
         } catch (Exception e) {
@@ -438,7 +438,7 @@ public class GenericApiController {
         logger.debug("Getting query configuration schema");
 
         try {
-            var schema = genericApiService.getQueryConfigurationSchema();
+            var schema = genericApiService.getQueryConfigurationSchemaMap();
             ctx.json(schema);
 
         } catch (Exception e) {
@@ -454,7 +454,7 @@ public class GenericApiController {
         logger.debug("Getting query parameters");
 
         try {
-            var parameters = genericApiService.getQueryParameters();
+            var parameters = genericApiService.getQueryParametersMap();
             ctx.json(parameters);
 
         } catch (Exception e) {
@@ -470,7 +470,7 @@ public class GenericApiController {
         logger.debug("Getting query database connections");
 
         try {
-            var connections = genericApiService.getQueryDatabaseConnections();
+            var connections = genericApiService.getQueryDatabaseConnectionsMap();
             ctx.json(connections);
 
         } catch (Exception e) {
@@ -486,7 +486,7 @@ public class GenericApiController {
         logger.debug("Getting query configuration summary");
 
         try {
-            var summary = genericApiService.getQueryConfigurationSummary();
+            var summary = genericApiService.getQueryConfigurationSummaryMap();
             ctx.json(summary);
 
         } catch (Exception e) {
@@ -502,7 +502,7 @@ public class GenericApiController {
         logger.debug("Getting database configuration schema");
 
         try {
-            var schema = genericApiService.getDatabaseConfigurationSchema();
+            var schema = genericApiService.getDatabaseConfigurationSchemaMap();
             ctx.json(schema);
 
         } catch (Exception e) {

@@ -6,6 +6,9 @@ import dev.cordal.generic.config.DatabaseConfig;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
+import dev.cordal.generic.dto.RequestParameters;
+import dev.cordal.generic.dto.ResponseMetadata;
+import dev.cordal.generic.dto.*;
 import dev.cordal.generic.model.GenericResponse;
 import dev.cordal.generic.model.QueryParameter;
 import org.slf4j.Logger;
@@ -41,8 +44,17 @@ public class GenericApiService {
     }
     
     /**
-     * Execute endpoint request synchronously
+     * Execute endpoint request synchronously with type-safe parameters
      */
+    public GenericResponse executeEndpoint(String endpointName, RequestParameters requestParameters) {
+        return executeEndpoint(endpointName, requestParameters.asMap());
+    }
+
+    /**
+     * Execute endpoint request synchronously (DEPRECATED - use RequestParameters version)
+     * @deprecated Use executeEndpoint(String, RequestParameters) for type safety
+     */
+    @Deprecated
     public GenericResponse executeEndpoint(String endpointName, Map<String, Object> requestParameters) {
         logger.debug("Executing endpoint: {} with parameters: {}", endpointName, requestParameters);
 
@@ -78,9 +90,19 @@ public class GenericApiService {
     }
     
     /**
-     * Execute endpoint request asynchronously
+     * Execute endpoint request asynchronously with type-safe parameters
      */
-    public CompletableFuture<GenericResponse> executeEndpointAsync(String endpointName, 
+    public CompletableFuture<GenericResponse> executeEndpointAsync(String endpointName,
+                                                                  RequestParameters requestParameters) {
+        return executeEndpointAsync(endpointName, requestParameters.asMap());
+    }
+
+    /**
+     * Execute endpoint request asynchronously (DEPRECATED - use RequestParameters version)
+     * @deprecated Use executeEndpointAsync(String, RequestParameters) for type safety
+     */
+    @Deprecated
+    public CompletableFuture<GenericResponse> executeEndpointAsync(String endpointName,
                                                                   Map<String, Object> requestParameters) {
         logger.debug("Executing endpoint asynchronously: {} with parameters: {}", endpointName, requestParameters);
         
@@ -350,35 +372,36 @@ public class GenericApiService {
     // ========== GRANULAR CONFIGURATION APIS ==========
 
     /**
-     * Get endpoint configuration schema (field names and data types)
+     * Get endpoint configuration schema (field names and data types) with type-safe response
      */
-    public Map<String, Object> getEndpointConfigurationSchema() {
-        Map<String, Object> schema = new HashMap<>();
-        schema.put("configType", "endpoints");
+    public ConfigurationSchemaResponse getEndpointConfigurationSchema() {
+        List<ConfigurationSchemaResponse.SchemaField> fields = List.of(
+            new ConfigurationSchemaResponse.SchemaField("path", "String", true, "API endpoint path"),
+            new ConfigurationSchemaResponse.SchemaField("method", "String", true, "HTTP method (GET, POST, etc.)"),
+            new ConfigurationSchemaResponse.SchemaField("description", "String", false, "Endpoint description"),
+            new ConfigurationSchemaResponse.SchemaField("query", "String", true, "Reference to query configuration"),
+            new ConfigurationSchemaResponse.SchemaField("countQuery", "String", false, "Reference to count query for pagination"),
+            new ConfigurationSchemaResponse.SchemaField("pagination", "PaginationConfig", false, "Pagination configuration"),
+            new ConfigurationSchemaResponse.SchemaField("parameters", "List<EndpointParameter>", false, "Endpoint parameters"),
+            new ConfigurationSchemaResponse.SchemaField("response", "ResponseConfig", false, "Response configuration")
+        );
 
-        List<Map<String, Object>> fields = new ArrayList<>();
-        fields.add(createFieldInfo("path", "String", true, "API endpoint path"));
-        fields.add(createFieldInfo("method", "String", true, "HTTP method (GET, POST, etc.)"));
-        fields.add(createFieldInfo("description", "String", false, "Endpoint description"));
-        fields.add(createFieldInfo("query", "String", true, "Reference to query configuration"));
-        fields.add(createFieldInfo("countQuery", "String", false, "Reference to count query for pagination"));
-        fields.add(createFieldInfo("pagination", "PaginationConfig", false, "Pagination configuration"));
-        fields.add(createFieldInfo("parameters", "List<EndpointParameter>", false, "Endpoint parameters"));
-        fields.add(createFieldInfo("response", "ResponseConfig", false, "Response configuration"));
-
-        schema.put("fields", fields);
-        schema.put("timestamp", System.currentTimeMillis());
-
-        return schema;
+        return ConfigurationSchemaResponse.of("endpoints", fields);
     }
 
     /**
-     * Get only parameters from all endpoint configurations
+     * Get endpoint configuration schema (DEPRECATED - use type-safe version)
+     * @deprecated Use getEndpointConfigurationSchema() for type safety
      */
-    public Map<String, Object> getEndpointParameters() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("configType", "endpoints");
+    @Deprecated
+    public Map<String, Object> getEndpointConfigurationSchemaMap() {
+        return getEndpointConfigurationSchema().toMap();
+    }
 
+    /**
+     * Get only parameters from all endpoint configurations with type-safe response
+     */
+    public ConfigurationParametersResponse<ApiEndpointConfig.EndpointParameter> getEndpointParameters() {
         Map<String, List<ApiEndpointConfig.EndpointParameter>> parameters = new HashMap<>();
 
         for (Map.Entry<String, ApiEndpointConfig> entry : configurationManager.getAllEndpointConfigurations().entrySet()) {
@@ -390,21 +413,23 @@ public class GenericApiService {
             }
         }
 
-        response.put("parameters", parameters);
-        response.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
-        response.put("endpointsWithParameters", parameters.size());
-        response.put("timestamp", System.currentTimeMillis());
-
-        return response;
+        return ConfigurationParametersResponse.of("endpoints", parameters,
+                                                 configurationManager.getAllEndpointConfigurations().size());
     }
 
     /**
-     * Get database connections referenced by endpoints (via queries)
+     * Get only parameters from all endpoint configurations (DEPRECATED - use type-safe version)
+     * @deprecated Use getEndpointParameters() for type safety
      */
-    public Map<String, Object> getEndpointDatabaseConnections() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("configType", "endpoints");
+    @Deprecated
+    public Map<String, Object> getEndpointParametersMap() {
+        return getEndpointParameters().toMap();
+    }
 
+    /**
+     * Get database connections referenced by endpoints (via queries) with type-safe response
+     */
+    public DatabaseConnectionsResponse getEndpointDatabaseConnections() {
         Map<String, String> endpointToDatabases = new HashMap<>();
         Set<String> referencedDatabases = new HashSet<>();
 
@@ -423,22 +448,23 @@ public class GenericApiService {
             }
         }
 
-        response.put("endpointDatabases", endpointToDatabases);
-        response.put("referencedDatabases", new ArrayList<>(referencedDatabases));
-        response.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
-        response.put("endpointsWithDatabases", endpointToDatabases.size());
-        response.put("timestamp", System.currentTimeMillis());
-
-        return response;
+        return DatabaseConnectionsResponse.of("endpoints", endpointToDatabases, referencedDatabases,
+                                             configurationManager.getAllEndpointConfigurations().size());
     }
 
     /**
-     * Get endpoint configuration summary
+     * Get database connections referenced by endpoints (DEPRECATED - use type-safe version)
+     * @deprecated Use getEndpointDatabaseConnections() for type safety
      */
-    public Map<String, Object> getEndpointConfigurationSummary() {
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("configType", "endpoints");
+    @Deprecated
+    public Map<String, Object> getEndpointDatabaseConnectionsMap() {
+        return getEndpointDatabaseConnections().toMap();
+    }
 
+    /**
+     * Get endpoint configuration summary with type-safe response
+     */
+    public ConfigurationSummaryResponse getEndpointConfigurationSummary() {
         Map<String, ApiEndpointConfig> endpoints = configurationManager.getAllEndpointConfigurations();
 
         // Count by method
@@ -479,44 +505,47 @@ public class GenericApiService {
             }
         }
 
-        summary.put("totalCount", endpoints.size());
-        summary.put("byMethod", byMethod);
-        summary.put("withPagination", withPagination);
-        summary.put("withParameters", withParameters);
-        summary.put("referencedQueries", new ArrayList<>(referencedQueries));
-        summary.put("referencedDatabases", new ArrayList<>(referencedDatabases));
-        summary.put("timestamp", System.currentTimeMillis());
-
-        return summary;
+        return ConfigurationSummaryResponse.forEndpoints(endpoints.size(), withParameters, withPagination,
+                                                        byMethod, referencedQueries, referencedDatabases);
     }
 
     /**
-     * Get query configuration schema (field names and data types)
+     * Get endpoint configuration summary (DEPRECATED - use type-safe version)
+     * @deprecated Use getEndpointConfigurationSummary() for type safety
      */
-    public Map<String, Object> getQueryConfigurationSchema() {
-        Map<String, Object> schema = new HashMap<>();
-        schema.put("configType", "queries");
-
-        List<Map<String, Object>> fields = new ArrayList<>();
-        fields.add(createFieldInfo("name", "String", true, "Query name"));
-        fields.add(createFieldInfo("description", "String", false, "Query description"));
-        fields.add(createFieldInfo("sql", "String", true, "SQL query statement"));
-        fields.add(createFieldInfo("database", "String", true, "Reference to database configuration"));
-        fields.add(createFieldInfo("parameters", "List<QueryParameter>", false, "Query parameters"));
-
-        schema.put("fields", fields);
-        schema.put("timestamp", System.currentTimeMillis());
-
-        return schema;
+    @Deprecated
+    public Map<String, Object> getEndpointConfigurationSummaryMap() {
+        return getEndpointConfigurationSummary().toMap();
     }
 
     /**
-     * Get only parameters from all query configurations
+     * Get query configuration schema (field names and data types) with type-safe response
      */
-    public Map<String, Object> getQueryParameters() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("configType", "queries");
+    public ConfigurationSchemaResponse getQueryConfigurationSchema() {
+        List<ConfigurationSchemaResponse.SchemaField> fields = List.of(
+            new ConfigurationSchemaResponse.SchemaField("name", "String", true, "Query name"),
+            new ConfigurationSchemaResponse.SchemaField("description", "String", false, "Query description"),
+            new ConfigurationSchemaResponse.SchemaField("sql", "String", true, "SQL query statement"),
+            new ConfigurationSchemaResponse.SchemaField("database", "String", true, "Reference to database configuration"),
+            new ConfigurationSchemaResponse.SchemaField("parameters", "List<QueryParameter>", false, "Query parameters")
+        );
 
+        return ConfigurationSchemaResponse.of("queries", fields);
+    }
+
+    /**
+     * Get query configuration schema (DEPRECATED - use type-safe version)
+     * @deprecated Use getQueryConfigurationSchema() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getQueryConfigurationSchemaMap() {
+        return getQueryConfigurationSchema().toMap();
+    }
+
+    /**
+     * Get only parameters from all query configurations with type-safe response
+     */
+    public ConfigurationParametersResponse<QueryConfig.QueryParameter> getQueryParameters() {
         Map<String, List<QueryConfig.QueryParameter>> parameters = new HashMap<>();
 
         for (Map.Entry<String, QueryConfig> entry : configurationManager.getAllQueryConfigurations().entrySet()) {
@@ -528,21 +557,23 @@ public class GenericApiService {
             }
         }
 
-        response.put("parameters", parameters);
-        response.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
-        response.put("queriesWithParameters", parameters.size());
-        response.put("timestamp", System.currentTimeMillis());
-
-        return response;
+        return ConfigurationParametersResponse.of("queries", parameters,
+                                                 configurationManager.getAllQueryConfigurations().size());
     }
 
     /**
-     * Get database connections referenced by queries
+     * Get only parameters from all query configurations (DEPRECATED - use type-safe version)
+     * @deprecated Use getQueryParameters() for type safety
      */
-    public Map<String, Object> getQueryDatabaseConnections() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("configType", "queries");
+    @Deprecated
+    public Map<String, Object> getQueryParametersMap() {
+        return getQueryParameters().toMap();
+    }
 
+    /**
+     * Get database connections referenced by queries with type-safe response
+     */
+    public DatabaseConnectionsResponse getQueryDatabaseConnections() {
         Map<String, String> queryToDatabases = new HashMap<>();
         Set<String> referencedDatabases = new HashSet<>();
 
@@ -556,22 +587,23 @@ public class GenericApiService {
             }
         }
 
-        response.put("queryDatabases", queryToDatabases);
-        response.put("referencedDatabases", new ArrayList<>(referencedDatabases));
-        response.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
-        response.put("queriesWithDatabases", queryToDatabases.size());
-        response.put("timestamp", System.currentTimeMillis());
-
-        return response;
+        return DatabaseConnectionsResponse.of("queries", queryToDatabases, referencedDatabases,
+                                             configurationManager.getAllQueryConfigurations().size());
     }
 
     /**
-     * Get query configuration summary
+     * Get database connections referenced by queries (DEPRECATED - use type-safe version)
+     * @deprecated Use getQueryDatabaseConnections() for type safety
      */
-    public Map<String, Object> getQueryConfigurationSummary() {
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("configType", "queries");
+    @Deprecated
+    public Map<String, Object> getQueryDatabaseConnectionsMap() {
+        return getQueryDatabaseConnections().toMap();
+    }
 
+    /**
+     * Get query configuration summary with type-safe response
+     */
+    public ConfigurationSummaryResponse getQueryConfigurationSummary() {
         Map<String, QueryConfig> queries = configurationManager.getAllQueryConfigurations();
 
         int withParameters = 0;
@@ -592,35 +624,43 @@ public class GenericApiService {
             }
         }
 
-        summary.put("totalCount", queries.size());
-        summary.put("withParameters", withParameters);
-        summary.put("referencedDatabases", new ArrayList<>(referencedDatabases));
-        summary.put("parameterCounts", parameterCounts);
-        summary.put("timestamp", System.currentTimeMillis());
-
-        return summary;
+        return ConfigurationSummaryResponse.forQueries(queries.size(), withParameters,
+                                                      referencedDatabases, parameterCounts);
     }
 
     /**
-     * Get database configuration schema (field names and data types)
+     * Get query configuration summary (DEPRECATED - use type-safe version)
+     * @deprecated Use getQueryConfigurationSummary() for type safety
      */
-    public Map<String, Object> getDatabaseConfigurationSchema() {
-        Map<String, Object> schema = new HashMap<>();
-        schema.put("configType", "databases");
+    @Deprecated
+    public Map<String, Object> getQueryConfigurationSummaryMap() {
+        return getQueryConfigurationSummary().toMap();
+    }
 
-        List<Map<String, Object>> fields = new ArrayList<>();
-        fields.add(createFieldInfo("name", "String", true, "Database name"));
-        fields.add(createFieldInfo("description", "String", false, "Database description"));
-        fields.add(createFieldInfo("url", "String", true, "Database connection URL"));
-        fields.add(createFieldInfo("username", "String", true, "Database username"));
-        fields.add(createFieldInfo("password", "String", true, "Database password"));
-        fields.add(createFieldInfo("driver", "String", true, "Database driver class"));
-        fields.add(createFieldInfo("pool", "PoolConfig", false, "Connection pool configuration"));
+    /**
+     * Get database configuration schema (field names and data types) with type-safe response
+     */
+    public ConfigurationSchemaResponse getDatabaseConfigurationSchema() {
+        List<ConfigurationSchemaResponse.SchemaField> fields = List.of(
+            new ConfigurationSchemaResponse.SchemaField("name", "String", true, "Database name"),
+            new ConfigurationSchemaResponse.SchemaField("description", "String", false, "Database description"),
+            new ConfigurationSchemaResponse.SchemaField("url", "String", true, "Database connection URL"),
+            new ConfigurationSchemaResponse.SchemaField("username", "String", true, "Database username"),
+            new ConfigurationSchemaResponse.SchemaField("password", "String", true, "Database password"),
+            new ConfigurationSchemaResponse.SchemaField("driver", "String", true, "Database driver class"),
+            new ConfigurationSchemaResponse.SchemaField("pool", "PoolConfig", false, "Connection pool configuration")
+        );
 
-        schema.put("fields", fields);
-        schema.put("timestamp", System.currentTimeMillis());
+        return ConfigurationSchemaResponse.of("databases", fields);
+    }
 
-        return schema;
+    /**
+     * Get database configuration schema (DEPRECATED - use type-safe version)
+     * @deprecated Use getDatabaseConfigurationSchema() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getDatabaseConfigurationSchemaMap() {
+        return getDatabaseConfigurationSchema().toMap();
     }
 
     /**
@@ -787,21 +827,16 @@ public class GenericApiService {
     }
 
     /**
-     * Validate all configurations and return validation results
+     * Validate all configurations and return validation results with type-safe response
      */
-    public Map<String, Object> validateConfigurations() {
-        Map<String, Object> validationResults = new HashMap<>();
+    public ConfigurationValidationResponse validateConfigurations() {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         try {
             // This will throw an exception if validation fails
             configurationManager.validateConfigurations();
-            validationResults.put("status", "VALID");
-            validationResults.put("message", "All configurations are valid");
         } catch (Exception e) {
-            validationResults.put("status", "INVALID");
-            validationResults.put("message", e.getMessage());
             errors.add(e.getMessage());
         }
 
@@ -811,76 +846,90 @@ public class GenericApiService {
         validateDatabaseConfigurations(errors, warnings);
         validateRelationships(errors, warnings);
 
-        validationResults.put("errors", errors);
-        validationResults.put("warnings", warnings);
-        validationResults.put("errorCount", errors.size());
-        validationResults.put("warningCount", warnings.size());
-        validationResults.put("timestamp", System.currentTimeMillis());
-
-        return validationResults;
+        if (errors.isEmpty()) {
+            return warnings.isEmpty() ? ConfigurationValidationResponse.valid("All configurations are valid")
+                                     : ConfigurationValidationResponse.validWithWarnings("All configurations are valid with warnings", warnings);
+        } else {
+            return ConfigurationValidationResponse.invalid("Configuration validation failed", errors);
+        }
     }
 
     /**
-     * Validate endpoint configurations specifically
+     * Validate all configurations and return validation results (DEPRECATED - use type-safe version)
+     * @deprecated Use validateConfigurations() for type safety
      */
-    public Map<String, Object> validateEndpointConfigurations() {
-        Map<String, Object> validationResults = new HashMap<>();
+    @Deprecated
+    public Map<String, Object> validateConfigurationsMap() {
+        return validateConfigurations().toMap();
+    }
+
+    /**
+     * Validate endpoint configurations specifically with type-safe response
+     */
+    public ConfigurationValidationResponse validateEndpointConfigurations() {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         validateEndpointConfigurations(errors, warnings);
 
-        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
-        validationResults.put("errors", errors);
-        validationResults.put("warnings", warnings);
-        validationResults.put("errorCount", errors.size());
-        validationResults.put("warningCount", warnings.size());
-        validationResults.put("totalEndpoints", configurationManager.getAllEndpointConfigurations().size());
-        validationResults.put("timestamp", System.currentTimeMillis());
-
-        return validationResults;
+        return ConfigurationValidationResponse.forConfigType("endpoints",
+                                                            configurationManager.getAllEndpointConfigurations().size(),
+                                                            errors, warnings);
     }
 
     /**
-     * Validate query configurations specifically
+     * Validate endpoint configurations specifically (DEPRECATED - use type-safe version)
+     * @deprecated Use validateEndpointConfigurations() for type safety
      */
-    public Map<String, Object> validateQueryConfigurations() {
-        Map<String, Object> validationResults = new HashMap<>();
+    @Deprecated
+    public Map<String, Object> validateEndpointConfigurationsMap() {
+        return validateEndpointConfigurations().toMap();
+    }
+
+    /**
+     * Validate query configurations specifically with type-safe response
+     */
+    public ConfigurationValidationResponse validateQueryConfigurations() {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         validateQueryConfigurations(errors, warnings);
 
-        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
-        validationResults.put("errors", errors);
-        validationResults.put("warnings", warnings);
-        validationResults.put("errorCount", errors.size());
-        validationResults.put("warningCount", warnings.size());
-        validationResults.put("totalQueries", configurationManager.getAllQueryConfigurations().size());
-        validationResults.put("timestamp", System.currentTimeMillis());
-
-        return validationResults;
+        return ConfigurationValidationResponse.forConfigType("queries",
+                                                            configurationManager.getAllQueryConfigurations().size(),
+                                                            errors, warnings);
     }
 
     /**
-     * Validate database configurations specifically
+     * Validate query configurations specifically (DEPRECATED - use type-safe version)
+     * @deprecated Use validateQueryConfigurations() for type safety
      */
-    public Map<String, Object> validateDatabaseConfigurations() {
-        Map<String, Object> validationResults = new HashMap<>();
+    @Deprecated
+    public Map<String, Object> validateQueryConfigurationsMap() {
+        return validateQueryConfigurations().toMap();
+    }
+
+    /**
+     * Validate database configurations specifically with type-safe response
+     */
+    public ConfigurationValidationResponse validateDatabaseConfigurations() {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         validateDatabaseConfigurations(errors, warnings);
 
-        validationResults.put("status", errors.isEmpty() ? "VALID" : "INVALID");
-        validationResults.put("errors", errors);
-        validationResults.put("warnings", warnings);
-        validationResults.put("errorCount", errors.size());
-        validationResults.put("warningCount", warnings.size());
-        validationResults.put("totalDatabases", configurationManager.getAllDatabaseConfigurations().size());
-        validationResults.put("timestamp", System.currentTimeMillis());
+        return ConfigurationValidationResponse.forConfigType("databases",
+                                                            configurationManager.getAllDatabaseConfigurations().size(),
+                                                            errors, warnings);
+    }
 
-        return validationResults;
+    /**
+     * Validate database configurations specifically (DEPRECATED - use type-safe version)
+     * @deprecated Use validateDatabaseConfigurations() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> validateDatabaseConfigurationsMap() {
+        return validateDatabaseConfigurations().toMap();
     }
 
     /**

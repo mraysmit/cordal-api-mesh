@@ -1,6 +1,7 @@
 package dev.cordal.generic.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import dev.cordal.generic.dto.ResponseMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.Objects;
 public class GenericResponse {
     private String type; // SINGLE, PAGED, LIST
     private Object data;
-    private Map<String, Object> metadata;
+    private ResponseMetadata metadata;
     private PaginationInfo pagination;
     private Long timestamp;
 
@@ -84,12 +85,19 @@ public class GenericResponse {
         this.data = data;
     }
 
-    public Map<String, Object> getMetadata() {
+    public ResponseMetadata getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(Map<String, Object> metadata) {
+    public void setMetadata(ResponseMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    /**
+     * Set metadata from Map<String, Object> for backward compatibility
+     */
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata != null ? ResponseMetadata.fromMap(metadata) : null;
     }
 
     public PaginationInfo getPagination() {

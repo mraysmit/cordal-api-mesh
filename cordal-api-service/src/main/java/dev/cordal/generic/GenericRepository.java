@@ -4,8 +4,10 @@ import dev.cordal.common.cache.CacheKeyBuilder;
 import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.exception.ApiException;
 import dev.cordal.common.metrics.CacheMetricsCollector;
+import dev.cordal.generic.cache.QueryResultCache;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
+import dev.cordal.generic.dto.QueryResult;
 import dev.cordal.generic.model.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,20 +31,35 @@ public class GenericRepository {
     private final DatabaseConnectionManager databaseConnectionManager;
     private final CacheManager cacheManager;
     private final CacheMetricsCollector cacheMetricsCollector;
+    private final QueryResultCache queryResultCache;
 
     @Inject
     public GenericRepository(DatabaseConnectionManager databaseConnectionManager,
                            CacheManager cacheManager,
-                           CacheMetricsCollector cacheMetricsCollector) {
+                           CacheMetricsCollector cacheMetricsCollector,
+                           QueryResultCache queryResultCache) {
         this.databaseConnectionManager = databaseConnectionManager;
         this.cacheManager = cacheManager;
         this.cacheMetricsCollector = cacheMetricsCollector;
+        this.queryResultCache = queryResultCache;
         logger.info("Generic repository initialized with caching and metrics support");
     }
     
     /**
-     * Execute a query and return results as list of maps
+     * Execute a query and return results as type-safe QueryResult objects
      */
+    public List<QueryResult> executeQuerySafe(QueryConfig queryConfig, List<QueryParameter> parameters) {
+        List<Map<String, Object>> rawResults = executeQuery(queryConfig, parameters);
+        return rawResults.stream()
+            .map(QueryResult::new)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Execute a query and return results as list of maps (DEPRECATED - use executeQuerySafe)
+     * @deprecated Use executeQuerySafe() for type safety
+     */
+    @Deprecated
     public List<Map<String, Object>> executeQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
         logger.debug("Executing query: {} with {} parameters on database: {}",
                     queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
@@ -51,15 +68,13 @@ public class GenericRepository {
         if (queryConfig.isCacheEnabled()) {
             String cacheKey = buildCacheKey(queryConfig, parameters);
             long cacheStartTime = System.currentTimeMillis();
-            Optional<List> cachedResult = cacheManager.get(QUERY_RESULTS_CACHE, cacheKey, List.class);
+            Optional<List<Map<String, Object>>> cachedResult = queryResultCache.get(QUERY_RESULTS_CACHE, cacheKey);
 
             if (cachedResult.isPresent()) {
                 long cacheResponseTime = System.currentTimeMillis() - cacheStartTime;
                 cacheMetricsCollector.recordCacheHit(queryConfig.getName(), QUERY_RESULTS_CACHE, cacheKey, cacheResponseTime);
                 logger.debug("Cache hit for query: {} with key: {} in {}ms", queryConfig.getName(), cacheKey, cacheResponseTime);
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> result = (List<Map<String, Object>>) cachedResult.get();
-                return result;
+                return cachedResult.get(); // Type-safe, no cast needed!
             }
 
             logger.debug("Cache miss for query: {} with key: {}", queryConfig.getName(), cacheKey);
@@ -73,8 +88,8 @@ public class GenericRepository {
         // Store in cache if enabled and record cache miss
         if (queryConfig.isCacheEnabled()) {
             String cacheKey = buildCacheKey(queryConfig, parameters);
-            Duration ttl = Duration.ofSeconds(queryConfig.getCache().getTtl());
-            cacheManager.put(QUERY_RESULTS_CACHE, cacheKey, results, ttl);
+            long ttlMs = Duration.ofSeconds(queryConfig.getCache().getTtl()).toMillis();
+            queryResultCache.put(QUERY_RESULTS_CACHE, cacheKey, results, ttlMs);
             cacheMetricsCollector.recordCacheMiss(queryConfig.getName(), QUERY_RESULTS_CACHE, cacheKey, dbResponseTime);
             logger.debug("Cached query result: {} with key: {} and TTL: {}s, DB response time: {}ms",
                         queryConfig.getName(), cacheKey, queryConfig.getCache().getTtl(), dbResponseTime);
@@ -199,6 +214,19 @@ public class GenericRepository {
     /**
      * Execute a query that returns a single result
      */
+    /**
+     * Execute a query and return single result as type-safe QueryResult
+     */
+    public Optional<QueryResult> executeSingleQuerySafe(QueryConfig queryConfig, List<QueryParameter> parameters) {
+        return executeSingleQuery(queryConfig, parameters)
+            .map(QueryResult::new);
+    }
+
+    /**
+     * Execute a query and return single result as map (DEPRECATED - use executeSingleQuerySafe)
+     * @deprecated Use executeSingleQuerySafe() for type safety
+     */
+    @Deprecated
     public Optional<Map<String, Object>> executeSingleQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
         logger.debug("Executing single query: {} with {} parameters", queryConfig.getName(), parameters.size());
 

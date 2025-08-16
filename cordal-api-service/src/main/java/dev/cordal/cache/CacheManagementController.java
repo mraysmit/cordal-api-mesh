@@ -1,5 +1,6 @@
 package dev.cordal.cache;
 
+import dev.cordal.cache.dto.CacheInvalidationRequest;
 import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.cache.CacheStatistics;
 import dev.cordal.common.metrics.CacheMetricsCollector;
@@ -161,15 +162,15 @@ public class CacheManagementController {
      */
     public void invalidateCacheByPattern(Context ctx) {
         try {
-            Map<String, Object> request = ctx.bodyAsClass(Map.class);
-            @SuppressWarnings("unchecked")
-            List<String> patterns = (List<String>) request.get("patterns");
-            String cacheName = (String) request.get("cacheName");
-            
-            if (patterns == null || patterns.isEmpty()) {
+            CacheInvalidationRequest request = ctx.bodyAsClass(CacheInvalidationRequest.class);
+
+            if (!request.hasPatterns()) {
                 ctx.status(400).json(Map.of("error", "Patterns are required"));
                 return;
             }
+
+            List<String> patterns = request.getPatterns();
+            String cacheName = request.getCacheName();
             
             int totalInvalidated = 0;
             

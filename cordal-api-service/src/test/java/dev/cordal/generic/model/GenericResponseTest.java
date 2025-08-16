@@ -172,7 +172,8 @@ class GenericResponseTest {
         // Assert
         assertThat(response.getType()).isEqualTo("CUSTOM");
         assertThat(response.getData()).isEqualTo(data);
-        assertThat(response.getMetadata()).isEqualTo(metadata);
+        assertThat(response.getMetadata()).isNotNull();
+        assertThat(response.getMetadata().getCustomMetadata()).containsEntry("source", "test");
         assertThat(response.getPagination()).isEqualTo(pagination);
         assertThat(response.getTimestamp()).isEqualTo(12345L);
     }
@@ -188,8 +189,9 @@ class GenericResponseTest {
         response.setMetadata(metadata);
 
         assertThat(response.getMetadata()).isNotNull();
-        assertThat(response.getMetadata()).containsEntry("key1", "value1");
-        assertThat(response.getMetadata()).containsEntry("key2", 123);
+        // The metadata should be stored in custom metadata
+        assertThat(response.getMetadata().getCustomMetadata()).containsEntry("key1", "value1");
+        assertThat(response.getMetadata().getCustomMetadata()).containsEntry("key2", 123);
     }
 
     @Test

@@ -57,7 +57,8 @@ class GenericRepositoryTest {
 
         CacheManager cacheManager = new CacheManager(new CacheManager.CacheConfiguration(100, 300, 60));
         CacheMetricsCollector metricsCollector = new CacheMetricsCollector(cacheManager);
-        repository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector);
+        dev.cordal.generic.cache.QueryResultCache queryResultCache = new dev.cordal.generic.cache.QueryResultCache(cacheManager);
+        repository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector, queryResultCache);
     }
 
     @AfterEach

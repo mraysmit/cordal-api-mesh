@@ -169,11 +169,19 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public dev.cordal.generic.cache.QueryResultCache provideQueryResultCache(CacheManager cacheManager) {
+        logger.info("Creating QueryResultCache instance");
+        return new dev.cordal.generic.cache.QueryResultCache(cacheManager);
+    }
+
+    @Provides
+    @Singleton
     public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager,
                                                      CacheManager cacheManager,
-                                                     CacheMetricsCollector cacheMetricsCollector) {
+                                                     CacheMetricsCollector cacheMetricsCollector,
+                                                     dev.cordal.generic.cache.QueryResultCache queryResultCache) {
         logger.info("Creating GenericRepository instance");
-        return new GenericRepository(databaseConnectionManager, cacheManager, cacheMetricsCollector);
+        return new GenericRepository(databaseConnectionManager, cacheManager, cacheMetricsCollector, queryResultCache);
     }
 
     @Provides

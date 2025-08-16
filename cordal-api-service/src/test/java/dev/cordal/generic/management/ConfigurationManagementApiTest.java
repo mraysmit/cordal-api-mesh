@@ -109,7 +109,7 @@ class ConfigurationManagementApiTest {
     @Test
     void testGetAllDatabaseConfigurations() {
         // Test getting all database configurations
-        Map<String, Object> result = configManagementService.getAllDatabaseConfigurations();
+        Map<String, Object> result = configManagementService.getAllDatabaseConfigurationsMap();
         
         assertThat(result).isNotNull();
         assertThat(result).containsKey("count");
@@ -125,7 +125,7 @@ class ConfigurationManagementApiTest {
     @Test
     void testGetAllQueryConfigurations() {
         // Test getting all query configurations
-        Map<String, Object> result = configManagementService.getAllQueryConfigurations();
+        Map<String, Object> result = configManagementService.getAllQueryConfigurationsMap();
         
         assertThat(result).isNotNull();
         assertThat(result).containsKey("count");
@@ -141,7 +141,7 @@ class ConfigurationManagementApiTest {
     @Test
     void testGetAllEndpointConfigurations() {
         // Test getting all endpoint configurations
-        Map<String, Object> result = configManagementService.getAllEndpointConfigurations();
+        Map<String, Object> result = configManagementService.getAllEndpointConfigurationsMap();
         
         assertThat(result).isNotNull();
         assertThat(result).containsKey("count");

@@ -62,7 +62,8 @@ class GenericApiServiceTest {
         DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
         CacheManager cacheManager = new CacheManager(new CacheManager.CacheConfiguration(100, 300, 60));
         CacheMetricsCollector metricsCollector = new CacheMetricsCollector(cacheManager);
-        genericRepository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector);
+        dev.cordal.generic.cache.QueryResultCache queryResultCache = new dev.cordal.generic.cache.QueryResultCache(cacheManager);
+        genericRepository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector, queryResultCache);
         service = new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
     }
 

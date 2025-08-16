@@ -202,7 +202,7 @@ public class ManagementController {
     public void getHealthStatus(Context ctx) {
         logger.debug("Getting health status");
         try {
-            Map<String, Object> health = healthService.getHealthStatus();
+            Map<String, Object> health = healthService.getHealthStatusMap();
             
             // Set HTTP status based on overall health
             String overallHealth = (String) health.get("overall");
@@ -227,7 +227,7 @@ public class ManagementController {
     public void getDatabaseHealth(Context ctx) {
         logger.debug("Getting database health");
         try {
-            Map<String, Object> databaseHealth = healthService.getDatabasesHealth();
+            Map<String, Object> databaseHealth = healthService.getDatabasesHealthMap();
             ctx.json(databaseHealth);
         } catch (Exception e) {
             logger.error("Error getting database health", e);
@@ -265,7 +265,7 @@ public class ManagementController {
     public void getDeploymentInfo(Context ctx) {
         logger.debug("Getting deployment verification info");
         try {
-            Map<String, Object> deploymentInfo = healthService.getDeploymentInfo();
+            Map<String, Object> deploymentInfo = healthService.getDeploymentInfoMap();
             ctx.json(deploymentInfo);
         } catch (Exception e) {
             logger.error("Error getting deployment info", e);
@@ -293,7 +293,7 @@ public class ManagementController {
     public void getReadinessCheck(Context ctx) {
         logger.debug("Performing readiness check");
         try {
-            Map<String, Object> readiness = healthService.getReadinessCheck();
+            Map<String, Object> readiness = healthService.getReadinessCheckMap();
 
             // Set HTTP status based on readiness
             String status = (String) readiness.get("status");
@@ -316,7 +316,7 @@ public class ManagementController {
     public void getLivenessCheck(Context ctx) {
         logger.debug("Performing liveness check");
         try {
-            Map<String, Object> liveness = healthService.getLivenessCheck();
+            Map<String, Object> liveness = healthService.getLivenessCheckMap();
 
             // Set HTTP status based on liveness
             String status = (String) liveness.get("status");

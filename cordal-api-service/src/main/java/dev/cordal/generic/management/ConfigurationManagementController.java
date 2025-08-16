@@ -36,7 +36,7 @@ public class ConfigurationManagementController {
     public void getAllDatabaseConfigurations(Context ctx) {
         logger.debug("Getting all database configurations");
         try {
-            Map<String, Object> result = configurationManagementService.getAllDatabaseConfigurations();
+            Map<String, Object> result = configurationManagementService.getAllDatabaseConfigurationsMap();
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all database configurations", e);
@@ -82,7 +82,7 @@ public class ConfigurationManagementController {
         
         try {
             DatabaseConfig config = ctx.bodyAsClass(DatabaseConfig.class);
-            Map<String, Object> result = configurationManagementService.saveDatabaseConfiguration(name, config);
+            Map<String, Object> result = configurationManagementService.saveDatabaseConfigurationMap(name, config);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());
@@ -101,7 +101,7 @@ public class ConfigurationManagementController {
         logger.debug("Deleting database configuration: {}", name);
         
         try {
-            Map<String, Object> result = configurationManagementService.deleteDatabaseConfiguration(name);
+            Map<String, Object> result = configurationManagementService.deleteDatabaseConfigurationMap(name);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());
@@ -120,7 +120,7 @@ public class ConfigurationManagementController {
     public void getAllQueryConfigurations(Context ctx) {
         logger.debug("Getting all query configurations");
         try {
-            Map<String, Object> result = configurationManagementService.getAllQueryConfigurations();
+            Map<String, Object> result = configurationManagementService.getAllQueryConfigurationsMap();
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all query configurations", e);
@@ -165,7 +165,7 @@ public class ConfigurationManagementController {
         logger.debug("Getting query configurations for database: {}", databaseName);
         
         try {
-            Map<String, Object> result = configurationManagementService.getQueryConfigurationsByDatabase(databaseName);
+            Map<String, Object> result = configurationManagementService.getQueryConfigurationsByDatabaseMap(databaseName);
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting query configurations for database: {}", databaseName, e);
@@ -182,7 +182,7 @@ public class ConfigurationManagementController {
         
         try {
             QueryConfig config = ctx.bodyAsClass(QueryConfig.class);
-            Map<String, Object> result = configurationManagementService.saveQueryConfiguration(name, config);
+            Map<String, Object> result = configurationManagementService.saveQueryConfigurationMap(name, config);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());
@@ -201,7 +201,7 @@ public class ConfigurationManagementController {
         logger.debug("Deleting query configuration: {}", name);
         
         try {
-            Map<String, Object> result = configurationManagementService.deleteQueryConfiguration(name);
+            Map<String, Object> result = configurationManagementService.deleteQueryConfigurationMap(name);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());
@@ -220,7 +220,7 @@ public class ConfigurationManagementController {
     public void getAllEndpointConfigurations(Context ctx) {
         logger.debug("Getting all endpoint configurations");
         try {
-            Map<String, Object> result = configurationManagementService.getAllEndpointConfigurations();
+            Map<String, Object> result = configurationManagementService.getAllEndpointConfigurationsMap();
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all endpoint configurations", e);
@@ -265,7 +265,7 @@ public class ConfigurationManagementController {
         logger.debug("Getting endpoint configurations for query: {}", queryName);
         
         try {
-            Map<String, Object> result = configurationManagementService.getEndpointConfigurationsByQuery(queryName);
+            Map<String, Object> result = configurationManagementService.getEndpointConfigurationsByQueryMap(queryName);
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting endpoint configurations for query: {}", queryName, e);
@@ -282,7 +282,7 @@ public class ConfigurationManagementController {
 
         try {
             ApiEndpointConfig config = ctx.bodyAsClass(ApiEndpointConfig.class);
-            Map<String, Object> result = configurationManagementService.saveEndpointConfiguration(name, config);
+            Map<String, Object> result = configurationManagementService.saveEndpointConfigurationMap(name, config);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());
@@ -301,7 +301,7 @@ public class ConfigurationManagementController {
         logger.debug("Deleting endpoint configuration: {}", name);
 
         try {
-            Map<String, Object> result = configurationManagementService.deleteEndpointConfiguration(name);
+            Map<String, Object> result = configurationManagementService.deleteEndpointConfigurationMap(name);
             ctx.json(result);
         } catch (IllegalStateException e) {
             logger.warn("Configuration management not available: {}", e.getMessage());

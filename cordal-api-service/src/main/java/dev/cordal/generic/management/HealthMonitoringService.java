@@ -3,6 +3,7 @@ package dev.cordal.generic.management;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import dev.cordal.generic.config.DatabaseConfig;
+import dev.cordal.generic.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,46 +42,71 @@ public class HealthMonitoringService {
     }
     
     /**
-     * Get comprehensive health status
+     * Get comprehensive health status with type-safe response
      */
-    public Map<String, Object> getHealthStatus() {
-        Map<String, Object> health = new HashMap<>();
-        
-        health.put("timestamp", Instant.now());
-        health.put("service", getServiceHealth());
-        health.put("databases", getDatabasesHealth());
-        health.put("configuration", getConfigurationHealth());
-        health.put("overall", getOverallHealth());
-        
-        return health;
+    public HealthStatusResponse getHealthStatus() {
+        ServiceHealthResponse service = getServiceHealth();
+        Map<String, DatabaseHealthResponse> databases = getDatabasesHealth();
+        ConfigurationHealthResponse configuration = getConfigurationHealth();
+        String overall = getOverallHealth();
+
+        return HealthStatusResponse.of(service, databases, configuration, overall);
+    }
+
+    /**
+     * Get comprehensive health status (DEPRECATED - use type-safe version)
+     * @deprecated Use getHealthStatus() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getHealthStatusMap() {
+        return getHealthStatus().toMap();
     }
     
     /**
-     * Get service health
+     * Get service health with type-safe response
      */
-    public Map<String, Object> getServiceHealth() {
-        Map<String, Object> serviceHealth = new HashMap<>();
-        
-        serviceHealth.put("status", "UP");
-        serviceHealth.put("uptime", getUptime());
-        serviceHealth.put("memoryUsage", getMemoryUsage());
-        serviceHealth.put("threadCount", Thread.activeCount());
-        
-        return serviceHealth;
+    public ServiceHealthResponse getServiceHealth() {
+        String uptime = getUptime();
+        MemoryUsageResponse memoryUsage = getMemoryUsage();
+        int threadCount = Thread.activeCount();
+
+        return ServiceHealthResponse.up(uptime, memoryUsage, threadCount);
+    }
+
+    /**
+     * Get service health (DEPRECATED - use type-safe version)
+     * @deprecated Use getServiceHealth() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getServiceHealthMap() {
+        return getServiceHealth().toMap();
     }
     
     /**
-     * Get databases health status
+     * Get databases health status with type-safe response
      */
-    public Map<String, Object> getDatabasesHealth() {
-        Map<String, Object> databasesHealth = new HashMap<>();
+    public Map<String, DatabaseHealthResponse> getDatabasesHealth() {
+        Map<String, DatabaseHealthResponse> databasesHealth = new HashMap<>();
         Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
-        
+
         for (String databaseName : databases.keySet()) {
-            databasesHealth.put(databaseName, checkDatabaseHealth(databaseName));
+            DatabaseHealthStatus status = checkDatabaseHealth(databaseName);
+            databasesHealth.put(databaseName, DatabaseHealthResponse.from(status));
         }
-        
+
         return databasesHealth;
+    }
+
+    /**
+     * Get databases health status (DEPRECATED - use type-safe version)
+     * @deprecated Use getDatabasesHealth() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getDatabasesHealthMap() {
+        Map<String, DatabaseHealthResponse> healthResponses = getDatabasesHealth();
+        Map<String, Object> map = new HashMap<>();
+        healthResponses.forEach((name, health) -> map.put(name, health.toMap()));
+        return map;
     }
     
     /**
@@ -140,29 +166,33 @@ public class HealthMonitoringService {
     }
     
     /**
-     * Get configuration health
+     * Get configuration health with type-safe response
      */
-    public Map<String, Object> getConfigurationHealth() {
-        Map<String, Object> configHealth = new HashMap<>();
-        
+    public ConfigurationHealthResponse getConfigurationHealth() {
         try {
             Map<String, DatabaseConfig> databases = configurationManager.getAllDatabaseConfigurations();
             Map<String, ?> queries = configurationManager.getAllQueryConfigurations();
             Map<String, ?> endpoints = configurationManager.getAllEndpointConfigurations();
-            
-            configHealth.put("status", "UP");
-            configHealth.put("databasesLoaded", databases.size());
-            configHealth.put("queriesLoaded", queries.size());
-            configHealth.put("endpointsLoaded", endpoints.size());
-            configHealth.put("lastValidation", "SUCCESS");
-            
+
+            return ConfigurationHealthResponse.up(
+                databases.size(),
+                queries.size(),
+                endpoints.size()
+            );
+
         } catch (Exception e) {
             logger.error("Configuration health check failed", e);
-            configHealth.put("status", "DOWN");
-            configHealth.put("error", e.getMessage());
+            return ConfigurationHealthResponse.down(e.getMessage());
         }
-        
-        return configHealth;
+    }
+
+    /**
+     * Get configuration health (DEPRECATED - use type-safe version)
+     * @deprecated Use getConfigurationHealth() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getConfigurationHealthMap() {
+        return getConfigurationHealth().toMap();
     }
     
     /**
@@ -171,22 +201,17 @@ public class HealthMonitoringService {
     public String getOverallHealth() {
         try {
             // Check if any critical components are down
-            Map<String, Object> databasesHealth = getDatabasesHealth();
-            Map<String, Object> configHealth = getConfigurationHealth();
-            
+            Map<String, DatabaseHealthResponse> databasesHealth = getDatabasesHealth();
+            ConfigurationHealthResponse configHealth = getConfigurationHealth();
+
             // If configuration is down, overall is down
-            if ("DOWN".equals(configHealth.get("status"))) {
+            if (configHealth.isDown()) {
                 return "DOWN";
             }
-            
+
             // Check if any databases are down
             boolean anyDatabaseDown = databasesHealth.values().stream()
-                .anyMatch(health -> {
-                    if (health instanceof DatabaseHealthStatus) {
-                        return "DOWN".equals(((DatabaseHealthStatus) health).getStatus());
-                    }
-                    return false;
-                });
+                .anyMatch(DatabaseHealthResponse::isDown);
             
             if (anyDatabaseDown) {
                 return "DEGRADED";
@@ -215,62 +240,59 @@ public class HealthMonitoringService {
     }
     
     /**
-     * Get memory usage information
+     * Get memory usage information with type-safe response
      */
-    private Map<String, Object> getMemoryUsage() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long totalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        long usedMemory = totalMemory - freeMemory;
-
-        Map<String, Object> memory = new HashMap<>();
-        memory.put("maxMemoryMB", maxMemory / (1024 * 1024));
-        memory.put("totalMemoryMB", totalMemory / (1024 * 1024));
-        memory.put("usedMemoryMB", usedMemory / (1024 * 1024));
-        memory.put("freeMemoryMB", freeMemory / (1024 * 1024));
-        memory.put("usagePercentage", Math.round((double) usedMemory / totalMemory * 100));
-
-        return memory;
+    public MemoryUsageResponse getMemoryUsage() {
+        return MemoryUsageResponse.fromRuntime();
     }
 
     /**
-     * Get deployment verification information
+     * Get memory usage information (DEPRECATED - use type-safe version)
+     * @deprecated Use getMemoryUsage() for type safety
      */
-    public Map<String, Object> getDeploymentInfo() {
-        Map<String, Object> deploymentInfo = new HashMap<>();
+    @Deprecated
+    private Map<String, Object> getMemoryUsageMap() {
+        return getMemoryUsage().toMap();
+    }
 
+    /**
+     * Get deployment verification information with type-safe response
+     */
+    public DeploymentInfoResponse getDeploymentInfo() {
         try {
-            // JAR information
             String jarPath = getJarPath();
-            deploymentInfo.put("jarPath", jarPath);
-            deploymentInfo.put("jarType", determineJarType(jarPath));
+            String applicationVersion = getApplicationVersion();
+            String buildTime = getStartTime(); // Using start time as build time for now
+            String gitCommit = "unknown"; // Could be extracted from manifest if available
 
-            // Java runtime information
-            deploymentInfo.put("javaVersion", System.getProperty("java.version"));
-            deploymentInfo.put("javaVendor", System.getProperty("java.vendor"));
-            deploymentInfo.put("javaHome", System.getProperty("java.home"));
-
-            // System information
-            deploymentInfo.put("osName", System.getProperty("os.name"));
-            deploymentInfo.put("osVersion", System.getProperty("os.version"));
-            deploymentInfo.put("osArch", System.getProperty("os.arch"));
-
-            // Application information
-            deploymentInfo.put("applicationName", "Generic API Service");
-            deploymentInfo.put("version", getApplicationVersion());
-            deploymentInfo.put("startTime", getStartTime());
-            deploymentInfo.put("workingDirectory", System.getProperty("user.dir"));
-
-            deploymentInfo.put("status", "DEPLOYED");
+            return DeploymentInfoResponse.fromSystem(
+                jarPath,
+                "Generic API Service",
+                applicationVersion,
+                buildTime,
+                gitCommit
+            );
 
         } catch (Exception e) {
             logger.error("Error getting deployment info", e);
-            deploymentInfo.put("status", "ERROR");
-            deploymentInfo.put("error", e.getMessage());
+            // Return a minimal deployment info with error details
+            return DeploymentInfoResponse.fromSystem(
+                "unknown",
+                "Generic API Service",
+                "unknown",
+                "unknown",
+                "error: " + e.getMessage()
+            );
         }
+    }
 
-        return deploymentInfo;
+    /**
+     * Get deployment verification information (DEPRECATED - use type-safe version)
+     * @deprecated Use getDeploymentInfo() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getDeploymentInfoMap() {
+        return getDeploymentInfo().toMap();
     }
 
     /**
@@ -306,11 +328,9 @@ public class HealthMonitoringService {
     }
 
     /**
-     * Perform readiness check for deployment verification
+     * Perform readiness check for deployment verification with type-safe response
      */
-    public Map<String, Object> getReadinessCheck() {
-        Map<String, Object> readiness = new HashMap<>();
-
+    public ReadinessCheckResponse getReadinessCheck() {
         try {
             boolean isReady = true;
             Map<String, String> checks = new HashMap<>();
@@ -327,10 +347,9 @@ public class HealthMonitoringService {
 
             // Check database connectivity
             try {
-                Map<String, Object> databasesHealth = getDatabasesHealth();
+                Map<String, DatabaseHealthResponse> databasesHealth = getDatabasesHealth();
                 boolean anyDown = databasesHealth.values().stream()
-                    .anyMatch(health -> health instanceof DatabaseHealthStatus &&
-                             "DOWN".equals(((DatabaseHealthStatus) health).getStatus()));
+                    .anyMatch(DatabaseHealthResponse::isDown);
                 checks.put("databases", anyDown ? "SOME_DOWN" : "OK");
                 if (anyDown) isReady = false;
             } catch (Exception e) {
@@ -339,30 +358,33 @@ public class HealthMonitoringService {
             }
 
             // Check memory availability
-            Map<String, Object> memory = getMemoryUsage();
-            long memoryUsage = (Long) memory.get("usagePercentage");
+            MemoryUsageResponse memory = getMemoryUsage();
+            long memoryUsage = memory.getUsagePercentage();
             checks.put("memory", memoryUsage > 90 ? "HIGH_USAGE" : "OK");
             if (memoryUsage > 95) isReady = false;
 
-            readiness.put("status", isReady ? "READY" : "NOT_READY");
-            readiness.put("checks", checks);
-            readiness.put("timestamp", Instant.now());
+            return isReady ? ReadinessCheckResponse.up(checks, "Service is ready")
+                          : ReadinessCheckResponse.down(checks, "Service is not ready");
 
         } catch (Exception e) {
             logger.error("Error performing readiness check", e);
-            readiness.put("status", "NOT_READY");
-            readiness.put("error", e.getMessage());
+            return ReadinessCheckResponse.down("Error performing readiness check: " + e.getMessage());
         }
-
-        return readiness;
     }
 
     /**
-     * Perform liveness check for deployment verification
+     * Perform readiness check for deployment verification (DEPRECATED - use type-safe version)
+     * @deprecated Use getReadinessCheck() for type safety
      */
-    public Map<String, Object> getLivenessCheck() {
-        Map<String, Object> liveness = new HashMap<>();
+    @Deprecated
+    public Map<String, Object> getReadinessCheckMap() {
+        return getReadinessCheck().toMap();
+    }
 
+    /**
+     * Perform liveness check for deployment verification with type-safe response
+     */
+    public ReadinessCheckResponse getLivenessCheck() {
         try {
             boolean isAlive = true;
             Map<String, String> checks = new HashMap<>();
@@ -371,8 +393,8 @@ public class HealthMonitoringService {
             checks.put("application", "UP");
 
             // Check memory usage (critical threshold)
-            Map<String, Object> memory = getMemoryUsage();
-            long memoryUsage = (Long) memory.get("usagePercentage");
+            MemoryUsageResponse memory = getMemoryUsage();
+            long memoryUsage = memory.getUsagePercentage();
             checks.put("memory", memoryUsage > 95 ? "CRITICAL" : "OK");
             if (memoryUsage > 98) isAlive = false;
 
@@ -381,17 +403,22 @@ public class HealthMonitoringService {
             checks.put("threads", threadCount > 1000 ? "HIGH" : "OK");
             if (threadCount > 2000) isAlive = false;
 
-            liveness.put("status", isAlive ? "UP" : "DOWN");
-            liveness.put("checks", checks);
-            liveness.put("timestamp", Instant.now());
+            return isAlive ? ReadinessCheckResponse.up(checks, "Service is alive")
+                          : ReadinessCheckResponse.down(checks, "Service is not alive");
 
         } catch (Exception e) {
             logger.error("Error performing liveness check", e);
-            liveness.put("status", "DOWN");
-            liveness.put("error", e.getMessage());
+            return ReadinessCheckResponse.down("Error performing liveness check: " + e.getMessage());
         }
+    }
 
-        return liveness;
+    /**
+     * Perform liveness check for deployment verification (DEPRECATED - use type-safe version)
+     * @deprecated Use getLivenessCheck() for type safety
+     */
+    @Deprecated
+    public Map<String, Object> getLivenessCheckMap() {
+        return getLivenessCheck().toMap();
     }
 
     private String getJarPath() {
