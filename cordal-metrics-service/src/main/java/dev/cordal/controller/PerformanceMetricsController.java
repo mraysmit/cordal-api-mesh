@@ -2,6 +2,8 @@ package dev.cordal.controller;
 
 import dev.cordal.common.dto.PagedResponse;
 import dev.cordal.common.model.PerformanceMetrics;
+import dev.cordal.dto.PerformanceSummaryDto;
+import dev.cordal.dto.PerformanceTrendsDto;
 import dev.cordal.service.PerformanceMetricsService;
 import io.javalin.http.Context;
 import org.slf4j.Logger;
@@ -163,10 +165,11 @@ public class PerformanceMetricsController {
      */
     public void getPerformanceSummary(Context ctx) {
         try {
-            Map<String, Object> summary = performanceMetricsService.getPerformanceSummary();
+            PerformanceSummaryDto summary = performanceMetricsService.getPerformanceSummary();
             ctx.json(summary);
-            logger.debug("Retrieved performance summary");
-            
+            logger.debug("Retrieved performance summary: {} tests, {:.2f}ms avg response time",
+                        summary.getTotalTests(), summary.getAverageResponseTime());
+
         } catch (Exception e) {
             logger.error("Error retrieving performance summary", e);
             ctx.status(500).json(Map.of("error", "Internal server error"));
@@ -185,9 +188,10 @@ public class PerformanceMetricsController {
             // Limit days to reasonable range
             days = Math.min(Math.max(days, 1), 365);
 
-            Map<String, Object> trends = performanceMetricsService.getPerformanceTrends(testType, days);
+            PerformanceTrendsDto trends = performanceMetricsService.getPerformanceTrends(testType, days);
             ctx.json(trends);
-            logger.debug("Retrieved performance trends for test type '{}' over {} days", testType, days);
+            logger.debug("Retrieved performance trends for test type '{}' over {} days: {} data points",
+                        testType, days, trends.getTotalDataPoints());
 
         } catch (NumberFormatException e) {
             logger.warn("Invalid days parameter: {}", e.getMessage());

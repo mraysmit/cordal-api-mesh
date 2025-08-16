@@ -2,6 +2,8 @@ package dev.cordal.service;
 
 import dev.cordal.common.dto.PagedResponse;
 import dev.cordal.common.model.PerformanceMetrics;
+import dev.cordal.dto.PerformanceSummaryDto;
+import dev.cordal.dto.PerformanceTrendsDto;
 import dev.cordal.repository.PerformanceMetricsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,69 +85,81 @@ public class PerformanceMetricsService {
     
     /**
      * Get performance summary statistics
+     * Returns type-safe DTO instead of unsafe Map<String, Object>
      */
-    public Map<String, Object> getPerformanceSummary() {
+    public PerformanceSummaryDto getPerformanceSummary() {
         List<PerformanceMetrics> recentMetrics = repository.findAll(0, 100); // Get last 100 records
-        
+
         if (recentMetrics.isEmpty()) {
-            return Map.of(
-                "totalTests", 0,
-                "averageResponseTime", 0.0,
-                "successRate", 0.0,
-                "testTypes", List.of()
-            );
+            logger.debug("No performance metrics found, returning empty summary");
+            return new PerformanceSummaryDto(); // Empty summary
         }
-        
+
         // Calculate summary statistics
         double avgResponseTime = recentMetrics.stream()
             .filter(m -> m.getAverageResponseTimeMs() != null)
             .mapToDouble(PerformanceMetrics::getAverageResponseTimeMs)
             .average()
             .orElse(0.0);
-        
+
         long passedTests = recentMetrics.stream()
             .filter(m -> m.getTestPassed() != null && m.getTestPassed())
             .count();
-        
+
         double successRate = (double) passedTests / recentMetrics.size() * 100;
-        
+
         Map<String, Long> testTypeDistribution = recentMetrics.stream()
             .collect(Collectors.groupingBy(
                 PerformanceMetrics::getTestType,
                 Collectors.counting()
             ));
-        
-        return Map.of(
-            "totalTests", recentMetrics.size(),
-            "averageResponseTime", Math.round(avgResponseTime * 100.0) / 100.0,
-            "successRate", Math.round(successRate * 100.0) / 100.0,
-            "testTypes", getAvailableTestTypes(),
-            "testTypeDistribution", testTypeDistribution,
-            "lastTestTime", recentMetrics.get(0).getTimestamp()
+
+        List<String> testTypes = getAvailableTestTypes();
+        LocalDateTime lastTestTime = recentMetrics.get(0).getTimestamp();
+
+        logger.debug("Generated performance summary: {} tests, {:.2f}ms avg response time, {:.1f}% success rate",
+                    recentMetrics.size(), avgResponseTime, successRate);
+
+        return new PerformanceSummaryDto(
+            recentMetrics.size(),
+            avgResponseTime,
+            successRate,
+            testTypes,
+            testTypeDistribution,
+            lastTestTime
         );
     }
     
     /**
      * Get performance trends for dashboard charts
+     * Returns type-safe DTO instead of unsafe Map<String, Object>
      */
-    public Map<String, Object> getPerformanceTrends(String testType, int days) {
+    public PerformanceTrendsDto getPerformanceTrends(String testType, int days) {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusDays(days);
-        
+
+        logger.debug("Retrieving performance trends for testType='{}' over {} days", testType, days);
+
         List<PerformanceMetrics> metrics = repository.findByDateRange(startDate, endDate, 0, 1000);
-        
+
         if (testType != null && !testType.isEmpty()) {
             metrics = metrics.stream()
                 .filter(m -> testType.equals(m.getTestType()))
                 .collect(Collectors.toList());
+            logger.debug("Filtered to {} metrics for test type '{}'", metrics.size(), testType);
         }
-        
+
+        if (metrics.isEmpty()) {
+            logger.debug("No metrics found for the specified criteria, returning empty trends");
+            return new PerformanceTrendsDto(); // Empty trends
+        }
+
         // Group by date for trend analysis
         Map<String, List<PerformanceMetrics>> dailyMetrics = metrics.stream()
             .collect(Collectors.groupingBy(
                 m -> m.getTimestamp().toLocalDate().toString()
             ));
-        
+
         // Calculate daily averages
         Map<String, Double> dailyAverageResponseTimes = dailyMetrics.entrySet().stream()
             .collect(Collectors.toMap(
@@ -156,7 +170,7 @@ public class PerformanceMetricsService {
                     .average()
                     .orElse(0.0)
             ));
-        
+
         Map<String, Double> dailySuccessRates = dailyMetrics.entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
@@ -168,12 +182,19 @@ public class PerformanceMetricsService {
                     return (double) passed / dayMetrics.size() * 100;
                 }
             ));
-        
-        return Map.of(
-            "dates", dailyAverageResponseTimes.keySet().stream().sorted().collect(Collectors.toList()),
-            "averageResponseTimes", dailyAverageResponseTimes,
-            "successRates", dailySuccessRates,
-            "totalDataPoints", metrics.size()
+
+        List<String> sortedDates = dailyAverageResponseTimes.keySet().stream()
+            .sorted()
+            .collect(Collectors.toList());
+
+        logger.debug("Generated performance trends: {} dates, {} total data points",
+                    sortedDates.size(), metrics.size());
+
+        return new PerformanceTrendsDto(
+            sortedDates,
+            dailyAverageResponseTimes,
+            dailySuccessRates,
+            metrics.size()
         );
     }
     
