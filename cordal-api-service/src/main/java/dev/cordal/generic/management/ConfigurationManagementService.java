@@ -8,6 +8,9 @@ import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.config.ConfigurationLoaderFactory;
 import dev.cordal.generic.config.EndpointConfigurationManager;
+import dev.cordal.dto.ConfigurationStatisticsResponse;
+import dev.cordal.dto.ConfigurationSourceInfoResponse;
+import dev.cordal.dto.ConfigurationListResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -338,7 +341,7 @@ public class ConfigurationManagementService {
     /**
      * Get configuration statistics
      */
-    public Map<String, Object> getConfigurationStatistics() {
+    public ConfigurationStatisticsResponse getConfigurationStatistics() {
         logger.debug("Getting configuration statistics");
 
         try {
@@ -346,25 +349,19 @@ public class ConfigurationManagementService {
             int queryCount = queryRepository.getCount();
             int endpointCount = endpointRepository.getCount();
 
-            return Map.of(
-                "source", configurationLoaderFactory.getConfigurationSource(),
-                "timestamp", Instant.now(),
-                "statistics", Map.of(
-                    "databases", Map.of(
-                        "total", databaseCount
-                    ),
-                    "queries", Map.of(
-                        "total", queryCount
-                    ),
-                    "endpoints", Map.of(
-                        "total", endpointCount
-                    )
+            return new ConfigurationStatisticsResponse(
+                configurationLoaderFactory.getConfigurationSource(),
+                Instant.now(),
+                new ConfigurationStatisticsResponse.StatisticsData(
+                    new ConfigurationStatisticsResponse.DatabaseStats(databaseCount),
+                    new ConfigurationStatisticsResponse.QueryStats(queryCount),
+                    new ConfigurationStatisticsResponse.EndpointStats(endpointCount)
                 ),
-                "summary", Map.of(
-                    "totalConfigurations", databaseCount + queryCount + endpointCount,
-                    "databasesCount", databaseCount,
-                    "queriesCount", queryCount,
-                    "endpointsCount", endpointCount
+                new ConfigurationStatisticsResponse.SummaryData(
+                    databaseCount + queryCount + endpointCount,
+                    databaseCount,
+                    queryCount,
+                    endpointCount
                 )
             );
 
@@ -384,12 +381,12 @@ public class ConfigurationManagementService {
     /**
      * Get configuration source information
      */
-    public Map<String, Object> getConfigurationSourceInfo() {
-        return Map.of(
-            "currentSource", configurationLoaderFactory.getConfigurationSource(),
-            "managementAvailable", isConfigurationManagementAvailable(),
-            "supportedSources", List.of("yaml", "database"),
-            "timestamp", Instant.now()
+    public ConfigurationSourceInfoResponse getConfigurationSourceInfo() {
+        return new ConfigurationSourceInfoResponse(
+            configurationLoaderFactory.getConfigurationSource(),
+            isConfigurationManagementAvailable(),
+            List.of("yaml", "database"),
+            Instant.now()
         );
     }
 }

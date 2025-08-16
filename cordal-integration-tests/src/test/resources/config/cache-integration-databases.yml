@@ -1,0 +1,15 @@
+# Cache Integration Test Database Configuration
+# Defines the stocktrades_db database for cache integration tests
+
+databases:
+  stocktrades_db:
+    name: "stocktrades_db"
+    description: "Cache integration test database"
+    url: "jdbc:h2:../data/stocktrades_db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;INIT=CREATE TABLE IF NOT EXISTS stock_trades (id BIGINT AUTO_INCREMENT PRIMARY KEY, symbol VARCHAR(10) NOT NULL, trade_date TIMESTAMP NOT NULL, price DECIMAL(10,2) NOT NULL, volume BIGINT NOT NULL, trader_id VARCHAR(50), exchange VARCHAR(10), trade_type VARCHAR(10))\\;INSERT INTO stock_trades (symbol, trade_date, price, volume, trader_id, exchange, trade_type) SELECT 'AAPL', CURRENT_TIMESTAMP, 150.25, 1000, 'trader1', 'NASDAQ', 'BUY' WHERE NOT EXISTS (SELECT 1 FROM stock_trades WHERE symbol='AAPL')\\;INSERT INTO stock_trades (symbol, trade_date, price, volume, trader_id, exchange, trade_type) SELECT 'MSFT', CURRENT_TIMESTAMP, 280.50, 500, 'trader2', 'NASDAQ', 'SELL' WHERE NOT EXISTS (SELECT 1 FROM stock_trades WHERE symbol='MSFT')"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+      connectionTimeout: 30000

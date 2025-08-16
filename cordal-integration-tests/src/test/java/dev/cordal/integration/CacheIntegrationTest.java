@@ -26,6 +26,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CacheIntegrationTest {
+
+    // Set configuration file before any class loading
+    static {
+        System.setProperty("generic.config.file", "application-cache-integration.yml");
+    }
     private static final Logger logger = LoggerFactory.getLogger(CacheIntegrationTest.class);
     
     private static GenericApiApplication app;
@@ -33,7 +38,7 @@ class CacheIntegrationTest {
     private static final String BASE_URL = "http://localhost:" + PORT;
     
     private final HttpClient httpClient = HttpClient.newBuilder()
-        .timeout(Duration.ofSeconds(30))
+        .connectTimeout(Duration.ofSeconds(30))
         .build();
     
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -41,21 +46,40 @@ class CacheIntegrationTest {
     @BeforeAll
     static void setUp() throws Exception {
         logger.info("Starting Cache Integration Tests");
-        
+
         // Start the application
         app = new GenericApiApplication();
-        CompletableFuture.runAsync(() -> {
+
+        CompletableFuture<Void> startupFuture = CompletableFuture.runAsync(() -> {
             try {
-                app.start(PORT);
+                logger.info("Starting application with configuration: application-cache-integration.yml");
+                app.start();
+                logger.info("Application startup completed successfully");
             } catch (Exception e) {
                 logger.error("Failed to start application", e);
-                throw new RuntimeException(e);
+                throw new RuntimeException("Application startup failed", e);
             }
         });
-        
-        // Wait for application to start
-        Thread.sleep(3000);
-        logger.info("Application started on port {}", PORT);
+
+        // Wait for application to start with timeout
+        try {
+            startupFuture.get(10, TimeUnit.SECONDS);
+            logger.info("Application startup future completed");
+        } catch (Exception e) {
+            logger.error("Application startup timed out or failed", e);
+            throw new RuntimeException("Application startup failed", e);
+        }
+
+        // Additional wait for server to be ready
+        Thread.sleep(2000);
+
+        // Verify the application is actually running on the expected port
+        int actualPort = app.getPort();
+        logger.info("Application started - Expected port: {}, Actual port: {}", PORT, actualPort);
+
+        if (actualPort != PORT) {
+            throw new RuntimeException(String.format("Application started on port %d but test expects port %d", actualPort, PORT));
+        }
     }
 
     @AfterAll
@@ -149,8 +173,15 @@ class CacheIntegrationTest {
         assertEquals(200, response2.statusCode());
         JsonNode result2 = objectMapper.readTree(response2.body());
         
-        // Results should be identical
-        assertEquals(result1, result2);
+        // Results should be identical (excluding timestamp which will differ)
+        // Compare the core data, ignoring the timestamp field
+        JsonNode data1 = result1.get("data");
+        JsonNode data2 = result2.get("data");
+        String type1 = result1.get("type").asText();
+        String type2 = result2.get("type").asText();
+
+        assertEquals(type1, type2, "Response types should be identical");
+        assertEquals(data1, data2, "Response data should be identical (cached)");
         
         // Second request should be faster (cache hit)
         assertTrue(responseTime2 < responseTime1, 

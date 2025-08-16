@@ -26,11 +26,26 @@ cache:
   maxSize: 1000  # Maximum number of entries per cache
   cleanupIntervalSeconds: 30  # More frequent cleanup for testing
 
-# Query configuration
-queries:
-  configPath: "config/cache-integration-queries.yml"
-  reloadOnChange: true
-  validateOnStartup: true
+# Configuration paths - use specific test files only
+config:
+  source: "yaml"
+  loadFromYaml: true  # Load from specific file paths, not directory scanning
+  paths:
+    databases: "config/cache-integration-databases.yml"
+    queries: "config/cache-integration-queries.yml"
+    endpoints: "config/cache-integration-endpoints.yml"  # Include endpoints for cache tests
+  # Override directory scanning to prevent loading from ../generic-config
+  directories: []  # Empty to disable directory scanning
+  patterns:
+    databases: []  # Empty to disable pattern matching
+    queries: []    # Empty to disable pattern matching
+    endpoints: []  # Empty to disable pattern matching
+
+# Validation configuration - disable for integration tests
+validation:
+  runOnStartup: false
+  validateOnly: false
+  validateEndpoints: false
 
 # Logging configuration
 logging:

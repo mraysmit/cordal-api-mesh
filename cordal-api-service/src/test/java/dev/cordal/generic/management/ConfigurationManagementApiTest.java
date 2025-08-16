@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Optional;
+import dev.cordal.dto.ConfigurationStatisticsResponse;
+import dev.cordal.dto.ConfigurationSourceInfoResponse;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -67,41 +69,41 @@ class ConfigurationManagementApiTest {
     @Test
     void testConfigurationSourceInfo() {
         // Test getting configuration source information
-        Map<String, Object> sourceInfo = configManagementService.getConfigurationSourceInfo();
-        
+        ConfigurationSourceInfoResponse sourceInfo = configManagementService.getConfigurationSourceInfo();
+
         assertThat(sourceInfo).isNotNull();
-        assertThat(sourceInfo).containsKey("currentSource");
-        assertThat(sourceInfo).containsKey("managementAvailable");
-        assertThat(sourceInfo).containsKey("supportedSources");
-        assertThat(sourceInfo).containsKey("timestamp");
-        
+        assertThat(sourceInfo.currentSource()).isNotNull();
+        assertThat(sourceInfo.supportedSources()).isNotNull();
+        assertThat(sourceInfo.timestamp()).isNotNull();
+
         // Should be YAML source by default in test
-        assertThat(sourceInfo.get("currentSource")).isEqualTo("yaml");
-        assertThat(sourceInfo.get("managementAvailable")).isEqualTo(false);
+        assertThat(sourceInfo.currentSource()).isEqualTo("yaml");
+        assertThat(sourceInfo.managementAvailable()).isFalse();
+        assertThat(sourceInfo.supportedSources()).contains("yaml", "database");
     }
 
     @Test
     void testConfigurationStatistics() {
         // Test getting configuration statistics
-        Map<String, Object> stats = configManagementService.getConfigurationStatistics();
-        
+        ConfigurationStatisticsResponse stats = configManagementService.getConfigurationStatistics();
+
         assertThat(stats).isNotNull();
-        assertThat(stats).containsKey("source");
-        assertThat(stats).containsKey("timestamp");
-        assertThat(stats).containsKey("statistics");
-        assertThat(stats).containsKey("summary");
-        
-        // Check statistics structure
-        Map<String, Object> statistics = (Map<String, Object>) stats.get("statistics");
-        assertThat(statistics).containsKey("databases");
-        assertThat(statistics).containsKey("queries");
-        assertThat(statistics).containsKey("endpoints");
-        
-        Map<String, Object> summary = (Map<String, Object>) stats.get("summary");
-        assertThat(summary).containsKey("totalConfigurations");
-        assertThat(summary).containsKey("databasesCount");
-        assertThat(summary).containsKey("queriesCount");
-        assertThat(summary).containsKey("endpointsCount");
+        assertThat(stats.source()).isNotNull();
+        assertThat(stats.timestamp()).isNotNull();
+        assertThat(stats.statistics()).isNotNull();
+        assertThat(stats.summary()).isNotNull();
+
+        // Check statistics structure - now type-safe!
+        var statistics = stats.statistics();
+        assertThat(statistics.databases()).isNotNull();
+        assertThat(statistics.queries()).isNotNull();
+        assertThat(statistics.endpoints()).isNotNull();
+
+        var summary = stats.summary();
+        assertThat(summary.totalConfigurations()).isGreaterThanOrEqualTo(0);
+        assertThat(summary.databasesCount()).isGreaterThanOrEqualTo(0);
+        assertThat(summary.queriesCount()).isGreaterThanOrEqualTo(0);
+        assertThat(summary.endpointsCount()).isGreaterThanOrEqualTo(0);
     }
 
     @Test

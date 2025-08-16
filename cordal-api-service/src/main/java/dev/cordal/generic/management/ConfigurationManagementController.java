@@ -320,7 +320,7 @@ public class ConfigurationManagementController {
     public void getConfigurationStatistics(Context ctx) {
         logger.debug("Getting configuration statistics");
         try {
-            Map<String, Object> result = configurationManagementService.getConfigurationStatistics();
+            var result = configurationManagementService.getConfigurationStatistics();
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting configuration statistics", e);
@@ -334,7 +334,7 @@ public class ConfigurationManagementController {
     public void getConfigurationSourceInfo(Context ctx) {
         logger.debug("Getting configuration source information");
         try {
-            Map<String, Object> result = configurationManagementService.getConfigurationSourceInfo();
+            var result = configurationManagementService.getConfigurationSourceInfo();
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting configuration source information", e);
@@ -349,7 +349,7 @@ public class ConfigurationManagementController {
         logger.debug("Checking configuration management availability");
         try {
             boolean available = configurationManagementService.isConfigurationManagementAvailable();
-            String source = configurationManagementService.getConfigurationSourceInfo().get("currentSource").toString();
+            String source = configurationManagementService.getConfigurationSourceInfo().currentSource();
 
             ctx.json(Map.of(
                 "available", available,

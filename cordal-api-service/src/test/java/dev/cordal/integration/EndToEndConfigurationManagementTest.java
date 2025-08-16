@@ -15,6 +15,8 @@ import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.management.ConfigurationManagementService;
 import dev.cordal.generic.migration.ConfigurationMigrationService;
 import dev.cordal.generic.migration.ConfigurationMigrationService.*;
+import dev.cordal.dto.ConfigurationStatisticsResponse;
+import dev.cordal.dto.ConfigurationSourceInfoResponse;
 import org.junit.jupiter.api.*;
 
 import java.util.Map;
@@ -241,9 +243,9 @@ class EndToEndConfigurationManagementTest {
         assertThat(allTradesQuery.get().getDatabase()).isEqualTo("stock-trades-db");
         
         // Test configuration statistics
-        Map<String, Object> stats = managementService.getConfigurationStatistics();
-        assertThat(stats).containsKey("statistics");
-        assertThat(stats).containsKey("summary");
+        ConfigurationStatisticsResponse stats = managementService.getConfigurationStatistics();
+        assertThat(stats.statistics()).isNotNull();
+        assertThat(stats.summary()).isNotNull();
         
         System.out.println("✓ PHASE 4 COMPLETED: Management APIs validated");
     }
@@ -327,23 +329,23 @@ class EndToEndConfigurationManagementTest {
         System.out.println("\n--- PHASE 7: Configuration Source Switching ---");
 
         // Test configuration source information
-        Map<String, Object> sourceInfo = managementService.getConfigurationSourceInfo();
+        ConfigurationSourceInfoResponse sourceInfo = managementService.getConfigurationSourceInfo();
 
-        assertThat(sourceInfo).containsKey("currentSource");
-        assertThat(sourceInfo).containsKey("managementAvailable");
-        assertThat(sourceInfo).containsKey("supportedSources");
+        assertThat(sourceInfo.currentSource()).isNotNull();
+        assertThat(sourceInfo.managementAvailable()).isNotNull();
+        assertThat(sourceInfo.supportedSources()).isNotNull();
 
-        String currentSource = (String) sourceInfo.get("currentSource");
+        String currentSource = sourceInfo.currentSource();
         System.out.printf("Current configuration source: %s%n", currentSource);
 
         // Test source-specific behavior
         if ("yaml".equals(currentSource)) {
             // YAML source - management should not be available
-            assertThat(sourceInfo.get("managementAvailable")).isEqualTo(false);
+            assertThat(sourceInfo.managementAvailable()).isEqualTo(false);
             System.out.println("YAML source detected - management operations restricted");
         } else if ("database".equals(currentSource)) {
             // Database source - management should be available
-            assertThat(sourceInfo.get("managementAvailable")).isEqualTo(true);
+            assertThat(sourceInfo.managementAvailable()).isEqualTo(true);
             System.out.println("Database source detected - management operations available");
         }
 
@@ -441,13 +443,15 @@ class EndToEndConfigurationManagementTest {
 
         // Final validation of complete system
         Map<String, Object> finalStatus = migrationService.getMigrationStatus();
-        Map<String, Object> finalStats = managementService.getConfigurationStatistics();
+        ConfigurationStatisticsResponse finalStats = managementService.getConfigurationStatistics();
 
         System.out.println("=== FINAL SYSTEM STATE ===");
         System.out.printf("Configuration Source: %s%n", finalStatus.get("currentSource"));
         System.out.printf("Migration Available: %s%n", finalStatus.get("migrationAvailable"));
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> yamlCounts = (Map<String, Object>) finalStatus.get("yamlCounts");
+        @SuppressWarnings("unchecked")
         Map<String, Object> dbCounts = (Map<String, Object>) finalStatus.get("databaseCounts");
 
         System.out.printf("YAML Configurations: %s%n", yamlCounts.get("total"));
@@ -455,8 +459,10 @@ class EndToEndConfigurationManagementTest {
 
         // Verify system is in a consistent state
         assertThat(finalStatus.get("migrationAvailable")).isEqualTo(true);
-        // Note: finalStats might not have "success" field, so just verify it's not null
+        // Verify final statistics are properly structured
         assertThat(finalStats).isNotNull();
+        assertThat(finalStats.statistics()).isNotNull();
+        assertThat(finalStats.summary()).isNotNull();
 
         System.out.println("✓ PHASE 10 COMPLETED: Integration test summary validated");
         System.out.println("\n=== END-TO-END INTEGRATION TEST SUCCESSFUL ===");

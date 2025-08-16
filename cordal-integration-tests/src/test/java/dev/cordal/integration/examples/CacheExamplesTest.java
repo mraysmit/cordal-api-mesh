@@ -31,7 +31,7 @@ class CacheExamplesTest {
     private static final String BASE_URL = "http://localhost:" + PORT;
     
     private final HttpClient httpClient = HttpClient.newBuilder()
-        .timeout(Duration.ofSeconds(30))
+        .connectTimeout(Duration.ofSeconds(30))
         .build();
     
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -47,7 +47,7 @@ class CacheExamplesTest {
         
         CompletableFuture.runAsync(() -> {
             try {
-                app.start(PORT);
+                app.start();
             } catch (Exception e) {
                 logger.error("Failed to start application", e);
                 throw new RuntimeException(e);

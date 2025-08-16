@@ -4,6 +4,8 @@
 queries:
   # Basic caching example
   get_stock_trades_by_symbol:
+    name: "get_stock_trades_by_symbol"
+    description: "Get stock trades by symbol with caching"
     database: "stocktrades_db"
     sql: "SELECT * FROM stock_trades WHERE symbol = ? ORDER BY trade_date DESC LIMIT ?"
     parameters:
@@ -13,7 +15,6 @@ queries:
       - name: "limit"
         type: "INTEGER"
         required: true
-        default: 100
     cache:
       enabled: true
       strategy: "LRU"
@@ -23,15 +24,17 @@ queries:
 
   # Cache with simple invalidation
   get_user_portfolio:
+    name: "get_user_portfolio"
+    description: "Get user portfolio with caching"
     database: "stocktrades_db"
     sql: |
       SELECT symbol, SUM(volume) as total_shares, AVG(price) as avg_price
-      FROM stock_trades 
-      WHERE user_id = ? 
+      FROM stock_trades
+      WHERE trader_id = ?
       GROUP BY symbol
     parameters:
-      - name: "user_id"
-        type: "INTEGER"
+      - name: "trader_id"
+        type: "STRING"
         required: true
     cache:
       enabled: true
@@ -45,16 +48,18 @@ queries:
 
   # Cache with advanced invalidation rules
   get_market_summary:
+    name: "get_market_summary"
+    description: "Get market summary with caching"
     database: "stocktrades_db"
     sql: |
-      SELECT 
+      SELECT
         symbol,
         COUNT(*) as trade_count,
         SUM(volume) as total_volume,
         AVG(price) as avg_price,
         MIN(price) as min_price,
         MAX(price) as max_price
-      FROM stock_trades 
+      FROM stock_trades
       WHERE trade_date >= CURRENT_DATE - INTERVAL '1 day'
       GROUP BY symbol
       ORDER BY total_volume DESC
@@ -63,7 +68,6 @@ queries:
       - name: "limit"
         type: "INTEGER"
         required: true
-        default: 50
     cache:
       enabled: true
       strategy: "LRU"
@@ -89,6 +93,8 @@ queries:
 
   # High-frequency cache for real-time data
   get_latest_price:
+    name: "get_latest_price"
+    description: "Get latest price with high-frequency caching"
     database: "stocktrades_db"
     sql: |
       SELECT symbol, price, volume, trade_date
@@ -115,6 +121,8 @@ queries:
 
   # Count query with caching
   count_trades_by_symbol:
+    name: "count_trades_by_symbol"
+    description: "Count trades by symbol with caching"
     database: "stocktrades_db"
     sql: "SELECT COUNT(*) FROM stock_trades WHERE symbol = ?"
     parameters:
@@ -130,6 +138,8 @@ queries:
 
   # Cache disabled query for comparison
   get_trade_details:
+    name: "get_trade_details"
+    description: "Get trade details without caching"
     database: "stocktrades_db"
     sql: "SELECT * FROM stock_trades WHERE id = ?"
     parameters:
@@ -141,6 +151,8 @@ queries:
 
   # Complex query with conditional caching
   get_user_trades_by_date:
+    name: "get_user_trades_by_date"
+    description: "Get user trades by date with conditional caching"
     database: "stocktrades_db"
     sql: |
       SELECT * FROM stock_trades 
@@ -173,6 +185,8 @@ queries:
 
   # Aggregation query with long TTL
   get_daily_volume_summary:
+    name: "get_daily_volume_summary"
+    description: "Get daily volume summary with long TTL"
     database: "stocktrades_db"
     sql: |
       SELECT 
@@ -203,6 +217,8 @@ queries:
 
   # Performance testing query
   get_performance_test_data:
+    name: "get_performance_test_data"
+    description: "Get performance test data with caching"
     database: "stocktrades_db"
     sql: |
       SELECT symbol, price, volume, trade_date
@@ -229,7 +245,6 @@ queries:
       - name: "limit"
         type: "INTEGER"
         required: true
-        default: 100
     cache:
       enabled: true
       strategy: "LRU"

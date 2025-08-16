@@ -1,0 +1,39 @@
+# Cache Integration Test Endpoints Configuration
+# Defines endpoints for cache integration testing
+
+endpoints:
+  # Basic cache endpoint for testing
+  cache-test-get-stock-trades:
+    description: "Get stock trades by symbol for cache testing"
+    path: "/api/query/get_stock_trades_by_symbol"
+    method: "GET"
+    query: "get_stock_trades_by_symbol"
+    parameters:
+      - name: "symbol"
+        type: "query"
+        required: true
+      - name: "limit"
+        type: "query"
+        required: true
+
+  # User portfolio endpoint for cache testing
+  cache-test-get-user-portfolio:
+    description: "Get user portfolio for cache testing"
+    path: "/api/query/get_user_portfolio"
+    method: "GET"
+    query: "get_user_portfolio"
+    parameters:
+      - name: "trader_id"
+        type: "query"
+        required: true
+
+  # Market summary endpoint for cache testing
+  cache-test-get-market-summary:
+    description: "Get market summary for cache testing"
+    path: "/api/query/get_market_summary"
+    method: "GET"
+    query: "get_market_summary"
+    parameters:
+      - name: "limit"
+        type: "query"
+        required: true

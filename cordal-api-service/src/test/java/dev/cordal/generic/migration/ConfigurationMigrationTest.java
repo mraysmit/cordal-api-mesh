@@ -77,12 +77,14 @@ class ConfigurationMigrationTest {
         assertThat(status.get("migrationAvailable")).isEqualTo(true);
         
         // Check counts structure
+        @SuppressWarnings("unchecked")
         Map<String, Object> yamlCounts = (Map<String, Object>) status.get("yamlCounts");
         assertThat(yamlCounts).containsKey("databases");
         assertThat(yamlCounts).containsKey("queries");
         assertThat(yamlCounts).containsKey("endpoints");
         assertThat(yamlCounts).containsKey("total");
-        
+
+        @SuppressWarnings("unchecked")
         Map<String, Object> databaseCounts = (Map<String, Object>) status.get("databaseCounts");
         assertThat(databaseCounts).containsKey("databases");
         assertThat(databaseCounts).containsKey("queries");
