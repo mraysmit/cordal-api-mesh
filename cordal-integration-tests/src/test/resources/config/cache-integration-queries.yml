@@ -1,0 +1,238 @@
+# Cache Integration Test Queries
+# This configuration demonstrates all cache features for integration testing
+
+queries:
+  # Basic caching example
+  get_stock_trades_by_symbol:
+    database: "stocktrades_db"
+    sql: "SELECT * FROM stock_trades WHERE symbol = ? ORDER BY trade_date DESC LIMIT ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+        default: 100
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 300  # 5 minutes
+      maxSize: 1000
+      keyPattern: "stock_trades:{symbol}:{limit}"
+
+  # Cache with simple invalidation
+  get_user_portfolio:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, SUM(volume) as total_shares, AVG(price) as avg_price
+      FROM stock_trades 
+      WHERE user_id = ? 
+      GROUP BY symbol
+    parameters:
+      - name: "user_id"
+        type: "INTEGER"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 600  # 10 minutes
+      maxSize: 500
+      keyPattern: "user_portfolio:{user_id}"
+      invalidateOn: 
+        - "user_trade_insert"
+        - "user_trade_update"
+
+  # Cache with advanced invalidation rules
+  get_market_summary:
+    database: "stocktrades_db"
+    sql: |
+      SELECT 
+        symbol,
+        COUNT(*) as trade_count,
+        SUM(volume) as total_volume,
+        AVG(price) as avg_price,
+        MIN(price) as min_price,
+        MAX(price) as max_price
+      FROM stock_trades 
+      WHERE trade_date >= CURRENT_DATE - INTERVAL '1 day'
+      GROUP BY symbol
+      ORDER BY total_volume DESC
+      LIMIT ?
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+        default: 50
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 900  # 15 minutes
+      maxSize: 100
+      keyPattern: "market_summary:{limit}"
+      invalidationRules:
+        - event: "market_data_update"
+          patterns: 
+            - "market_summary:*"
+          async: true
+        - event: "trading_halt"
+          patterns:
+            - "market_summary:*"
+            - "stock_trades:*"
+          condition: "halt_type = emergency"
+          async: false
+        - event: "end_of_day"
+          patterns:
+            - "market_summary:*"
+          delaySeconds: 300  # Wait 5 minutes after market close
+          async: true
+
+  # High-frequency cache for real-time data
+  get_latest_price:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, price, volume, trade_date
+      FROM stock_trades 
+      WHERE symbol = ?
+      ORDER BY trade_date DESC 
+      LIMIT 1
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 30  # 30 seconds for real-time data
+      maxSize: 2000
+      keyPattern: "latest_price:{symbol}"
+      invalidationRules:
+        - event: "price_update"
+          patterns:
+            - "latest_price:{symbol}"
+          condition: "symbol = ${event.symbol}"
+          async: true
+
+  # Count query with caching
+  count_trades_by_symbol:
+    database: "stocktrades_db"
+    sql: "SELECT COUNT(*) FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 1800  # 30 minutes
+      maxSize: 1000
+      keyPattern: "trade_count:{symbol}"
+
+  # Cache disabled query for comparison
+  get_trade_details:
+    database: "stocktrades_db"
+    sql: "SELECT * FROM stock_trades WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "INTEGER"
+        required: true
+    cache:
+      enabled: false  # No caching for detailed trade data
+
+  # Complex query with conditional caching
+  get_user_trades_by_date:
+    database: "stocktrades_db"
+    sql: |
+      SELECT * FROM stock_trades 
+      WHERE user_id = ? 
+      AND trade_date BETWEEN ? AND ?
+      ORDER BY trade_date DESC
+    parameters:
+      - name: "user_id"
+        type: "INTEGER"
+        required: true
+      - name: "start_date"
+        type: "DATE"
+        required: true
+      - name: "end_date"
+        type: "DATE"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 3600  # 1 hour
+      maxSize: 200
+      keyPattern: "user_trades:{user_id}:{start_date}:{end_date}"
+      invalidationRules:
+        - event: "user_trade_insert"
+          patterns:
+            - "user_trades:{user_id}:*"
+            - "user_portfolio:{user_id}"
+          condition: "user_id = ${event.user_id}"
+          async: true
+
+  # Aggregation query with long TTL
+  get_daily_volume_summary:
+    database: "stocktrades_db"
+    sql: |
+      SELECT 
+        DATE(trade_date) as trade_day,
+        SUM(volume) as total_volume,
+        COUNT(*) as trade_count,
+        COUNT(DISTINCT symbol) as unique_symbols
+      FROM stock_trades 
+      WHERE trade_date >= ?
+      GROUP BY DATE(trade_date)
+      ORDER BY trade_day DESC
+    parameters:
+      - name: "start_date"
+        type: "DATE"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 86400  # 24 hours (daily data doesn't change often)
+      maxSize: 100
+      keyPattern: "daily_volume:{start_date}"
+      invalidationRules:
+        - event: "data_correction"
+          patterns:
+            - "daily_volume:*"
+          condition: "correction_date >= ${start_date}"
+          async: true
+
+  # Performance testing query
+  get_performance_test_data:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, price, volume, trade_date
+      FROM stock_trades 
+      WHERE symbol IN (?, ?, ?, ?, ?)
+      ORDER BY trade_date DESC
+      LIMIT ?
+    parameters:
+      - name: "symbol1"
+        type: "STRING"
+        required: true
+      - name: "symbol2"
+        type: "STRING"
+        required: true
+      - name: "symbol3"
+        type: "STRING"
+        required: true
+      - name: "symbol4"
+        type: "STRING"
+        required: true
+      - name: "symbol5"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+        default: 100
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 180  # 3 minutes
+      maxSize: 50
+      keyPattern: "perf_test:{symbol1}:{symbol2}:{symbol3}:{symbol4}:{symbol5}:{limit}"

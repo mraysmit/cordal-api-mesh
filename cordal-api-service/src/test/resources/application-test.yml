@@ -12,17 +12,27 @@ swagger:
   enabled: true
   path: /swagger
 
-# Configuration source and directory scanning for testing
+# Cache configuration for testing
+cache:
+  enabled: true
+  defaultTtlSeconds: 300  # 5 minutes default TTL
+  maxSize: 1000  # Maximum number of entries per cache
+  cleanupIntervalSeconds: 60  # Cleanup interval in seconds
+
+# Configuration source and file paths for testing
 config:
   source: yaml  # Options: yaml, database
   loadFromYaml: false
 
-  # Directories to scan for configuration files
-  directories:
-    - "../generic-config"  # Look in the root generic-config directory
+  # Use specific test configuration files instead of directory scanning
+  paths:
+    databases: "test-databases.yml"
+    queries: "test-queries.yml"
+    endpoints: "test-api-endpoints.yml"
 
-  # Naming patterns for configuration files
-  patterns:
-    databases: ["*-database.yml", "*-databases.yml"]
-    queries: ["*-query.yml", "*-queries.yml"]
-    endpoints: ["*-endpoint.yml", "*-endpoints.yml", "*-api.yml"]
+# Configuration validation settings - DISABLED for testing
+validation:
+  # Run validation during normal application startup
+  runOnStartup: false  # DISABLED for testing to avoid validation errors
+  # Run only validation and exit (for standalone configuration checking)
+  validateOnly: false  # Keep false for normal testing

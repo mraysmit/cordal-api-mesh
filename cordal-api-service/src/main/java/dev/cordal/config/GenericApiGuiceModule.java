@@ -4,6 +4,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
+import dev.cordal.cache.CacheInvalidationService;
+import dev.cordal.cache.CacheManagementController;
+import dev.cordal.common.cache.CacheEventPublisher;
+import dev.cordal.common.cache.CacheInvalidationEngine;
+import dev.cordal.common.cache.CacheManager;
+import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.GenericApiController;
 import dev.cordal.generic.GenericApiService;
 import dev.cordal.generic.GenericRepository;
@@ -112,12 +118,18 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory) {
+    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory,
+                                                                           GenericApiConfig genericApiConfig) {
         logger.info("Creating EndpointConfigurationManager instance");
         EndpointConfigurationManager manager = new EndpointConfigurationManager(configurationLoaderFactory);
 
-        // Validate configurations on startup
-        manager.validateConfigurations();
+        // Only validate configurations on startup if configured to do so
+        if (genericApiConfig.isValidationRunOnStartup()) {
+            logger.info("Running configuration validation on startup (validation.runOnStartup=true)");
+            manager.validateConfigurations();
+        } else {
+            logger.info("Skipping configuration validation on startup (validation.runOnStartup=false)");
+        }
 
         return manager;
     }
@@ -129,13 +141,70 @@ public class GenericApiGuiceModule extends AbstractModule {
         return new DatabaseConnectionManager(configurationManager);
     }
 
+    @Provides
+    @Singleton
+    public CacheManager provideCacheManager(GenericApiConfig genericApiConfig) {
+        logger.info("Creating CacheManager instance");
+        GenericApiConfig.CacheSettings cacheSettings = genericApiConfig.getCacheSettings();
 
+        if (!cacheSettings.isEnabled()) {
+            logger.info("Cache is disabled, creating CacheManager with minimal configuration");
+        }
+
+        CacheManager.CacheConfiguration config = new CacheManager.CacheConfiguration(
+            cacheSettings.getMaxSize(),
+            cacheSettings.getDefaultTtlSeconds(),
+            cacheSettings.getCleanupIntervalSeconds()
+        );
+
+        return new CacheManager(config);
+    }
 
     @Provides
     @Singleton
-    public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager) {
+    public CacheMetricsCollector provideCacheMetricsCollector(CacheManager cacheManager) {
+        logger.info("Creating CacheMetricsCollector instance");
+        return new CacheMetricsCollector(cacheManager);
+    }
+
+    @Provides
+    @Singleton
+    public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager,
+                                                     CacheManager cacheManager,
+                                                     CacheMetricsCollector cacheMetricsCollector) {
         logger.info("Creating GenericRepository instance");
-        return new GenericRepository(databaseConnectionManager);
+        return new GenericRepository(databaseConnectionManager, cacheManager, cacheMetricsCollector);
+    }
+
+    @Provides
+    @Singleton
+    public CacheEventPublisher provideCacheEventPublisher() {
+        logger.info("Creating CacheEventPublisher instance");
+        return new CacheEventPublisher();
+    }
+
+    @Provides
+    @Singleton
+    public CacheInvalidationEngine provideCacheInvalidationEngine(CacheManager cacheManager,
+                                                                 CacheEventPublisher eventPublisher) {
+        logger.info("Creating CacheInvalidationEngine instance");
+        return new CacheInvalidationEngine(cacheManager, eventPublisher);
+    }
+
+    @Provides
+    @Singleton
+    public CacheInvalidationService provideCacheInvalidationService(CacheEventPublisher eventPublisher,
+                                                                   CacheInvalidationEngine invalidationEngine) {
+        logger.info("Creating CacheInvalidationService instance");
+        return new CacheInvalidationService(eventPublisher, invalidationEngine);
+    }
+
+    @Provides
+    @Singleton
+    public CacheManagementController provideCacheManagementController(CacheManager cacheManager,
+                                                                     CacheMetricsCollector cacheMetricsCollector) {
+        logger.info("Creating CacheManagementController instance");
+        return new CacheManagementController(cacheManager, cacheMetricsCollector);
     }
 
     @Provides

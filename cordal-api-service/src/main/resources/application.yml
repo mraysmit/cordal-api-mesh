@@ -21,6 +21,13 @@ swagger:
   enabled: true
   path: /swagger
 
+# Cache configuration
+cache:
+  enabled: true
+  defaultTtlSeconds: 300  # 5 minutes default TTL
+  maxSize: 1000  # Maximum number of entries per cache
+  cleanupIntervalSeconds: 60  # Cleanup interval in seconds
+
 # Configuration source and directory scanning
 config:
   source: yaml  # Options: yaml, database

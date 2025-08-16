@@ -1,5 +1,9 @@
 # Test Profiling Guide
 
+**Version:** 1.0
+**Date:** 2025-03-05
+**Author:** Mark Andrew Ray-Smith Cityline Ltd
+
 This guide explains how to use the test profiling system in the cordal-api-service module to identify slow tests and optimize test performance.
 
 ## Overview

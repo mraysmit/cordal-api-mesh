@@ -19,6 +19,7 @@ public class GenericApiConfig extends BaseConfig {
     private ValidationSettings validation = new ValidationSettings();
     private HotReloadSettings hotReload = new HotReloadSettings();
     private FileWatcherSettings fileWatcher = new FileWatcherSettings();
+    private CacheSettings cache = new CacheSettings();
 
     public GenericApiConfig() {
         super();
@@ -40,6 +41,7 @@ public class GenericApiConfig extends BaseConfig {
         loadValidationConfig();
         loadHotReloadConfig();
         loadFileWatcherConfig();
+        loadCacheConfig();
     }
 
     private void loadDatabaseConfig() {
@@ -73,6 +75,9 @@ public class GenericApiConfig extends BaseConfig {
         Boolean loadFromYaml = getBoolean("config.loadFromYaml", false);
         config.setLoadFromYaml(loadFromYaml);
 
+        // Load specific file paths (for backward compatibility with tests)
+        loadSpecificFilePaths();
+
         // Load directory scanning configuration
         loadDirectoryConfiguration();
         loadPatternConfiguration();
@@ -83,6 +88,29 @@ public class GenericApiConfig extends BaseConfig {
         logger.info("Database patterns: {}", config.getDatabasePatterns());
         logger.info("Query patterns: {}", config.getQueryPatterns());
         logger.info("Endpoint patterns: {}", config.getEndpointPatterns());
+    }
+
+    private void loadSpecificFilePaths() {
+        // Load specific file paths for backward compatibility with tests
+        String databasesPath = getString("config.paths.databases", null);
+        String queriesPath = getString("config.paths.queries", null);
+        String endpointsPath = getString("config.paths.endpoints", null);
+
+        if (databasesPath != null || queriesPath != null || endpointsPath != null) {
+            logger.info("Using specific file paths for configuration:");
+            if (databasesPath != null) {
+                config.setDatabasesPath(databasesPath);
+                logger.info("  - Databases: {}", databasesPath);
+            }
+            if (queriesPath != null) {
+                config.setQueriesPath(queriesPath);
+                logger.info("  - Queries: {}", queriesPath);
+            }
+            if (endpointsPath != null) {
+                config.setEndpointsPath(endpointsPath);
+                logger.info("  - Endpoints: {}", endpointsPath);
+            }
+        }
     }
 
     private void loadDirectoryConfiguration() {
@@ -199,6 +227,22 @@ public class GenericApiConfig extends BaseConfig {
 
         logger.info("File watcher configuration: enabled={}, pollInterval={}, includeSubdirectories={}",
                    enabled, pollInterval, includeSubdirectories);
+    }
+
+    private void loadCacheConfig() {
+        // Load cache configuration
+        Boolean enabled = getBoolean("cache.enabled", true);
+        Integer defaultTtlSeconds = getInteger("cache.defaultTtlSeconds", 300);
+        Integer maxSize = getInteger("cache.maxSize", 1000);
+        Integer cleanupIntervalSeconds = getInteger("cache.cleanupIntervalSeconds", 60);
+
+        cache.setEnabled(enabled);
+        cache.setDefaultTtlSeconds(defaultTtlSeconds);
+        cache.setMaxSize(maxSize);
+        cache.setCleanupIntervalSeconds(cleanupIntervalSeconds);
+
+        logger.info("Cache configuration: enabled={}, defaultTtlSeconds={}, maxSize={}, cleanupIntervalSeconds={}",
+                   enabled, defaultTtlSeconds, maxSize, cleanupIntervalSeconds);
     }
 
     @Override
@@ -326,6 +370,23 @@ public class GenericApiConfig extends BaseConfig {
         return config.loadFromYaml;
     }
 
+    // Specific file path getters
+    public String getDatabasesPath() {
+        return config.getDatabasesPath();
+    }
+
+    public String getQueriesPath() {
+        return config.getQueriesPath();
+    }
+
+    public String getEndpointsPath() {
+        return config.getEndpointsPath();
+    }
+
+    public boolean hasSpecificConfigPaths() {
+        return config.hasSpecificPaths();
+    }
+
     public ValidationSettings getValidationSettings() {
         return validation;
     }
@@ -388,6 +449,27 @@ public class GenericApiConfig extends BaseConfig {
         return fileWatcher.includeSubdirectories;
     }
 
+    // Cache configuration getters
+    public CacheSettings getCacheSettings() {
+        return cache;
+    }
+
+    public boolean isCacheEnabled() {
+        return cache.enabled;
+    }
+
+    public int getCacheDefaultTtlSeconds() {
+        return cache.defaultTtlSeconds;
+    }
+
+    public int getCacheMaxSize() {
+        return cache.maxSize;
+    }
+
+    public int getCacheCleanupIntervalSeconds() {
+        return cache.cleanupIntervalSeconds;
+    }
+
     // Inner classes for configuration structure
     public static class DatabaseSettings {
         private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
@@ -428,6 +510,11 @@ public class GenericApiConfig extends BaseConfig {
         private java.util.List<String> queryPatterns = java.util.Arrays.asList("*-query.yml", "*-queries.yml");
         private java.util.List<String> endpointPatterns = java.util.Arrays.asList("*-endpoint.yml", "*-endpoints.yml", "*-api.yml");
 
+        // Specific file paths (for backward compatibility with tests)
+        private String databasesPath = null;
+        private String queriesPath = null;
+        private String endpointsPath = null;
+
         // Getters and setters
         public String getSource() { return source; }
         public void setSource(String source) { this.source = source; }
@@ -445,6 +532,21 @@ public class GenericApiConfig extends BaseConfig {
 
         public java.util.List<String> getEndpointPatterns() { return endpointPatterns; }
         public void setEndpointPatterns(java.util.List<String> endpointPatterns) { this.endpointPatterns = endpointPatterns; }
+
+        // Specific file path getters and setters
+        public String getDatabasesPath() { return databasesPath; }
+        public void setDatabasesPath(String databasesPath) { this.databasesPath = databasesPath; }
+
+        public String getQueriesPath() { return queriesPath; }
+        public void setQueriesPath(String queriesPath) { this.queriesPath = queriesPath; }
+
+        public String getEndpointsPath() { return endpointsPath; }
+        public void setEndpointsPath(String endpointsPath) { this.endpointsPath = endpointsPath; }
+
+        // Helper methods to check if specific paths are configured
+        public boolean hasSpecificPaths() {
+            return databasesPath != null || queriesPath != null || endpointsPath != null;
+        }
     }
 
     public static class ValidationSettings {
@@ -496,5 +598,22 @@ public class GenericApiConfig extends BaseConfig {
         public void setPollInterval(long pollInterval) { this.pollInterval = pollInterval; }
         public boolean isIncludeSubdirectories() { return includeSubdirectories; }
         public void setIncludeSubdirectories(boolean includeSubdirectories) { this.includeSubdirectories = includeSubdirectories; }
+    }
+
+    public static class CacheSettings {
+        private boolean enabled = true;
+        private int defaultTtlSeconds = 300;
+        private int maxSize = 1000;
+        private int cleanupIntervalSeconds = 60;
+
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public int getDefaultTtlSeconds() { return defaultTtlSeconds; }
+        public void setDefaultTtlSeconds(int defaultTtlSeconds) { this.defaultTtlSeconds = defaultTtlSeconds; }
+        public int getMaxSize() { return maxSize; }
+        public void setMaxSize(int maxSize) { this.maxSize = maxSize; }
+        public int getCleanupIntervalSeconds() { return cleanupIntervalSeconds; }
+        public void setCleanupIntervalSeconds(int cleanupIntervalSeconds) { this.cleanupIntervalSeconds = cleanupIntervalSeconds; }
     }
 }

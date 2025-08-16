@@ -1,6 +1,11 @@
 # CORDAL - Comprehensive Guide
 ## Configuration Orchestrated REST Dynamic API Layer
 
+**Version:** 1.0
+**Date:** 2025-03-05
+**Author:** Mark Andrew Ray-Smith Cityline Ltd
+
+
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
@@ -70,7 +75,7 @@ cordal/
 
 ## Architecture
 
-### 🏗️ **IMPORTANT: Core vs. Example Architecture**
+###  **IMPORTANT: Core vs. Example Architecture**
 
 **CORDAL CORE SYSTEM** (Generic Framework):
 - `cordal-api-service/` - Generic REST API framework
@@ -229,7 +234,7 @@ This allows for complete API definition without writing Java code.
 
 ---
 
-## 📋 **Example Implementations**
+## **Example Implementations**
 
 ### Stock Trades Example (Integration Tests Only)
 

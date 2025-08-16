@@ -1,6 +1,9 @@
 package dev.cordal.generic;
 
+import dev.cordal.common.cache.CacheKeyBuilder;
+import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.exception.ApiException;
+import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import dev.cordal.generic.model.QueryParameter;
@@ -10,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.sql.*;
+import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Generic repository for executing configured SQL queries
@@ -18,13 +23,21 @@ import java.util.*;
 @Singleton
 public class GenericRepository {
     private static final Logger logger = LoggerFactory.getLogger(GenericRepository.class);
+    private static final String QUERY_RESULTS_CACHE = "query_results";
+    private static final String COUNT_RESULTS_CACHE = "count_results";
 
     private final DatabaseConnectionManager databaseConnectionManager;
-    
+    private final CacheManager cacheManager;
+    private final CacheMetricsCollector cacheMetricsCollector;
+
     @Inject
-    public GenericRepository(DatabaseConnectionManager databaseConnectionManager) {
+    public GenericRepository(DatabaseConnectionManager databaseConnectionManager,
+                           CacheManager cacheManager,
+                           CacheMetricsCollector cacheMetricsCollector) {
         this.databaseConnectionManager = databaseConnectionManager;
-        logger.info("Generic repository initialized");
+        this.cacheManager = cacheManager;
+        this.cacheMetricsCollector = cacheMetricsCollector;
+        logger.info("Generic repository initialized with caching and metrics support");
     }
     
     /**
@@ -34,37 +47,77 @@ public class GenericRepository {
         logger.debug("Executing query: {} with {} parameters on database: {}",
                     queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
 
+        // Check cache if enabled
+        if (queryConfig.isCacheEnabled()) {
+            String cacheKey = buildCacheKey(queryConfig, parameters);
+            long cacheStartTime = System.currentTimeMillis();
+            Optional<List> cachedResult = cacheManager.get(QUERY_RESULTS_CACHE, cacheKey, List.class);
+
+            if (cachedResult.isPresent()) {
+                long cacheResponseTime = System.currentTimeMillis() - cacheStartTime;
+                cacheMetricsCollector.recordCacheHit(queryConfig.getName(), QUERY_RESULTS_CACHE, cacheKey, cacheResponseTime);
+                logger.debug("Cache hit for query: {} with key: {} in {}ms", queryConfig.getName(), cacheKey, cacheResponseTime);
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> result = (List<Map<String, Object>>) cachedResult.get();
+                return result;
+            }
+
+            logger.debug("Cache miss for query: {} with key: {}", queryConfig.getName(), cacheKey);
+        }
+
+        // Execute query against database
+        long dbStartTime = System.currentTimeMillis();
+        List<Map<String, Object>> results = executeQueryDirect(queryConfig, parameters);
+        long dbResponseTime = System.currentTimeMillis() - dbStartTime;
+
+        // Store in cache if enabled and record cache miss
+        if (queryConfig.isCacheEnabled()) {
+            String cacheKey = buildCacheKey(queryConfig, parameters);
+            Duration ttl = Duration.ofSeconds(queryConfig.getCache().getTtl());
+            cacheManager.put(QUERY_RESULTS_CACHE, cacheKey, results, ttl);
+            cacheMetricsCollector.recordCacheMiss(queryConfig.getName(), QUERY_RESULTS_CACHE, cacheKey, dbResponseTime);
+            logger.debug("Cached query result: {} with key: {} and TTL: {}s, DB response time: {}ms",
+                        queryConfig.getName(), cacheKey, queryConfig.getCache().getTtl(), dbResponseTime);
+        }
+
+        return results;
+    }
+
+    /**
+     * Execute a query directly against the database (bypassing cache)
+     */
+    private List<Map<String, Object>> executeQueryDirect(QueryConfig queryConfig, List<QueryParameter> parameters) {
         String sql = queryConfig.getSql();
         String databaseName = queryConfig.getDatabase();
         List<Map<String, Object>> results = new ArrayList<>();
 
         try (Connection connection = databaseConnectionManager.getConnection(databaseName);
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+
             // Set parameters
             setParameters(statement, parameters);
-            
+
             // Execute query
             try (ResultSet resultSet = statement.executeQuery()) {
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
-                
+
                 while (resultSet.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
-                    
+
                     for (int i = 1; i <= columnCount; i++) {
                         String columnName = metaData.getColumnLabel(i);
                         Object value = resultSet.getObject(i);
                         row.put(columnName, value);
                     }
-                    
+
                     results.add(row);
                 }
             }
-            
+
             logger.debug("Query executed successfully, returned {} rows", results.size());
             return results;
-            
+
         } catch (SQLException e) {
             logger.error("Failed to execute query: {}", queryConfig.getName(), e);
             throw ApiException.internalError("Failed to execute query: " + queryConfig.getName(), e);
@@ -78,15 +131,53 @@ public class GenericRepository {
         logger.debug("Executing count query: {} with {} parameters on database: {}",
                     queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
 
+        // Check cache if enabled
+        if (queryConfig.isCacheEnabled()) {
+            String cacheKey = buildCacheKey(queryConfig, parameters);
+            long cacheStartTime = System.currentTimeMillis();
+            Optional<Long> cachedResult = cacheManager.get(COUNT_RESULTS_CACHE, cacheKey, Long.class);
+
+            if (cachedResult.isPresent()) {
+                long cacheResponseTime = System.currentTimeMillis() - cacheStartTime;
+                cacheMetricsCollector.recordCacheHit(queryConfig.getName(), COUNT_RESULTS_CACHE, cacheKey, cacheResponseTime);
+                logger.debug("Cache hit for count query: {} with key: {} in {}ms", queryConfig.getName(), cacheKey, cacheResponseTime);
+                return cachedResult.get();
+            }
+
+            logger.debug("Cache miss for count query: {} with key: {}", queryConfig.getName(), cacheKey);
+        }
+
+        // Execute count query against database
+        long dbStartTime = System.currentTimeMillis();
+        long count = executeCountQueryDirect(queryConfig, parameters);
+        long dbResponseTime = System.currentTimeMillis() - dbStartTime;
+
+        // Store in cache if enabled and record cache miss
+        if (queryConfig.isCacheEnabled()) {
+            String cacheKey = buildCacheKey(queryConfig, parameters);
+            Duration ttl = Duration.ofSeconds(queryConfig.getCache().getTtl());
+            cacheManager.put(COUNT_RESULTS_CACHE, cacheKey, count, ttl);
+            cacheMetricsCollector.recordCacheMiss(queryConfig.getName(), COUNT_RESULTS_CACHE, cacheKey, dbResponseTime);
+            logger.debug("Cached count query result: {} with key: {} and TTL: {}s, DB response time: {}ms",
+                        queryConfig.getName(), cacheKey, queryConfig.getCache().getTtl(), dbResponseTime);
+        }
+
+        return count;
+    }
+
+    /**
+     * Execute a count query directly against the database (bypassing cache)
+     */
+    private long executeCountQueryDirect(QueryConfig queryConfig, List<QueryParameter> parameters) {
         String sql = queryConfig.getSql();
         String databaseName = queryConfig.getDatabase();
 
         try (Connection connection = databaseConnectionManager.getConnection(databaseName);
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+
             // Set parameters
             setParameters(statement, parameters);
-            
+
             // Execute query
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -98,7 +189,7 @@ public class GenericRepository {
                     return 0;
                 }
             }
-            
+
         } catch (SQLException e) {
             logger.error("Failed to execute count query: {}", queryConfig.getName(), e);
             throw ApiException.internalError("Failed to execute count query: " + queryConfig.getName(), e);
@@ -110,19 +201,35 @@ public class GenericRepository {
      */
     public Optional<Map<String, Object>> executeSingleQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
         logger.debug("Executing single query: {} with {} parameters", queryConfig.getName(), parameters.size());
-        
+
         List<Map<String, Object>> results = executeQuery(queryConfig, parameters);
-        
+
         if (results.isEmpty()) {
             logger.debug("Single query returned no results");
             return Optional.empty();
         }
-        
+
         if (results.size() > 1) {
             logger.warn("Single query returned {} results, using first one", results.size());
         }
-        
+
         return Optional.of(results.get(0));
+    }
+
+    /**
+     * Build a cache key for the given query and parameters
+     */
+    private String buildCacheKey(QueryConfig queryConfig, List<QueryParameter> parameters) {
+        // Convert QueryParameter list to Map for CacheKeyBuilder
+        Map<String, Object> parameterMap = parameters.stream()
+            .collect(Collectors.toMap(
+                QueryParameter::getName,
+                QueryParameter::getValue,
+                (existing, replacement) -> replacement // Handle duplicate keys
+            ));
+
+        String keyPattern = queryConfig.getCache().getKeyPattern();
+        return CacheKeyBuilder.buildKey(queryConfig.getName(), keyPattern, parameterMap);
     }
     
     /**

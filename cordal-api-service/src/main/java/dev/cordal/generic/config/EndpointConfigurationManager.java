@@ -46,8 +46,7 @@ public class EndpointConfigurationManager {
         // The configuration database is separate and managed by DatabaseManager
         // API endpoint databases should be explicitly configured in YAML files or database tables
 
-        // Validate configurations
-        validateConfigurations();
+        // Note: Configuration validation is now handled by the Guice module based on validation settings
     }
     
     /**

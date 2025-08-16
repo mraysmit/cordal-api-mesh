@@ -178,6 +178,12 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
      * Load query configurations from YAML files
      */
     public Map<String, QueryConfig> loadQueryConfigurations() {
+        // Check if specific file path is configured (for backward compatibility with tests)
+        if (genericApiConfig.hasSpecificConfigPaths() && genericApiConfig.getQueriesPath() != null) {
+            logger.info("Loading query configurations from specific file: {}", genericApiConfig.getQueriesPath());
+            return loadQueryConfigurationsFromFile(genericApiConfig.getQueriesPath());
+        }
+
         logger.info("Loading query configurations using directory scanning");
 
         java.util.List<Path> queryFiles = scanForConfigurationFiles(genericApiConfig.getQueryPatterns());
@@ -293,6 +299,12 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
      * Load database configurations from YAML file
      */
     public Map<String, DatabaseConfig> loadDatabaseConfigurations() {
+        // Check if specific file path is configured (for backward compatibility with tests)
+        if (genericApiConfig.hasSpecificConfigPaths() && genericApiConfig.getDatabasesPath() != null) {
+            logger.info("Loading database configurations from specific file: {}", genericApiConfig.getDatabasesPath());
+            return loadDatabaseConfigurationsFromFile(genericApiConfig.getDatabasesPath());
+        }
+
         logger.info("Loading database configurations using directory scanning");
 
         java.util.List<Path> databaseFiles = scanForConfigurationFiles(genericApiConfig.getDatabasePatterns());
@@ -443,6 +455,12 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
      * Load API endpoint configurations from YAML file
      */
     public Map<String, ApiEndpointConfig> loadEndpointConfigurations() {
+        // Check if specific file path is configured (for backward compatibility with tests)
+        if (genericApiConfig.hasSpecificConfigPaths() && genericApiConfig.getEndpointsPath() != null) {
+            logger.info("Loading endpoint configurations from specific file: {}", genericApiConfig.getEndpointsPath());
+            return loadEndpointConfigurationsFromFile(genericApiConfig.getEndpointsPath());
+        }
+
         logger.info("Loading endpoint configurations using directory scanning");
 
         java.util.List<Path> endpointFiles = scanForConfigurationFiles(genericApiConfig.getEndpointPatterns());
@@ -549,7 +567,88 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
 
         return allEndpoints;
     }
-    
+
+    /**
+     * Load query configurations from a specific file (for backward compatibility with tests)
+     */
+    private Map<String, QueryConfig> loadQueryConfigurationsFromFile(String filePath) {
+        try (InputStream inputStream = resolveConfigResource(filePath)) {
+            if (inputStream == null) {
+                logger.warn("Query configuration file not found: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            QueriesWrapper wrapper = yamlMapper.readValue(inputStream, QueriesWrapper.class);
+            Map<String, QueryConfig> queries = wrapper.getQueries();
+
+            if (queries == null || queries.isEmpty()) {
+                logger.warn("No query configurations found in file: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            logger.info("Loaded {} query configurations from file: {}", queries.size(), filePath);
+            return queries;
+
+        } catch (Exception e) {
+            logger.error("Failed to load query configurations from file: {}", filePath, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Load database configurations from a specific file (for backward compatibility with tests)
+     */
+    private Map<String, DatabaseConfig> loadDatabaseConfigurationsFromFile(String filePath) {
+        try (InputStream inputStream = resolveConfigResource(filePath)) {
+            if (inputStream == null) {
+                logger.warn("Database configuration file not found: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            DatabasesWrapper wrapper = yamlMapper.readValue(inputStream, DatabasesWrapper.class);
+            Map<String, DatabaseConfig> databases = wrapper.getDatabases();
+
+            if (databases == null || databases.isEmpty()) {
+                logger.warn("No database configurations found in file: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            logger.info("Loaded {} database configurations from file: {}", databases.size(), filePath);
+            return databases;
+
+        } catch (Exception e) {
+            logger.error("Failed to load database configurations from file: {}", filePath, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Load endpoint configurations from a specific file (for backward compatibility with tests)
+     */
+    private Map<String, ApiEndpointConfig> loadEndpointConfigurationsFromFile(String filePath) {
+        try (InputStream inputStream = resolveConfigResource(filePath)) {
+            if (inputStream == null) {
+                logger.warn("Endpoint configuration file not found: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            EndpointsWrapper wrapper = yamlMapper.readValue(inputStream, EndpointsWrapper.class);
+            Map<String, ApiEndpointConfig> endpoints = wrapper.getEndpoints();
+
+            if (endpoints == null || endpoints.isEmpty()) {
+                logger.warn("No endpoint configurations found in file: {}", filePath);
+                return new LinkedHashMap<>();
+            }
+
+            logger.info("Loaded {} endpoint configurations from file: {}", endpoints.size(), filePath);
+            return endpoints;
+
+        } catch (Exception e) {
+            logger.error("Failed to load endpoint configurations from file: {}", filePath, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
     /**
      * Wrapper class for queries YAML structure
      */

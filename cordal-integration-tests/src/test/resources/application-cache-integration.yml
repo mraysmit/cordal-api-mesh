@@ -1,0 +1,60 @@
+# Cache Integration Test Configuration
+# Optimized settings for testing cache functionality
+
+# Server configuration
+server:
+  port: 8080
+  host: "localhost"
+
+# Database configuration
+databases:
+  stocktrades_db:
+    url: "jdbc:h2:mem:stocktrades_cache_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    driver: "org.h2.Driver"
+    username: "sa"
+    password: ""
+    maxPoolSize: 10
+    minPoolSize: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+# Cache configuration - optimized for testing
+cache:
+  enabled: true
+  defaultTtlSeconds: 300  # 5 minutes default TTL
+  maxSize: 1000  # Maximum number of entries per cache
+  cleanupIntervalSeconds: 30  # More frequent cleanup for testing
+
+# Query configuration
+queries:
+  configPath: "config/cache-integration-queries.yml"
+  reloadOnChange: true
+  validateOnStartup: true
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    dev.cordal.common.cache: DEBUG  # Enable debug logging for cache
+    dev.cordal.common.metrics: DEBUG  # Enable debug logging for metrics
+    dev.cordal.generic: INFO
+
+# Performance monitoring
+performance:
+  enabled: true
+  metricsEnabled: true
+  detailedMetrics: true
+
+# H2 Server configuration (for testing)
+h2:
+  tcp:
+    enabled: false
+  web:
+    enabled: false
+
+# Test data configuration
+testData:
+  enabled: true
+  initializeOnStartup: true
+  sampleSize: 1000  # Number of sample records to create

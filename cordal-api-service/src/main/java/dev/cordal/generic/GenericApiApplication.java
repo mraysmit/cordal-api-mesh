@@ -152,6 +152,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
         dev.cordal.generic.management.ConfigurationManagementController configManagementController = injector.getInstance(dev.cordal.generic.management.ConfigurationManagementController.class);
         dev.cordal.generic.migration.ConfigurationMigrationController migrationController = injector.getInstance(dev.cordal.generic.migration.ConfigurationMigrationController.class);
         dev.cordal.api.H2ServerController h2ServerController = injector.getInstance(dev.cordal.api.H2ServerController.class);
+        dev.cordal.cache.CacheManagementController cacheManagementController = injector.getInstance(dev.cordal.cache.CacheManagementController.class);
         
         // Health check endpoint
         app.get(ApiEndpoints.HEALTH, ctx -> {
@@ -288,6 +289,22 @@ public class GenericApiApplication extends BaseJavalinApplication {
         app.post(ApiEndpoints.H2_SERVER_TCP_STOP, h2ServerController::stopTcpServer);
         app.post(ApiEndpoints.H2_SERVER_WEB_START, h2ServerController::startWebServer);
         app.post(ApiEndpoints.H2_SERVER_WEB_STOP, h2ServerController::stopWebServer);
+
+        // ========== CACHE MANAGEMENT ENDPOINTS ==========
+
+        // Cache statistics endpoints
+        app.get("/api/cache/statistics", cacheManagementController::getCacheStatistics);
+        app.get("/api/cache/statistics/{cacheName}", cacheManagementController::getCacheStatisticsByName);
+        app.get("/api/cache/query-metrics", cacheManagementController::getQueryMetrics);
+        app.get("/api/cache/query-metrics/{queryName}", cacheManagementController::getQueryMetricsByName);
+        app.get("/api/cache/health", cacheManagementController::getCacheHealth);
+        app.get("/api/cache/names", cacheManagementController::getCacheNames);
+
+        // Cache management endpoints
+        app.delete("/api/cache/{cacheName}", cacheManagementController::clearCache);
+        app.delete("/api/cache", cacheManagementController::clearAllCaches);
+        app.post("/api/cache/invalidate", cacheManagementController::invalidateCacheByPattern);
+        app.post("/api/cache/metrics/reset", cacheManagementController::resetCacheMetrics);
 
         // Register dynamic endpoints from YAML configuration
         registerDynamicEndpoints(genericApiController);

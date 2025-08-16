@@ -1,11 +1,15 @@
 # CORDAL Quick Start Guide
 ## Configuration Orchestrated REST Dynamic API Layer
 
-## 🚀 What is CORDAL?
+**Version:** 1.0
+**Date:** 2025-03-05
+**Author:** Mark Andrew Ray-Smith Cityline Ltd
+
+## What is CORDAL?
 
 CORDAL is a **generic, configuration-driven REST API framework** built on Java 21 and Javalin 6.1.3. Create dynamic REST APIs for **any domain** through YAML configuration files instead of writing code.
 
-## 🏗️ Core vs. Example Architecture
+## Core vs. Example Architecture
 
 ### **CORDAL CORE SYSTEM** (Generic Framework)
 - `cordal-api-service/` - Generic REST API framework
@@ -21,7 +25,7 @@ CORDAL is a **generic, configuration-driven REST API framework** built on Java 2
 
 > **Important**: Stock trades functionality is **NOT part of the core system**. It's purely an example to demonstrate framework usage.
 
-## ⚡ Quick Start (5 Minutes)
+## Quick Start (5 Minutes)
 
 ### Prerequisites
 - **Java 21+** (JDK required)
@@ -60,7 +64,7 @@ open http://localhost:8080/dashboard
 curl http://localhost:8080/api/metrics/endpoints
 ```
 
-## 🔧 Configure Your Domain
+## Configure Your Domain
 
 ### Step 1: Database Configuration
 Create `generic-config/your-domain-databases.yml`:
@@ -144,7 +148,7 @@ endpoints:
 curl "http://localhost:8080/api/your-entities?page=0&size=10"
 ```
 
-## 📊 Key Features
+## Key Features
 
 ### Automatic Metrics Collection
 - **Zero-code monitoring** of all API requests
@@ -177,7 +181,7 @@ curl http://localhost:8080/api/management/liveness
 curl http://localhost:8080/api/management/readiness
 ```
 
-## 🎯 Common Use Cases
+## Common Use Cases
 
 ### 1. Simple CRUD API
 ```yaml
@@ -246,7 +250,7 @@ endpoints:
         required: true
 ```
 
-## 🚀 Next Steps
+## Next Steps
 
 1. **Explore Examples**: Check `cordal-integration-tests/` for comprehensive examples
 2. **Read Full Guide**: See `docs/CORDAL_COMPREHENSIVE_GUIDE.md` for advanced features
@@ -254,14 +258,14 @@ endpoints:
 4. **Performance Testing**: Use the built-in performance dashboard
 5. **Production Deployment**: Configure PostgreSQL and deploy with Docker/Kubernetes
 
-## 📚 Additional Resources
+## Additional Resources
 
 - **Comprehensive Guide**: `docs/CORDAL_COMPREHENSIVE_GUIDE.md`
 - **Integration Tests**: `cordal-integration-tests/`
 - **Build Scripts**: `scripts/`
 - **Configuration Examples**: `generic-config/`
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -291,6 +295,4 @@ mvn clean install
 ./scripts/build-executable-jars.sh --dev
 ```
 
----
 
-**Ready to build your API?** Start with the configuration files above and customize them for your domain! 🎉

@@ -1,6 +1,8 @@
 package dev.cordal.generic;
 
 import dev.cordal.test.TestDatabaseManager;
+import dev.cordal.common.cache.CacheManager;
+import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.config.ConfigurationLoader;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.config.QueryConfig;
@@ -53,7 +55,9 @@ class GenericRepositoryTest {
         // Create database connection manager
         databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
 
-        repository = new GenericRepository(databaseConnectionManager);
+        CacheManager cacheManager = new CacheManager(new CacheManager.CacheConfiguration(100, 300, 60));
+        CacheMetricsCollector metricsCollector = new CacheMetricsCollector(cacheManager);
+        repository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector);
     }
 
     @AfterEach

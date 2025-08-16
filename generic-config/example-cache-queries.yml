@@ -1,0 +1,201 @@
+# Example query configurations with caching enabled
+# This file demonstrates how to configure caching for different types of queries
+
+queries:
+  # Basic caching example - cache stock trade data for 5 minutes
+  get_stock_trades_by_symbol:
+    database: "stocktrades_db"
+    sql: "SELECT * FROM stock_trades WHERE symbol = ? ORDER BY trade_date DESC LIMIT ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 300  # 5 minutes
+      maxSize: 1000
+      keyPattern: "stock_trades:{symbol}:{limit}"
+
+  # Aggregation query with longer cache time
+  get_daily_volume_by_symbol:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, DATE(trade_date) as trade_day, SUM(volume) as total_volume 
+      FROM stock_trades 
+      WHERE symbol = ? AND trade_date >= ? 
+      GROUP BY symbol, DATE(trade_date) 
+      ORDER BY trade_day DESC
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+    cache:
+      enabled: true
+      strategy: "TIME_BASED"
+      ttl: 1800  # 30 minutes for aggregated data
+      maxSize: 500
+      keyPattern: "daily_volume:{symbol}:{start_date}"
+
+  # Expensive aggregation with cache warming
+  get_market_summary:
+    database: "stocktrades_db"
+    sql: |
+      SELECT 
+        COUNT(*) as total_trades,
+        COUNT(DISTINCT symbol) as unique_symbols,
+        SUM(volume) as total_volume,
+        AVG(price) as avg_price,
+        MIN(price) as min_price,
+        MAX(price) as max_price
+      FROM stock_trades 
+      WHERE trade_date >= ?
+    parameters:
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+    cache:
+      enabled: true
+      strategy: "TIME_BASED"
+      ttl: 3600  # 1 hour for market summary
+      maxSize: 100
+      keyPattern: "market_summary:{start_date}"
+      refreshAsync: true  # Refresh before expiry
+      preload: true  # Load on startup
+
+  # User-specific data with advanced invalidation rules
+  get_user_portfolio:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, SUM(volume) as total_shares, AVG(price) as avg_price
+      FROM stock_trades
+      WHERE user_id = ?
+      GROUP BY symbol
+    parameters:
+      - name: "user_id"
+        type: "INTEGER"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 600  # 10 minutes
+      maxSize: 2000
+      keyPattern: "user_portfolio:{user_id}"
+      # Simple event-based invalidation (backward compatibility)
+      invalidateOn:
+        - "user_trade_insert"
+        - "user_trade_update"
+        - "user_trade_delete"
+      # Advanced invalidation rules with conditions
+      invalidationRules:
+        - event: "trade_executed"
+          patterns:
+            - "user_portfolio:{user_id}"
+            - "user_trades:{user_id}:*"
+          condition: "user_id = ${event.user_id}"
+          async: true
+        - event: "market_close"
+          patterns:
+            - "user_portfolio:*"
+          delaySeconds: 300  # Wait 5 minutes after market close
+          async: true
+        - event: "user_balance_update"
+          patterns:
+            - "user_portfolio:{user_id}"
+          condition: "user_id = ${event.user_id} AND balance_change > 1000"
+          async: false  # Immediate invalidation for large balance changes
+
+  # Count query with caching
+  count_trades_by_symbol:
+    database: "stocktrades_db"
+    sql: "SELECT COUNT(*) FROM stock_trades WHERE symbol = ?"
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 180  # 3 minutes for count queries
+      maxSize: 500
+      keyPattern: "count_trades:{symbol}"
+
+  # Reference data with long cache time
+  get_symbol_info:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, company_name, sector, market_cap, description
+      FROM symbol_info 
+      WHERE symbol = ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+    cache:
+      enabled: true
+      strategy: "TIME_BASED"
+      ttl: 86400  # 24 hours for reference data
+      maxSize: 10000
+      keyPattern: "symbol_info:{symbol}"
+
+  # Query without caching (for comparison)
+  get_real_time_price:
+    database: "stocktrades_db"
+    sql: |
+      SELECT symbol, price, volume, trade_date
+      FROM stock_trades 
+      WHERE symbol = ? 
+      ORDER BY trade_date DESC 
+      LIMIT 1
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+    # No cache configuration - real-time data should not be cached
+
+  # Complex query with multiple parameters
+  get_trades_by_criteria:
+    database: "stocktrades_db"
+    sql: |
+      SELECT * FROM stock_trades 
+      WHERE symbol = ? 
+        AND trade_date BETWEEN ? AND ?
+        AND volume >= ?
+        AND price BETWEEN ? AND ?
+      ORDER BY trade_date DESC
+      LIMIT ?
+    parameters:
+      - name: "symbol"
+        type: "STRING"
+        required: true
+      - name: "start_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "end_date"
+        type: "TIMESTAMP"
+        required: true
+      - name: "min_volume"
+        type: "INTEGER"
+        required: true
+      - name: "min_price"
+        type: "DECIMAL"
+        required: true
+      - name: "max_price"
+        type: "DECIMAL"
+        required: true
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+    cache:
+      enabled: true
+      strategy: "LRU"
+      ttl: 900  # 15 minutes
+      maxSize: 1000
+      # Complex key pattern with multiple parameters
+      keyPattern: "trades_criteria:{symbol}:{start_date}:{end_date}:{min_volume}:{min_price}:{max_price}:{limit}"

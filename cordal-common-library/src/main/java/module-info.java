@@ -1,6 +1,7 @@
 module dev.cordal.common {
     // Export all packages from common library
     exports dev.cordal.common.application;
+    exports dev.cordal.common.cache;
     exports dev.cordal.common.config;
     exports dev.cordal.common.database;
     exports dev.cordal.common.dto;

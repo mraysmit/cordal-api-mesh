@@ -65,13 +65,12 @@ class ConfigurationSourceIntegrationTest {
         assertThat(endpoints).isNotNull().isNotEmpty();
         
         // Verify specific test data exists (from YAML files)
-        assertThat(databases).containsKey("stocktrades");
-        assertThat(databases).containsKey("analytics");
-        assertThat(databases).containsKey("datawarehouse");
-        assertThat(queries).containsKey("stock-trades-all");
-        assertThat(queries).containsKey("daily-trading-volume");
+        assertThat(databases).containsKey("stock-trades-db");
+        assertThat(databases).containsKey("metrics-db");
+        assertThat(queries).containsKey("test-query");
+        assertThat(queries).containsKey("test-count-query");
+        assertThat(endpoints).containsKey("test-endpoint");
         assertThat(endpoints).containsKey("stock-trades-list");
-        assertThat(endpoints).containsKey("analytics-daily-volume");
         
         logger.info("Successfully loaded configurations from YAML source");
         logger.info("Loaded {} databases, {} queries, {} endpoints", 

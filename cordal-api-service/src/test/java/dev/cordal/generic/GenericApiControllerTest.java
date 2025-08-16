@@ -1,6 +1,8 @@
 package dev.cordal.generic;
 
 import dev.cordal.test.TestDatabaseManager;
+import dev.cordal.common.cache.CacheManager;
+import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.config.ConfigurationLoader;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.database.DatabaseConnectionManager;
@@ -50,7 +52,9 @@ class GenericApiControllerTest {
 
         // Create database connection manager, repository and service
         DatabaseConnectionManager databaseConnectionManager = new DatabaseConnectionManager(configurationManager);
-        genericRepository = new GenericRepository(databaseConnectionManager);
+        CacheManager cacheManager = new CacheManager(new CacheManager.CacheConfiguration(100, 300, 60));
+        CacheMetricsCollector metricsCollector = new CacheMetricsCollector(cacheManager);
+        genericRepository = new GenericRepository(databaseConnectionManager, cacheManager, metricsCollector);
         genericApiService = new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
 
         // Create controller

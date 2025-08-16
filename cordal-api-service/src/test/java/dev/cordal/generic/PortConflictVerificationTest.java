@@ -20,13 +20,13 @@ class PortConflictVerificationTest {
     @BeforeAll
     static void setUpClass() {
         // Set test configuration for both services
-        System.setProperty("config.file", "application-test.yml");
+        System.setProperty("generic.config.file", "application-test.yml");
         logger.info("Port conflict verification test setup - using test configuration");
     }
 
     @AfterAll
     static void tearDownClass() {
-        System.clearProperty("config.file");
+        System.clearProperty("generic.config.file");
         logger.info("Port conflict verification test cleanup completed");
     }
 
