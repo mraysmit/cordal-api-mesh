@@ -143,6 +143,10 @@ queries:
       - name: "offset"
         type: "INTEGER"
         required: true
+    cache:
+      enabled: true
+      ttlSeconds: 300
+      keyPattern: "trades-db-1:{symbol}:{limit}:{offset}"
 
   trades-db-1-by-trader:
     name: "trades-db-1-by-trader"
@@ -252,6 +256,10 @@ queries:
       - name: "offset"
         type: "INTEGER"
         required: true
+    cache:
+      enabled: true
+      ttlSeconds: 300
+      keyPattern: "trades-db-2:{symbol}:{limit}:{offset}"
 
   trades-db-2-by-trader:
     name: "trades-db-2-by-trader"

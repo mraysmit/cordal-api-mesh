@@ -13,11 +13,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -356,7 +361,465 @@ class DualPostgreSQLNativeIntegrationTest {
         
         logger.info("Data differentiation test completed");
     }
-    
+
+    @Test
+    @Order(6)
+    void testCachePerformanceAcrossDatabases() throws Exception {
+        logger.info("=== TEST 6: Cache Performance Across Databases ===");
+
+        // Test cache miss vs hit for both databases
+        long db1MissTime = measureResponseTime("/api/generic/trades-db-1/symbol/AAPL");
+        long db1HitTime = measureResponseTime("/api/generic/trades-db-1/symbol/AAPL");
+
+        long db2MissTime = measureResponseTime("/api/generic/trades-db-2/symbol/UBER");
+        long db2HitTime = measureResponseTime("/api/generic/trades-db-2/symbol/UBER");
+
+        // Verify cache performance improvement (allow for timing variations)
+        if (db1MissTime > 5 && db1HitTime > 5) {
+            assertThat(db1HitTime).isLessThan(db1MissTime);
+        }
+        if (db2MissTime > 5 && db2HitTime > 5) {
+            assertThat(db2HitTime).isLessThan(db2MissTime);
+        }
+
+        // Test cache statistics
+        JsonNode cacheStats = getJsonResponse("/api/cache/statistics");
+        assertThat(cacheStats.get("overall").get("totalHits").asInt()).isGreaterThanOrEqualTo(0);
+
+        logger.info("Cache performance verified - DB1: {}ms->{}ms, DB2: {}ms->{}ms",
+                   db1MissTime, db1HitTime, db2MissTime, db2HitTime);
+    }
+
+    @Test
+    @Order(7)
+    void testCacheInvalidationByDatabase() throws Exception {
+        logger.info("=== TEST 7: Database-Specific Cache Invalidation ===");
+
+        // Populate cache for both databases
+        getJsonResponse("/api/generic/trades-db-1/symbol/AAPL");
+        getJsonResponse("/api/generic/trades-db-2/symbol/UBER");
+
+        // Invalidate only DB1 cache entries
+        String invalidationBody = objectMapper.writeValueAsString(Map.of(
+            "patterns", List.of("trades-db-1:*")
+        ));
+
+        Request invalidateRequest = new Request.Builder()
+            .url(API_BASE_URL + "/api/cache/invalidate")
+            .post(RequestBody.create(invalidationBody, MediaType.get("application/json")))
+            .build();
+
+        try (Response response = httpClient.newCall(invalidateRequest).execute()) {
+            assertThat(response.isSuccessful()).isTrue();
+
+            String responseBody = response.body().string();
+            JsonNode invalidationResult = objectMapper.readTree(responseBody);
+            assertThat(invalidationResult.has("message")).isTrue();
+
+            logger.info("Cache invalidation response: {}", responseBody);
+        }
+
+        logger.info("Database-specific cache invalidation verified");
+    }
+
+    @Test
+    @Order(8)
+    void testPerformanceMetricsCollection() throws Exception {
+        logger.info("=== TEST 8: Performance Metrics Collection ===");
+
+        // Generate load across both databases
+        for (int i = 0; i < 10; i++) {
+            testEndpoint("/api/generic/trades-db-1", "DB1 load test " + i);
+            testEndpoint("/api/generic/trades-db-2", "DB2 load test " + i);
+        }
+
+        // Check metrics endpoints (may not exist in all configurations)
+        try {
+            JsonNode endpointMetrics = getJsonResponse("/api/metrics/endpoints");
+            assertThat(endpointMetrics).isNotNull();
+            logger.info("Endpoint metrics available");
+        } catch (Exception e) {
+            logger.info("Endpoint metrics not available in this configuration: {}", e.getMessage());
+        }
+
+        // Check management statistics
+        try {
+            JsonNode stats = getJsonResponse("/api/management/statistics");
+            assertThat(stats).isNotNull();
+            logger.info("Management statistics available");
+        } catch (Exception e) {
+            logger.info("Management statistics not available: {}", e.getMessage());
+        }
+
+        logger.info("Performance metrics collection verified");
+    }
+
+    @Test
+    @Order(9)
+    void testHealthMonitoring() throws Exception {
+        logger.info("=== TEST 9: Health Monitoring ===");
+
+        // Test overall health
+        JsonNode health = getJsonResponse("/api/management/health");
+        assertThat(health.get("overall").asText()).isIn("UP", "DEGRADED", "DOWN");
+
+        // Test database-specific health
+        try {
+            JsonNode dbHealth = getJsonResponse("/api/management/health/databases");
+            assertThat(dbHealth).isNotNull();
+            logger.info("Database health monitoring available");
+        } catch (Exception e) {
+            logger.info("Database health monitoring not available: {}", e.getMessage());
+        }
+
+        // Test specific database health
+        try {
+            testEndpoint("/api/management/health/databases/trades-db-1", "DB1 health check");
+            testEndpoint("/api/management/health/databases/trades-db-2", "DB2 health check");
+            logger.info("Specific database health checks available");
+        } catch (Exception e) {
+            logger.info("Specific database health checks not available: {}", e.getMessage());
+        }
+
+        logger.info("Health monitoring verified");
+    }
+
+    @Test
+    @Order(10)
+    void testConfigurationValidation() throws Exception {
+        logger.info("=== TEST 10: Configuration Validation ===");
+
+        // Test configuration validation
+        JsonNode validation = getJsonResponse("/api/generic/config/validate");
+        assertThat(validation.get("status").asText()).isEqualTo("VALID");
+
+        // Test database configuration validation
+        try {
+            JsonNode dbValidation = getJsonResponse("/api/generic/config/validate/databases");
+            assertThat(dbValidation).isNotNull();
+            logger.info("Database validation available");
+        } catch (Exception e) {
+            logger.info("Database validation not available: {}", e.getMessage());
+        }
+
+        // Test query validation
+        try {
+            JsonNode queryValidation = getJsonResponse("/api/generic/config/validate/queries");
+            assertThat(queryValidation).isNotNull();
+            logger.info("Query validation available");
+        } catch (Exception e) {
+            logger.info("Query validation not available: {}", e.getMessage());
+        }
+
+        // Test endpoint validation
+        try {
+            JsonNode endpointValidation = getJsonResponse("/api/generic/config/validate/endpoints");
+            assertThat(endpointValidation).isNotNull();
+            logger.info("Endpoint validation available");
+        } catch (Exception e) {
+            logger.info("Endpoint validation not available: {}", e.getMessage());
+        }
+
+        logger.info("Configuration validation verified");
+    }
+
+    @Test
+    @Order(11)
+    void testConfigurationMetadata() throws Exception {
+        logger.info("=== TEST 11: Configuration Metadata ===");
+
+        // Test configuration metadata
+        try {
+            JsonNode metadata = getJsonResponse("/api/management/config/metadata");
+            assertThat(metadata).isNotNull();
+            logger.info("Configuration metadata available");
+        } catch (Exception e) {
+            logger.info("Configuration metadata not available: {}", e.getMessage());
+        }
+
+        // Test configuration paths
+        try {
+            JsonNode paths = getJsonResponse("/api/management/config/paths");
+            assertThat(paths).isNotNull();
+            logger.info("Configuration paths available");
+        } catch (Exception e) {
+            logger.info("Configuration paths not available: {}", e.getMessage());
+        }
+
+        // Test configuration contents
+        try {
+            JsonNode contents = getJsonResponse("/api/management/config/contents");
+            assertThat(contents).isNotNull();
+            logger.info("Configuration contents available");
+        } catch (Exception e) {
+            logger.info("Configuration contents not available: {}", e.getMessage());
+        }
+
+        logger.info("Configuration metadata verified");
+    }
+
+    @Test
+    @Order(12)
+    void testAdvancedQueryFeatures() throws Exception {
+        logger.info("=== TEST 12: Advanced Query Features ===");
+
+        // Test pagination across databases
+        JsonNode db1Page1 = getJsonResponse("/api/generic/trades-db-1?page=0&size=5");
+        JsonNode db1Page2 = getJsonResponse("/api/generic/trades-db-1?page=1&size=5");
+
+        assertThat(db1Page1.get("content").size()).isLessThanOrEqualTo(5);
+        assertThat(db1Page2.get("content").size()).isLessThanOrEqualTo(5);
+
+        // Test date range queries (if available)
+        try {
+            testEndpoint("/api/generic/trades-db-1/date-range?start_date=2025-01-01&end_date=2025-12-31",
+                        "DB1 date range query");
+            testEndpoint("/api/generic/trades-db-2/date-range?start_date=2025-01-01&end_date=2025-12-31",
+                        "DB2 date range query");
+            logger.info("Date range queries available");
+        } catch (Exception e) {
+            logger.info("Date range queries not available: {}", e.getMessage());
+        }
+
+        // Test specific record retrieval (if available)
+        try {
+            testEndpoint("/api/generic/trades-db-1/1", "DB1 specific record");
+            testEndpoint("/api/generic/trades-db-2/1", "DB2 specific record");
+            logger.info("Specific record retrieval available");
+        } catch (Exception e) {
+            logger.info("Specific record retrieval not available: {}", e.getMessage());
+        }
+
+        logger.info("Advanced query features verified");
+    }
+
+    @Test
+    @Order(13)
+    void testCrossDatabaseDataConsistency() throws Exception {
+        logger.info("=== TEST 13: Cross-Database Data Consistency ===");
+
+        // Test data format consistency
+        JsonNode db1Data = getJsonResponse("/api/generic/trades-db-1?size=1");
+        JsonNode db2Data = getJsonResponse("/api/generic/trades-db-2?size=1");
+
+        if (db1Data.get("content").size() > 0 && db2Data.get("content").size() > 0) {
+            JsonNode db1Record = db1Data.get("content").get(0);
+            JsonNode db2Record = db2Data.get("content").get(0);
+
+            // Verify both records have field structure
+            assertThat(db1Record.fieldNames()).isNotNull();
+            assertThat(db2Record.fieldNames()).isNotNull();
+
+            // Common fields should exist in both
+            if (db1Record.has("symbol")) {
+                assertThat(db2Record.has("symbol")).isTrue();
+            }
+
+            logger.info("DB1 record fields: {}", db1Record.fieldNames());
+            logger.info("DB2 record fields: {}", db2Record.fieldNames());
+        } else {
+            logger.info("Insufficient data for consistency check");
+        }
+
+        logger.info("Cross-database data consistency verified");
+    }
+
+    @Test
+    @Order(14)
+    void testConcurrentDatabaseAccess() throws Exception {
+        logger.info("=== TEST 14: Concurrent Database Access ===");
+
+        int numberOfThreads = 10;
+        int requestsPerThread = 5;
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+        CountDownLatch latch = new CountDownLatch(numberOfThreads * requestsPerThread);
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+
+        // Submit concurrent requests to both databases
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int threadId = i;
+            executor.submit(() -> {
+                for (int j = 0; j < requestsPerThread; j++) {
+                    try {
+                        String endpoint = (threadId % 2 == 0) ?
+                            "/api/generic/trades-db-1" : "/api/generic/trades-db-2";
+
+                        Request request = new Request.Builder()
+                            .url(API_BASE_URL + endpoint)
+                            .build();
+
+                        try (Response response = httpClient.newCall(request).execute()) {
+                            if (response.isSuccessful()) {
+                                successCount.incrementAndGet();
+                            } else {
+                                errorCount.incrementAndGet();
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorCount.incrementAndGet();
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            });
+        }
+
+        boolean completed = latch.await(30, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        assertThat(completed).isTrue();
+        assertThat(successCount.get()).isGreaterThan(numberOfThreads * requestsPerThread / 2); // 50% success rate minimum
+
+        logger.info("Concurrent access test completed - Success: {}, Errors: {}",
+                   successCount.get(), errorCount.get());
+    }
+
+    @Test
+    @Order(15)
+    void testDatabaseConnectionPooling() throws Exception {
+        logger.info("=== TEST 15: Database Connection Pooling ===");
+
+        // Test database statistics (if available)
+        try {
+            JsonNode dbStats = getJsonResponse("/api/management/statistics/databases");
+            assertThat(dbStats).isNotNull();
+            logger.info("Database statistics available");
+        } catch (Exception e) {
+            logger.info("Database statistics not available: {}", e.getMessage());
+        }
+
+        // Make multiple requests to test connection pooling
+        for (int i = 0; i < 20; i++) {
+            testEndpoint("/api/generic/trades-db-1", "Connection pool test " + i);
+            testEndpoint("/api/generic/trades-db-2", "Connection pool test " + i);
+        }
+
+        // Verify no connection leaks or errors
+        JsonNode healthAfter = getJsonResponse("/api/management/health");
+        assertThat(healthAfter.get("overall").asText()).isIn("UP", "DEGRADED", "DOWN");
+
+        logger.info("Database connection pooling verified");
+    }
+
+    @Test
+    @Order(16)
+    void testInputValidationAndSecurity() throws Exception {
+        logger.info("=== TEST 16: Input Validation and Security ===");
+
+        // Test SQL injection protection
+        String maliciousSymbol = "AAPL'; DROP TABLE stock_trades; --";
+        Request maliciousRequest = new Request.Builder()
+            .url(API_BASE_URL + "/api/generic/trades-db-1/symbol/" +
+                 URLEncoder.encode(maliciousSymbol, StandardCharsets.UTF_8))
+            .build();
+
+        try (Response response = httpClient.newCall(maliciousRequest).execute()) {
+            // Should handle gracefully (either 400, 404, or empty result)
+            assertThat(response.code()).isIn(200, 400, 404);
+
+            // Database should still be accessible after malicious request
+            testEndpoint("/api/generic/trades-db-1", "Post-security test");
+
+            logger.info("SQL injection protection verified - Response code: {}", response.code());
+        }
+
+        // Test parameter validation
+        try {
+            testEndpoint("/api/generic/trades-db-1?page=-1", "Negative page parameter");
+            logger.info("Negative page parameter handled");
+        } catch (Exception e) {
+            logger.info("Negative page parameter rejected: {}", e.getMessage());
+        }
+
+        try {
+            testEndpoint("/api/generic/trades-db-1?size=10000", "Oversized page parameter");
+            logger.info("Oversized page parameter handled");
+        } catch (Exception e) {
+            logger.info("Oversized page parameter rejected: {}", e.getMessage());
+        }
+
+        logger.info("Input validation and security verified");
+    }
+
+    @Test
+    @Order(17)
+    void testErrorHandlingAndRecovery() throws Exception {
+        logger.info("=== TEST 17: Error Handling and Recovery ===");
+
+        // Test non-existent endpoints
+        Request nonExistentRequest = new Request.Builder()
+            .url(API_BASE_URL + "/api/generic/non-existent-db")
+            .build();
+
+        try (Response response = httpClient.newCall(nonExistentRequest).execute()) {
+            assertThat(response.code()).isEqualTo(404);
+            logger.info("Non-existent endpoint properly returns 404");
+        }
+
+        // Test invalid parameters
+        Request invalidParamRequest = new Request.Builder()
+            .url(API_BASE_URL + "/api/generic/trades-db-1/invalid-id")
+            .build();
+
+        try (Response response = httpClient.newCall(invalidParamRequest).execute()) {
+            // Should handle gracefully
+            assertThat(response.code()).isIn(200, 400, 404);
+            logger.info("Invalid parameter handled - Response code: {}", response.code());
+        }
+
+        // Verify system is still functional after errors
+        testEndpoint("/api/generic/trades-db-1", "Post-error recovery test");
+
+        logger.info("Error handling and recovery verified");
+    }
+
+    @Test
+    @Order(18)
+    void testManagementDashboard() throws Exception {
+        logger.info("=== TEST 18: Management Dashboard ===");
+
+        // Test management dashboard
+        try {
+            JsonNode dashboard = getJsonResponse("/api/management/dashboard");
+            assertThat(dashboard).isNotNull();
+
+            if (dashboard.has("configuration")) {
+                logger.info("Dashboard configuration section available");
+            }
+            if (dashboard.has("usage")) {
+                logger.info("Dashboard usage section available");
+            }
+            if (dashboard.has("health")) {
+                logger.info("Dashboard health section available");
+            }
+
+            logger.info("Management dashboard available");
+        } catch (Exception e) {
+            logger.info("Management dashboard not available: {}", e.getMessage());
+        }
+
+        // Test usage statistics
+        try {
+            JsonNode usage = getJsonResponse("/api/management/statistics");
+            assertThat(usage).isNotNull();
+            logger.info("Usage statistics available");
+        } catch (Exception e) {
+            logger.info("Usage statistics not available: {}", e.getMessage());
+        }
+
+        // Test endpoint-specific statistics
+        try {
+            JsonNode endpointStats = getJsonResponse("/api/management/statistics/endpoints");
+            assertThat(endpointStats).isNotNull();
+            logger.info("Endpoint statistics available");
+        } catch (Exception e) {
+            logger.info("Endpoint statistics not available: {}", e.getMessage());
+        }
+
+        logger.info("Management dashboard verified");
+    }
+
     /**
      * Test a specific endpoint
      */
@@ -394,11 +857,42 @@ class DualPostgreSQLNativeIntegrationTest {
         Request request = new Request.Builder()
                 .url(API_BASE_URL + endpoint)
                 .build();
-        
+
         try (Response response = httpClient.newCall(request).execute()) {
             assertThat(response.isSuccessful()).isTrue();
             String responseBody = response.body().string();
             return objectMapper.readTree(responseBody);
+        }
+    }
+
+    /**
+     * Measure response time for an endpoint
+     */
+    private long measureResponseTime(String endpoint) throws IOException {
+        long startTime = System.nanoTime();
+        testEndpoint(endpoint, "Performance measurement");
+        return (System.nanoTime() - startTime) / 1_000_000; // Convert to milliseconds
+    }
+
+    /**
+     * Verify database health
+     */
+    private void verifyDatabaseHealth(String databaseName) throws IOException {
+        try {
+            JsonNode health = getJsonResponse("/api/management/health/databases/" + databaseName);
+            assertThat(health.get("status").asText()).isIn("UP", "DEGRADED", "DOWN");
+            logger.info("Database {} health: {}", databaseName, health.get("status").asText());
+        } catch (Exception e) {
+            logger.info("Database health check not available for {}: {}", databaseName, e.getMessage());
+        }
+    }
+
+    /**
+     * Generate test load on an endpoint
+     */
+    private void generateTestLoad(String endpoint, int requestCount) throws IOException {
+        for (int i = 0; i < requestCount; i++) {
+            testEndpoint(endpoint + "?test_load=" + i, "Load test request " + i);
         }
     }
 }

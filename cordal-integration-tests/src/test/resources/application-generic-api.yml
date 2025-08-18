@@ -33,10 +33,32 @@ swagger:
   enabled: true
   path: /swagger
 
+cache:
+  enabled: true
+  defaultTtlSeconds: 300
+  maxSize: 1000
+  cleanupIntervalSeconds: 30
+
 metrics:
   enabled: true
   collectResponseTimes: true
-  collectMemoryUsage: false
+  collectMemoryUsage: true
+  collectCacheMetrics: true
+
+security:
+  cors:
+    enabled: true
+  inputValidation:
+    enabled: true
+    maxParameterLength: 1000
+    sqlInjectionProtection: true
+
+monitoring:
+  healthChecks:
+    enabled: true
+    databaseTimeout: 5000
+  alerting:
+    enabled: false
 
 logging:
   level: INFO
