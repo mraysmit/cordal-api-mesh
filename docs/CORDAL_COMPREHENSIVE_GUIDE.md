@@ -1,146 +1,1707 @@
-# CORDAL - Comprehensive Guide
+# CORDAL - Complete Developer Guide
 ## Configuration Orchestrated REST Dynamic API Layer
 
 **Version:** 1.0
-**Date:** 2025-03-05
+**Date:** 2025-03-16
 **Author:** Mark Andrew Ray-Smith Cityline Ltd
 
+---
+
+## Welcome to CORDAL
+
+**CORDAL** is a revolutionary framework that lets you create powerful REST APIs using only YAML configuration files - **no Java coding required!** This guide will take you from your first "Hello World" API to building complex, production-ready systems.
+
+### What You'll Learn
+
+This guide follows a **gentle learning curve** with hands-on examples:
+
+1. **Getting Started** - Your first API in 5 minutes
+2. **Simple Examples** - Basic CRUD operations
+3. **Intermediate Features** - Caching, validation, pagination
+4. **Advanced Scenarios** - Multi-database, performance optimization
+5. **Production Deployment** - Monitoring, scaling, best practices
+
+### Why CORDAL?
+
+- **Zero Code APIs** - Define REST endpoints with YAML only
+- **Hot Reload** - Change configurations without restart
+- **Built-in Monitoring** - Automatic metrics and dashboards
+- **Type Safety** - Compile-time validation for all configurations
+- **Production Ready** - Health checks, caching, connection pooling
+
+---
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Architecture](#architecture)
-3. [Quick Start](#quick-start)
-4. [Configuration](#configuration)
-5. [Caching System](#caching-system)
-6. [Deployment](#deployment)
-7. [Metrics Collection](#metrics-collection)
-8. [Database Integration](#database-integration)
-9. [Testing](#testing)
-10. [Scripts and Automation](#scripts-and-automation)
-11. [Performance Dashboard](#performance-dashboard)
-12. [Health Monitoring](#health-monitoring)
-13. [Troubleshooting](#troubleshooting)
-14. [Development Guide](#development-guide)
+### **Getting Started**
+1. [Your First API in 5 Minutes](#your-first-api-in-5-minutes)
+2. [Understanding the Magic](#understanding-the-magic)
+3. [Quick Setup Guide](#quick-setup-guide)
+
+### **Simple Examples**
+4. [Example 1: Hello World API](#example-1-hello-world-api)
+5. [Example 2: Simple Database Query](#example-2-simple-database-query)
+6. [Example 3: Basic CRUD Operations](#example-3-basic-crud-operations)
+
+### **Intermediate Features**
+7. [Example 4: Adding Pagination](#example-4-adding-pagination)
+8. [Example 5: Query Parameters](#example-5-query-parameters)
+9. [Example 6: Caching for Performance](#example-6-caching-for-performance)
+
+### **Advanced Scenarios**
+10. [Example 7: Multi-Database Setup](#example-7-multi-database-setup)
+11. [Example 8: Complex Queries & Joins](#example-8-complex-queries--joins)
+12. [Example 9: Real-time Monitoring](#example-9-real-time-monitoring)
+
+### **Production Deployment**
+13. [Production Configuration](#production-configuration)
+14. [Performance Optimization](#performance-optimization)
+15. [Monitoring & Troubleshooting](#monitoring--troubleshooting)
+16. [Advanced Architecture](#advanced-architecture)
 
 ---
 
-## Project Overview
+## Your First API in 5 Minutes
 
-### What is CORDAL?
+Let's start with the most basic example - creating a simple "Hello World" API that returns a greeting message.
 
-CORDAL (Configuration Orchestrated REST Dynamic API Layer) is a sophisticated, configuration-driven REST API framework built on Java 21 and Javalin 6.1.3. It provides a highly modular, scalable solution for creating dynamic REST APIs through YAML configuration files rather than hardcoded endpoints.
+### What We'll Build
 
-**IMPORTANT**: CORDAL is a **generic framework** that can support any domain or use case. The stock trades functionality referenced in this documentation is **ONLY AN EXAMPLE IMPLEMENTATION** used for demonstration and integration testing. It is **NOT part of the core system**.
+A REST API that responds to `GET /api/hello` with a personalized greeting. This will demonstrate the core CORDAL concept: **APIs defined by configuration, not code**.
 
-### Key Features
+### Step 1: Prerequisites
 
-- **Configuration-Driven**: Define APIs, database queries, and connections through YAML files
-- **Automatic Metrics Collection**: Zero-code integration for comprehensive API monitoring
-- **Modular Architecture**: Separate modules for API service, metrics, and common utilities
-- **Multi-Database Support**: H2 and PostgreSQL integration with connection pooling
-- **Real-time Dashboard**: Performance monitoring with interactive charts
-- **Comprehensive Validation**: Configuration validation with detailed error reporting
-- **Production Ready**: Multiple deployment profiles, health checks, and monitoring
-- **Extensive Testing**: Unit, integration, and performance test suites
+```bash
+# You need Java 21+ and Maven 3.6+
+java --version   # Should show Java 21+
+mvn --version    # Should show Maven 3.6+
+```
 
-### Project Structure
+### Step 2: Clone and Build
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd cordal
+
+# Build the system (takes 2-3 minutes)
+./scripts/build-executable-jars.sh
+```
+
+### Step 3: Create Application Configuration
+
+First, create the main application configuration file:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 4: Create Your First Configuration
+
+Now create a simple database table and API endpoint:
+
+**File: `generic-config/hello-databases.yml`**
+```yaml
+databases:
+  hello_db:
+    name: "hello_db"
+    url: "jdbc:h2:./data/hello;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+```
+
+**File: `generic-config/hello-queries.yml`**
+```yaml
+queries:
+  get_greeting:
+    name: "get_greeting"
+    database: "hello_db"
+    sql: "SELECT 'Hello, World!' as message, CURRENT_TIMESTAMP as timestamp"
+    parameters: []
+```
+
+**File: `generic-config/hello-endpoints.yml`**
+```yaml
+endpoints:
+  hello_world:
+    path: "/api/hello"
+    method: "GET"
+    query: "get_greeting"
+    description: "Simple hello world endpoint"
+```
+
+### Step 5: Start the Service
+
+```bash
+# Start CORDAL
+./scripts/start-cordal-api-service.sh
+```
+
+### Step 6: Test Your API
+
+```bash
+# Test your new API
+curl http://localhost:8080/api/hello
+
+# Expected response:
+{
+  "type": "SIMPLE",
+  "data": [
+    {
+      "message": "Hello, World!",
+      "timestamp": "2025-08-16T10:30:45.123"
+    }
+  ],
+  "timestamp": 1755358245123
+}
+```
+
+### Congratulations!
+
+You just created a REST API without writing a single line of Java code! Let's understand what happened.
+
+---
+
+## Understanding the Magic
+
+### The Three-Layer Architecture
+
+CORDAL uses a simple three-layer configuration system:
+
+```mermaid
+graph LR
+    A[📄 Endpoints<br/>*-endpoints.yml] --> B[🔍 Queries<br/>*-queries.yml]
+    B --> C[🗄️ Databases<br/>*-databases.yml]
+
+    A2["/api/hello"] --> B2["SELECT 'Hello'"]
+    B2 --> C2["H2 Database"]
+```
+
+1. **Endpoints** define the REST API structure (URL, HTTP method)
+2. **Queries** define what data to fetch (SQL queries)
+3. **Databases** define where to get the data (connection details)
+
+### Configuration Discovery
+
+CORDAL automatically finds your configuration files:
+
+```
+generic-config/
+├── hello-databases.yml    ← Found by pattern "*-databases.yml"
+├── hello-queries.yml      ← Found by pattern "*-queries.yml"
+└── hello-endpoints.yml    ← Found by pattern "*-endpoints.yml"
+```
+
+### Runtime Process
+
+When you call `GET /api/hello`:
+
+1. **Route Matching**: CORDAL finds the endpoint configuration
+2. **Query Lookup**: Finds the associated SQL query
+3. **Database Connection**: Connects to the specified database
+4. **Query Execution**: Runs the SQL and gets results
+5. **JSON Response**: Automatically formats the response
+
+---
+
+## Quick Setup Guide
+
+### System Requirements
+
+- **Java 21+** (JDK for building, JRE for running)
+- **Maven 3.6+** (for building)
+- **4GB RAM** (minimum for development)
+- **PostgreSQL** (optional, for production)
+
+### Project Structure Overview
 
 ```
 cordal/
-├── cordal-api-service/          # Main API service module (CORE - Generic framework)
-├── cordal-metrics-service/      # Metrics collection and monitoring (CORE)
-├── cordal-common-library/       # Shared utilities and models (CORE)
-├── cordal-integration-tests/    # Integration tests + EXAMPLE implementations (stock trades)
-├── generic-config/              # Core configuration YAML files (GENERIC only)
-├── data/                        # H2 database files
-├── logs/                        # Application log files
-├── scripts/                     # Build and deployment scripts (CORE only)
-└── docs/                         # Comprehensive documentation
+├── 🏗️ cordal-api-service/          # Main API framework
+├── 📊 cordal-metrics-service/      # Performance monitoring
+├── 📚 cordal-common-library/       # Shared utilities
+├── 🧪 cordal-integration-tests/    # Example implementations
+├── ⚙️ generic-config/              # Your configuration files
+├── 💾 data/                        # Database files
+├── 📝 logs/                        # Application logs
+└── 🚀 scripts/                     # Build and run scripts
 ```
 
-### Technology Stack
+### Essential Scripts
 
-- **Java 21** - Latest LTS with modern language features
-- **Javalin 6.1.3** - Lightweight web framework
-- **Google Guice** - Dependency injection
-- **HikariCP** - High-performance connection pooling
-- **H2 Database** - Embedded database for development
-- **PostgreSQL** - Production database support
-- **Jackson** - JSON processing
-- **SLF4J + Logback** - Logging framework
-- **Maven** - Build and dependency management
-- **Chart.js** - Dashboard visualizations
+```bash
+# Build everything
+./scripts/build-executable-jars.sh
+
+# Start API service
+./scripts/start-cordal-api-service.sh
+
+# Start metrics service (optional)
+./scripts/start-cordal-metrics-service.sh
+
+# Stop all services
+./scripts/stop-all-services.sh
+
+# View logs
+tail -f logs/cordal-api-service.log
+```
+
+### Key URLs
+
+- **API Base**: http://localhost:8080/api/
+- **Health Check**: http://localhost:8080/api/health
+- **Swagger UI**: http://localhost:8080/swagger
+- **Metrics Dashboard**: http://localhost:8080/dashboard
+- **H2 Console**: http://localhost:8082 (when H2 server is running)
 
 ---
 
-## Architecture
+## Example 2: Simple Database Query
 
-###  **IMPORTANT: Core vs. Example Architecture**
+Let's create a more realistic example with actual data storage.
 
-**CORDAL CORE SYSTEM** (Generic Framework):
-- `cordal-api-service/` - Generic REST API framework
-- `cordal-common-library/` - Shared utilities and models
-- `cordal-metrics-service/` - Performance monitoring
-- `generic-config/` - Core configuration files (generic only)
-- `scripts/` - Build and deployment scripts
+### Step 1: Update Application Configuration
 
-**EXAMPLE IMPLEMENTATIONS** (Domain-Specific):
-- `cordal-integration-tests/src/test/java/dev/cordal/integration/examples/` - Stock trades example classes
-- `cordal-integration-tests/src/test/resources/config/` - Stock trades example configurations
-- `cordal-integration-tests/src/test/resources/sql/` - Stock trades example SQL scripts
+First, ensure your `application.yaml` is configured to discover the new configuration files:
 
-**Key Principle**: The core system is completely generic and domain-agnostic. Stock trades functionality is purely an example to demonstrate how to implement a use case using the framework.
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
 
-### System Architecture
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
 
-CORDAL follows a layered, modular architecture designed for scalability and maintainability:
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Create a Simple Table
+
+**File: `generic-config/users-databases.yml`**
+```yaml
+databases:
+  users_db:
+    name: "users_db"
+    url: "jdbc:h2:./data/users;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    initialization:
+      schema: |
+        CREATE TABLE IF NOT EXISTS users (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          email VARCHAR(150) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Insert sample data
+        MERGE INTO users (id, name, email) VALUES
+        (1, 'Alice Johnson', 'alice@example.com'),
+        (2, 'Bob Smith', 'bob@example.com'),
+        (3, 'Carol Davis', 'carol@example.com');
+```
+
+### Step 3: Create Queries
+
+**File: `generic-config/users-queries.yml`**
+```yaml
+queries:
+  get_all_users:
+    name: "get_all_users"
+    database: "users_db"
+    sql: "SELECT id, name, email, created_at FROM users ORDER BY name"
+    description: "Get all users"
+
+  get_user_by_id:
+    name: "get_user_by_id"
+    database: "users_db"
+    sql: "SELECT id, name, email, created_at FROM users WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+    description: "Get user by ID"
+```
+
+### Step 4: Create Endpoints
+
+**File: `generic-config/users-endpoints.yml`**
+```yaml
+endpoints:
+  list_users:
+    path: "/api/users"
+    method: "GET"
+    query: "get_all_users"
+    description: "List all users"
+
+  get_user:
+    path: "/api/users/{id}"
+    method: "GET"
+    query: "get_user_by_id"
+    description: "Get specific user"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+        source: "PATH"  # Extract from URL path
+```
+
+### Step 5: Test Your User API
+
+```bash
+# Get all users
+curl http://localhost:8080/api/users
+
+# Get specific user
+curl http://localhost:8080/api/users/1
+
+# Expected response:
+{
+  "type": "SIMPLE",
+  "data": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "created_at": "2025-08-16T10:30:45.123"
+    }
+  ],
+  "timestamp": 1755358245123
+}
+```
+
+### What You Learned
+
+- **Database Initialization**: Creating tables and sample data
+- **Path Parameters**: Using `{id}` in URLs
+- **Multiple Endpoints**: Creating related API endpoints
+- **Data Types**: Using LONG, STRING, and other types
+- **Real Data**: Working with actual database records
+
+---
+
+## Example 3: Basic CRUD Operations
+
+Now let's add Create, Update, and Delete operations to complete our user management API.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Add CRUD Queries
+
+**Update: `generic-config/users-queries.yml`**
+```yaml
+queries:
+  # ... existing queries ...
+
+  create_user:
+    name: "create_user"
+    database: "users_db"
+    sql: "INSERT INTO users (name, email) VALUES (?, ?) RETURNING id, name, email, created_at"
+    parameters:
+      - name: "name"
+        type: "STRING"
+        required: true
+      - name: "email"
+        type: "STRING"
+        required: true
+    description: "Create a new user"
+
+  update_user:
+    name: "update_user"
+    database: "users_db"
+    sql: "UPDATE users SET name = ?, email = ? WHERE id = ? RETURNING id, name, email, created_at"
+    parameters:
+      - name: "name"
+        type: "STRING"
+        required: true
+      - name: "email"
+        type: "STRING"
+        required: true
+      - name: "id"
+        type: "LONG"
+        required: true
+    description: "Update an existing user"
+
+  delete_user:
+    name: "delete_user"
+    database: "users_db"
+    sql: "DELETE FROM users WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+    description: "Delete a user"
+```
+
+### Step 3: Add CRUD Endpoints
+
+**Update: `generic-config/users-endpoints.yml`**
+```yaml
+endpoints:
+  # ... existing endpoints ...
+
+  create_user:
+    path: "/api/users"
+    method: "POST"
+    query: "create_user"
+    description: "Create a new user"
+    requestBody:
+      required: true
+      schema:
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          email:
+            type: "string"
+
+  update_user:
+    path: "/api/users/{id}"
+    method: "PUT"
+    query: "update_user"
+    description: "Update an existing user"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+    requestBody:
+      required: true
+      schema:
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          email:
+            type: "string"
+
+  delete_user:
+    path: "/api/users/{id}"
+    method: "DELETE"
+    query: "delete_user"
+    description: "Delete a user"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+```
+
+### Step 4: Test CRUD Operations
+
+```bash
+# Create a new user
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name": "David Wilson", "email": "david@example.com"}'
+
+# Update user with ID 1
+curl -X PUT http://localhost:8080/api/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice Smith", "email": "alice.smith@example.com"}'
+
+# Delete user with ID 3
+curl -X DELETE http://localhost:8080/api/users/3
+
+# Verify changes
+curl http://localhost:8080/api/users
+```
+
+### What You Learned
+
+- **POST Requests**: Creating resources with JSON body
+- **PUT Requests**: Updating existing resources
+- **DELETE Requests**: Removing resources
+- **Request Body Validation**: Schema-based validation
+- **Complete CRUD**: Full Create, Read, Update, Delete operations
+
+---
+
+## Example 4: Adding Pagination
+
+Large datasets need pagination. Let's add it to our users API.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Add Paginated Query
+
+**Update: `generic-config/users-queries.yml`**
+```yaml
+queries:
+  # ... existing queries ...
+
+  get_users_paginated:
+    name: "get_users_paginated"
+    database: "users_db"
+    sql: "SELECT id, name, email, created_at FROM users ORDER BY name LIMIT ? OFFSET ?"
+    parameters:
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+    description: "Get users with pagination"
+
+  count_users:
+    name: "count_users"
+    database: "users_db"
+    sql: "SELECT COUNT(*) as total FROM users"
+    description: "Count total users for pagination"
+```
+
+### Step 3: Add Paginated Endpoint
+
+**Update: `generic-config/users-endpoints.yml`**
+```yaml
+endpoints:
+  # ... existing endpoints ...
+
+  list_users_paginated:
+    path: "/api/users/paginated"
+    method: "GET"
+    query: "get_users_paginated"
+    countQuery: "count_users"  # For total count
+    description: "List users with pagination"
+    pagination:
+      enabled: true
+      defaultPageSize: 10
+      maxPageSize: 100
+    parameters:
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+        description: "Page number (0-based)"
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 10
+        description: "Page size"
+```
+
+### Step 4: Test Pagination
+
+```bash
+# Get first page (default size 10)
+curl "http://localhost:8080/api/users/paginated"
+
+# Get second page with size 5
+curl "http://localhost:8080/api/users/paginated?page=1&size=5"
+
+# Expected response:
+{
+  "type": "PAGED",
+  "data": [
+    {"id": 1, "name": "Alice Johnson", ...},
+    {"id": 2, "name": "Bob Smith", ...}
+  ],
+  "pagination": {
+    "page": 0,
+    "size": 10,
+    "totalElements": 25,
+    "totalPages": 3,
+    "first": true,
+    "last": false
+  },
+  "timestamp": 1755358245123
+}
+```
+
+### What You Learned
+
+- ✅ **Pagination Configuration**: Setting up page size limits
+- ✅ **Count Queries**: Getting total record counts
+- ✅ **Page Parameters**: Using page and size parameters
+- ✅ **Pagination Metadata**: Rich pagination information in responses
+
+---
+
+## Example 5: Query Parameters & Filtering
+
+Let's add search and filtering capabilities to our API.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Add Search Queries
+
+**Update: `generic-config/users-queries.yml`**
+```yaml
+queries:
+  # ... existing queries ...
+
+  search_users:
+    name: "search_users"
+    database: "users_db"
+    sql: |
+      SELECT id, name, email, created_at
+      FROM users
+      WHERE (? IS NULL OR LOWER(name) LIKE LOWER(CONCAT('%', ?, '%')))
+        AND (? IS NULL OR LOWER(email) LIKE LOWER(CONCAT('%', ?, '%')))
+      ORDER BY name
+      LIMIT ? OFFSET ?
+    parameters:
+      - name: "name_filter"
+        type: "STRING"
+        required: false
+      - name: "name_filter_dup"  # H2 requires duplicate for LIKE
+        type: "STRING"
+        required: false
+      - name: "email_filter"
+        type: "STRING"
+        required: false
+      - name: "email_filter_dup"
+        type: "STRING"
+        required: false
+      - name: "limit"
+        type: "INTEGER"
+        required: true
+      - name: "offset"
+        type: "INTEGER"
+        required: true
+    description: "Search users by name or email"
+```
+
+### Step 3: Add Search Endpoint
+
+**Update: `generic-config/users-endpoints.yml`**
+```yaml
+endpoints:
+  # ... existing endpoints ...
+
+  search_users:
+    path: "/api/users/search"
+    method: "GET"
+    query: "search_users"
+    description: "Search users by name or email"
+    parameters:
+      - name: "name"
+        type: "STRING"
+        required: false
+        description: "Filter by name (partial match)"
+      - name: "email"
+        type: "STRING"
+        required: false
+        description: "Filter by email (partial match)"
+      - name: "page"
+        type: "INTEGER"
+        required: false
+        defaultValue: 0
+      - name: "size"
+        type: "INTEGER"
+        required: false
+        defaultValue: 10
+```
+
+### Step 4: Test Search & Filtering
+
+```bash
+# Search by name
+curl "http://localhost:8080/api/users/search?name=alice"
+
+# Search by email domain
+curl "http://localhost:8080/api/users/search?email=example.com"
+
+# Combined search with pagination
+curl "http://localhost:8080/api/users/search?name=smith&page=0&size=5"
+```
+
+### What You Learned
+
+- ✅ **Search Parameters**: Adding optional filter parameters
+- ✅ **SQL LIKE Queries**: Partial text matching
+- ✅ **Parameter Mapping**: Mapping URL parameters to SQL parameters
+- ✅ **Combined Filtering**: Multiple search criteria
+
+---
+
+## Example 6: Caching for Performance
+
+Let's add caching to improve performance for frequently accessed data.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Enable Caching in Queries
+
+**Update: `generic-config/users-queries.yml`**
+```yaml
+queries:
+  get_all_users:
+    name: "get_all_users"
+    database: "users_db"
+    sql: "SELECT id, name, email, created_at FROM users ORDER BY name"
+    description: "Get all users"
+    cache:
+      enabled: true
+      ttl: 300  # 5 minutes
+
+  get_user_by_id:
+    name: "get_user_by_id"
+    database: "users_db"
+    sql: "SELECT id, name, email, created_at FROM users WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+    description: "Get user by ID"
+    cache:
+      enabled: true
+      ttl: 600  # 10 minutes
+```
+
+### Step 3: Test Caching Performance
+
+```bash
+# First request (cache miss - slower)
+time curl http://localhost:8080/api/users/1
+
+# Second request (cache hit - faster)
+time curl http://localhost:8080/api/users/1
+
+# Check cache statistics
+curl http://localhost:8080/api/cache/stats
+```
+
+### Step 4: Cache Management
+
+```bash
+# View cache contents
+curl http://localhost:8080/api/cache/keys
+
+# Clear specific cache
+curl -X POST http://localhost:8080/api/cache/clear \
+  -H "Content-Type: application/json" \
+  -d '{"cacheName": "query-results"}'
+
+# Clear all caches
+curl -X POST http://localhost:8080/api/cache/clear-all
+```
+
+### What You Learned
+
+- ✅ **Query-Level Caching**: Enabling cache per query
+- ✅ **TTL Configuration**: Setting cache expiration times
+- ✅ **Cache Statistics**: Monitoring cache performance
+- ✅ **Cache Management**: Clearing and managing cache contents
+
+---
+
+## Example 7: Multi-Database Setup
+
+Let's create a more complex scenario with multiple databases.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Define Multiple Databases
+
+**File: `generic-config/multi-databases.yml`**
+```yaml
+databases:
+  users_db:
+    name: "users_db"
+    url: "jdbc:h2:./data/users;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 10
+      minimumIdle: 2
+
+  orders_db:
+    name: "orders_db"
+    url: "jdbc:h2:./data/orders;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    pool:
+      maximumPoolSize: 15
+      minimumIdle: 3
+    initialization:
+      schema: |
+        CREATE TABLE IF NOT EXISTS orders (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          user_id BIGINT NOT NULL,
+          product_name VARCHAR(200) NOT NULL,
+          quantity INTEGER NOT NULL,
+          price DECIMAL(10,2) NOT NULL,
+          order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        MERGE INTO orders (id, user_id, product_name, quantity, price) VALUES
+        (1, 1, 'Laptop', 1, 999.99),
+        (2, 1, 'Mouse', 2, 25.50),
+        (3, 2, 'Keyboard', 1, 75.00);
+```
+
+### Step 3: Cross-Database Queries
+
+**File: `generic-config/multi-queries.yml`**
+```yaml
+queries:
+  get_user_orders:
+    name: "get_user_orders"
+    database: "orders_db"
+    sql: "SELECT id, user_id, product_name, quantity, price, order_date FROM orders WHERE user_id = ? ORDER BY order_date DESC"
+    parameters:
+      - name: "user_id"
+        type: "LONG"
+        required: true
+    description: "Get orders for a specific user"
+    cache:
+      enabled: true
+      ttl: 180
+
+  get_order_summary:
+    name: "get_order_summary"
+    database: "orders_db"
+    sql: |
+      SELECT
+        COUNT(*) as total_orders,
+        SUM(quantity * price) as total_value,
+        AVG(quantity * price) as avg_order_value,
+        MIN(order_date) as first_order,
+        MAX(order_date) as last_order
+      FROM orders
+      WHERE user_id = ?
+    parameters:
+      - name: "user_id"
+        type: "LONG"
+        required: true
+    description: "Get order summary for a user"
+```
+
+### Step 4: Multi-Database Endpoints
+
+**File: `generic-config/multi-endpoints.yml`**
+```yaml
+endpoints:
+  get_user_orders:
+    path: "/api/users/{user_id}/orders"
+    method: "GET"
+    query: "get_user_orders"
+    description: "Get all orders for a user"
+    parameters:
+      - name: "user_id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+
+  get_user_order_summary:
+    path: "/api/users/{user_id}/orders/summary"
+    method: "GET"
+    query: "get_order_summary"
+    description: "Get order summary for a user"
+    parameters:
+      - name: "user_id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+```
+
+### Step 5: Test Multi-Database Operations
+
+```bash
+# Get user orders (from orders_db)
+curl http://localhost:8080/api/users/1/orders
+
+# Get user order summary (from orders_db)
+curl http://localhost:8080/api/users/1/orders/summary
+
+# Get user details (from users_db)
+curl http://localhost:8080/api/users/1
+```
+
+### What You Learned
+
+- ✅ **Multiple Databases**: Configuring separate database connections
+- ✅ **Connection Pooling**: Different pool settings per database
+- ✅ **Cross-Database Queries**: Queries spanning different databases
+- ✅ **Resource Isolation**: Separating concerns across databases
+
+---
+
+## Example 8: Complex Queries & Joins
+
+Let's create more sophisticated queries with joins and aggregations.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Enhanced Schema with Relationships
+
+**Update: `generic-config/multi-databases.yml`**
+```yaml
+databases:
+  # ... existing databases ...
+
+  ecommerce_db:
+    name: "ecommerce_db"
+    url: "jdbc:h2:./data/ecommerce;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    username: "sa"
+    password: ""
+    driver: "org.h2.Driver"
+    initialization:
+      schema: |
+        CREATE TABLE IF NOT EXISTS customers (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          email VARCHAR(150) NOT NULL,
+          city VARCHAR(50),
+          country VARCHAR(50),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS products (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(200) NOT NULL,
+          category VARCHAR(100),
+          price DECIMAL(10,2) NOT NULL,
+          stock_quantity INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS orders (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          customer_id BIGINT NOT NULL,
+          order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          status VARCHAR(20) DEFAULT 'PENDING',
+          total_amount DECIMAL(10,2),
+          FOREIGN KEY (customer_id) REFERENCES customers(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS order_items (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          order_id BIGINT NOT NULL,
+          product_id BIGINT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unit_price DECIMAL(10,2) NOT NULL,
+          FOREIGN KEY (order_id) REFERENCES orders(id),
+          FOREIGN KEY (product_id) REFERENCES products(id)
+        );
+
+        -- Sample data
+        INSERT INTO customers (name, email, city, country) VALUES
+        ('John Doe', 'john@example.com', 'New York', 'USA'),
+        ('Jane Smith', 'jane@example.com', 'London', 'UK'),
+        ('Bob Johnson', 'bob@example.com', 'Toronto', 'Canada');
+
+        INSERT INTO products (name, category, price, stock_quantity) VALUES
+        ('Laptop Pro', 'Electronics', 1299.99, 50),
+        ('Wireless Mouse', 'Electronics', 29.99, 200),
+        ('Office Chair', 'Furniture', 199.99, 25),
+        ('Coffee Mug', 'Kitchen', 12.99, 100);
+
+        INSERT INTO orders (customer_id, status, total_amount) VALUES
+        (1, 'COMPLETED', 1329.98),
+        (2, 'PENDING', 199.99),
+        (1, 'SHIPPED', 42.98);
+
+        INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
+        (1, 1, 1, 1299.99),
+        (1, 2, 1, 29.99),
+        (2, 3, 1, 199.99),
+        (3, 2, 1, 29.99),
+        (3, 4, 1, 12.99);
+```
+
+### Step 3: Complex Join Queries
+
+**File: `generic-config/complex-queries.yml`**
+```yaml
+queries:
+  get_customer_orders_with_details:
+    name: "get_customer_orders_with_details"
+    database: "ecommerce_db"
+    sql: |
+      SELECT
+        c.id as customer_id,
+        c.name as customer_name,
+        c.email as customer_email,
+        o.id as order_id,
+        o.order_date,
+        o.status,
+        o.total_amount,
+        COUNT(oi.id) as item_count
+      FROM customers c
+      JOIN orders o ON c.id = o.customer_id
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE c.id = ?
+      GROUP BY c.id, c.name, c.email, o.id, o.order_date, o.status, o.total_amount
+      ORDER BY o.order_date DESC
+    parameters:
+      - name: "customer_id"
+        type: "LONG"
+        required: true
+    description: "Get customer orders with item counts"
+    cache:
+      enabled: true
+      ttl: 300
+
+  get_order_details_with_products:
+    name: "get_order_details_with_products"
+    database: "ecommerce_db"
+    sql: |
+      SELECT
+        o.id as order_id,
+        o.order_date,
+        o.status,
+        o.total_amount,
+        c.name as customer_name,
+        c.email as customer_email,
+        p.name as product_name,
+        p.category as product_category,
+        oi.quantity,
+        oi.unit_price,
+        (oi.quantity * oi.unit_price) as line_total
+      FROM orders o
+      JOIN customers c ON o.customer_id = c.id
+      JOIN order_items oi ON o.id = oi.order_id
+      JOIN products p ON oi.product_id = p.id
+      WHERE o.id = ?
+      ORDER BY p.name
+    parameters:
+      - name: "order_id"
+        type: "LONG"
+        required: true
+    description: "Get complete order details with products"
+
+  get_sales_analytics:
+    name: "get_sales_analytics"
+    database: "ecommerce_db"
+    sql: |
+      SELECT
+        p.category,
+        COUNT(DISTINCT o.id) as order_count,
+        SUM(oi.quantity) as total_quantity_sold,
+        SUM(oi.quantity * oi.unit_price) as total_revenue,
+        AVG(oi.unit_price) as avg_unit_price,
+        MIN(o.order_date) as first_sale,
+        MAX(o.order_date) as last_sale
+      FROM products p
+      JOIN order_items oi ON p.id = oi.product_id
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.status = 'COMPLETED'
+        AND (? IS NULL OR p.category = ?)
+      GROUP BY p.category
+      ORDER BY total_revenue DESC
+    parameters:
+      - name: "category_filter"
+        type: "STRING"
+        required: false
+      - name: "category_filter_dup"
+        type: "STRING"
+        required: false
+    description: "Get sales analytics by product category"
+```
+
+### Step 4: Complex Endpoints
+
+**File: `generic-config/complex-endpoints.yml`**
+```yaml
+endpoints:
+  get_customer_orders:
+    path: "/api/customers/{customer_id}/orders"
+    method: "GET"
+    query: "get_customer_orders_with_details"
+    description: "Get customer orders with details"
+    parameters:
+      - name: "customer_id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+
+  get_order_details:
+    path: "/api/orders/{order_id}/details"
+    method: "GET"
+    query: "get_order_details_with_products"
+    description: "Get complete order details"
+    parameters:
+      - name: "order_id"
+        type: "LONG"
+        required: true
+        source: "PATH"
+
+  get_sales_analytics:
+    path: "/api/analytics/sales"
+    method: "GET"
+    query: "get_sales_analytics"
+    description: "Get sales analytics by category"
+    parameters:
+      - name: "category"
+        type: "STRING"
+        required: false
+        description: "Filter by product category"
+```
+
+### Step 5: Test Complex Queries
+
+```bash
+# Get customer orders with details
+curl http://localhost:8080/api/customers/1/orders
+
+# Get complete order details
+curl http://localhost:8080/api/orders/1/details
+
+# Get sales analytics (all categories)
+curl http://localhost:8080/api/analytics/sales
+
+# Get sales analytics for specific category
+curl "http://localhost:8080/api/analytics/sales?category=Electronics"
+```
+
+### What You Learned
+
+- ✅ **Complex Joins**: Multi-table JOIN operations
+- ✅ **Aggregations**: COUNT, SUM, AVG functions
+- ✅ **Grouping**: GROUP BY with multiple columns
+- ✅ **Analytics Queries**: Business intelligence style queries
+- ✅ **Optional Filters**: Conditional WHERE clauses
+
+---
+
+## Example 9: Real-time Monitoring
+
+Let's set up comprehensive monitoring and observability.
+
+### Step 1: Ensure Application Configuration
+
+Make sure your `application.yaml` is properly configured:
+
+**File: `application.yaml`**
+```yaml
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    dev.cordal: DEBUG
+  file:
+    name: "logs/cordal-api-service.log"
+
+# Configuration file discovery
+cordal:
+  config:
+    directory: "generic-config"
+    patterns:
+      databases: "*-databases.yml"
+      queries: "*-queries.yml"
+      endpoints: "*-endpoints.yml"
+```
+
+### Step 2: Enable Metrics Collection
+
+**File: `generic-config/monitoring-endpoints.yml`**
+```yaml
+endpoints:
+  get_system_health:
+    path: "/api/system/health"
+    method: "GET"
+    query: "get_system_health"
+    description: "Get comprehensive system health"
+
+  get_api_metrics:
+    path: "/api/system/metrics"
+    method: "GET"
+    query: "get_api_metrics"
+    description: "Get API performance metrics"
+
+  get_cache_stats:
+    path: "/api/system/cache"
+    method: "GET"
+    query: "get_cache_statistics"
+    description: "Get cache performance statistics"
+```
+
+### Step 3: Start Metrics Service
+
+```bash
+# Start the metrics service
+./scripts/start-cordal-metrics-service.sh
+
+# Verify metrics service is running
+curl http://localhost:8081/api/metrics/health
+```
+
+### Step 4: View Performance Dashboard
+
+Open your browser to: http://localhost:8080/dashboard
+
+The dashboard shows:
+- **Request Rate**: Requests per second over time
+- **Response Times**: Average, P95, P99 response times
+- **Error Rates**: Success vs error percentages
+- **Cache Performance**: Hit rates and miss rates
+- **Database Connections**: Pool usage and health
+
+### Step 5: Monitor API Performance
+
+```bash
+# Generate some load
+for i in {1..100}; do
+  curl http://localhost:8080/api/users &
+done
+
+# Check metrics
+curl http://localhost:8080/api/system/metrics
+
+# View cache statistics
+curl http://localhost:8080/api/system/cache
+```
+
+### What You Learned
+
+- ✅ **Health Monitoring**: System health endpoints
+- ✅ **Performance Metrics**: Request rates and response times
+- ✅ **Cache Monitoring**: Cache hit rates and performance
+- ✅ **Real-time Dashboard**: Visual performance monitoring
+- ✅ **Load Testing**: Generating load for testing
+
+---
+
+## Production Configuration
+
+Now let's configure CORDAL for production deployment.
+
+### Step 1: Production Database Setup
+
+**File: `generic-config/production-databases.yml`**
+```yaml
+databases:
+  primary_db:
+    name: "primary_db"
+    url: "${DB_URL:jdbc:postgresql://localhost:5432/cordal_prod}"
+    username: "${DB_USERNAME:cordal_user}"
+    password: "${DB_PASSWORD:secure_password}"
+    driver: "org.postgresql.Driver"
+    pool:
+      maximumPoolSize: 20
+      minimumIdle: 5
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      leakDetectionThreshold: 60000
+    validation:
+      validationQuery: "SELECT 1"
+      testOnBorrow: true
+      testWhileIdle: true
+
+  readonly_db:
+    name: "readonly_db"
+    url: "${READONLY_DB_URL:jdbc:postgresql://readonly-replica:5432/cordal_prod}"
+    username: "${READONLY_DB_USERNAME:cordal_readonly}"
+    password: "${READONLY_DB_PASSWORD:readonly_password}"
+    driver: "org.postgresql.Driver"
+    pool:
+      maximumPoolSize: 15
+      minimumIdle: 3
+      connectionTimeout: 30000
+      readOnly: true
+```
+
+### Step 2: Production Caching Strategy
+
+**Update production queries with optimized caching:**
+```yaml
+queries:
+  get_user_profile:
+    name: "get_user_profile"
+    database: "readonly_db"  # Use read replica
+    sql: "SELECT id, name, email, created_at FROM users WHERE id = ?"
+    parameters:
+      - name: "id"
+        type: "LONG"
+        required: true
+    cache:
+      enabled: true
+      ttl: 3600  # 1 hour for user profiles
+
+  get_product_catalog:
+    name: "get_product_catalog"
+    database: "readonly_db"
+    sql: "SELECT id, name, category, price FROM products WHERE active = true ORDER BY name"
+    cache:
+      enabled: true
+      ttl: 1800  # 30 minutes for product catalog
+```
+
+### Step 3: Production Environment Variables
+
+**File: `.env.production`**
+```bash
+# Database Configuration
+DB_URL=jdbc:postgresql://prod-db-cluster:5432/cordal_prod
+DB_USERNAME=cordal_user
+DB_PASSWORD=your_secure_password
+READONLY_DB_URL=jdbc:postgresql://prod-readonly:5432/cordal_prod
+READONLY_DB_USERNAME=cordal_readonly
+READONLY_DB_PASSWORD=readonly_password
+
+# Application Configuration
+SERVER_PORT=8080
+METRICS_PORT=8081
+LOG_LEVEL=INFO
+CACHE_SIZE=1000
+CACHE_TTL_DEFAULT=300
+
+# Security Configuration
+JWT_SECRET=your_jwt_secret_key
+API_KEY_REQUIRED=true
+CORS_ENABLED=true
+CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
+
+# Monitoring Configuration
+METRICS_ENABLED=true
+HEALTH_CHECK_ENABLED=true
+PERFORMANCE_LOGGING=true
+```
+
+### Step 4: Production Deployment
+
+```bash
+# Build production JARs
+./scripts/build-executable-jars.sh
+
+# Deploy with production configuration
+java -jar -Dspring.profiles.active=production \
+  -Xmx2g -Xms1g \
+  cordal-api-service/target/cordal-api-service-1.0-SNAPSHOT-jar-with-dependencies.jar
+
+# Deploy metrics service
+java -jar -Dspring.profiles.active=production \
+  -Xmx1g -Xms512m \
+  cordal-metrics-service/target/cordal-metrics-service-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
+
+---
+
+## Performance Optimization
+
+### Database Optimization
+
+1. **Connection Pooling**:
+   ```yaml
+   pool:
+     maximumPoolSize: 20      # Adjust based on load
+     minimumIdle: 5           # Keep connections warm
+     connectionTimeout: 30000  # 30 seconds
+     leakDetectionThreshold: 60000  # Detect connection leaks
+   ```
+
+2. **Query Optimization**:
+   - Add database indexes for frequently queried columns
+   - Use LIMIT clauses for large result sets
+   - Implement pagination for list endpoints
+   - Use read replicas for read-heavy workloads
+
+3. **Caching Strategy**:
+   ```yaml
+   cache:
+     enabled: true
+     ttl: 300                 # 5 minutes default
+     # Longer TTL for static data
+     # Shorter TTL for frequently changing data
+   ```
+
+### Application Optimization
+
+1. **JVM Tuning**:
+   ```bash
+   -Xmx4g -Xms2g           # Heap size
+   -XX:+UseG1GC            # G1 garbage collector
+   -XX:MaxGCPauseMillis=200 # GC pause target
+   ```
+
+2. **Thread Pool Configuration**:
+   ```yaml
+   server:
+     threadPool:
+       minThreads: 10
+       maxThreads: 200
+       idleTimeout: 60000
+   ```
+
+---
+
+## Monitoring & Troubleshooting
+
+### Health Checks
+
+```bash
+# Application health
+curl http://localhost:8080/api/health
+
+# Database connectivity
+curl http://localhost:8080/api/health/database
+
+# Cache health
+curl http://localhost:8080/api/health/cache
+```
+
+### Log Analysis
+
+```bash
+# View application logs
+tail -f logs/cordal-api-service.log
+
+# Filter for errors
+grep ERROR logs/cordal-api-service.log
+
+# Monitor performance
+grep "Response time" logs/cordal-api-service.log
+```
+
+### Common Issues & Solutions
+
+1. **Database Connection Issues**:
+   - Check connection pool settings
+   - Verify database credentials
+   - Monitor connection leaks
+
+2. **Performance Issues**:
+   - Enable query caching
+   - Add database indexes
+   - Optimize SQL queries
+   - Monitor JVM memory usage
+
+3. **Configuration Issues**:
+   - Validate YAML syntax
+   - Check parameter mappings
+   - Verify database references
+
+---
+
+## Advanced Architecture
+
+### System Architecture Overview
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        Client[Client Applications]
+    subgraph "Load Balancer"
+        LB[NGINX/HAProxy]
     end
 
-    subgraph "Web Layer"
-        Routes[API Routes]
-        Metrics[Metrics Handler]
-        Health[Health Checks]
+    subgraph "Application Tier"
+        API1[CORDAL API 1]
+        API2[CORDAL API 2]
+        API3[CORDAL API 3]
     end
 
-    subgraph "Service Layer"
-        GenericAPI[Generic API Service]
-        MetricsService[Metrics Service]
-        ConfigService[Config Service]
+    subgraph "Metrics Tier"
+        M1[Metrics Service 1]
+        M2[Metrics Service 2]
     end
 
-    subgraph "Repository Layer"
-        DynamicRepo[Dynamic Query Repository]
-        MetricsRepo[Metrics Repository]
-        ConfigRepo[Config Repository]
+    subgraph "Cache Tier"
+        REDIS[(Redis Cluster)]
     end
 
-    subgraph "Database Layer"
-        AppDB[(Application Databases<br/>H2/PostgreSQL)]
-        MetricsDB[(Metrics Database<br/>H2)]
-        ConfigDB[(Configuration Database<br/>H2)]
+    subgraph "Database Tier"
+        MASTER[(PostgreSQL Master)]
+        REPLICA1[(PostgreSQL Replica 1)]
+        REPLICA2[(PostgreSQL Replica 2)]
     end
 
-    Client -->|HTTP/REST| Routes
-    Client -->|HTTP/REST| Metrics
-    Client -->|HTTP/REST| Health
+    subgraph "Monitoring"
+        GRAFANA[Grafana Dashboard]
+        PROMETHEUS[Prometheus]
+    end
 
-    Routes --> GenericAPI
-    Metrics --> MetricsService
-    Health --> ConfigService
+    LB --> API1
+    LB --> API2
+    LB --> API3
 
-    GenericAPI --> DynamicRepo
-    MetricsService --> MetricsRepo
-    ConfigService --> ConfigRepo
+    API1 --> REDIS
+    API2 --> REDIS
+    API3 --> REDIS
 
-    DynamicRepo --> AppDB
-    MetricsRepo --> MetricsDB
-    ConfigRepo --> ConfigDB
+    API1 --> MASTER
+    API1 --> REPLICA1
+    API2 --> MASTER
+    API2 --> REPLICA2
+    API3 --> MASTER
+    API3 --> REPLICA1
+
+    API1 --> M1
+    API2 --> M1
+    API3 --> M2
+
+    M1 --> PROMETHEUS
+    M2 --> PROMETHEUS
+    PROMETHEUS --> GRAFANA
 ```
 
 ### Module Architecture
@@ -3421,4 +4982,128 @@ The CORDAL provides a comprehensive, production-ready solution for building conf
 5. **Deploy to Production**: Use the deployment guides and scripts for production deployment
 
 For additional help and support, refer to the troubleshooting section or examine the extensive test suite for examples of how to use each feature.
+
+---
+
+## Complete Configuration Reference
+
+### Database Configuration Schema
+
+```yaml
+databases:
+  database_name:
+    name: "unique_database_identifier"
+    url: "jdbc:database_url"
+    username: "database_user"
+    password: "database_password"
+    driver: "database_driver_class"
+    pool:                              # Optional connection pool settings
+      maximumPoolSize: 20              # Maximum connections in pool
+      minimumIdle: 5                   # Minimum idle connections
+      connectionTimeout: 30000         # Connection timeout in ms
+      idleTimeout: 600000              # Idle timeout in ms
+      maxLifetime: 1800000             # Maximum connection lifetime in ms
+      leakDetectionThreshold: 60000    # Connection leak detection in ms
+    validation:                        # Optional connection validation
+      validationQuery: "SELECT 1"     # Query to validate connections
+      testOnBorrow: true               # Test connection on borrow
+      testWhileIdle: true              # Test idle connections
+    initialization:                    # Optional database initialization
+      schema: |                        # SQL to run on startup
+        CREATE TABLE IF NOT EXISTS...
+```
+
+### Query Configuration Schema
+
+```yaml
+queries:
+  query_name:
+    name: "unique_query_identifier"
+    database: "database_reference"
+    sql: "SELECT * FROM table WHERE column = ?"
+    description: "Human readable description"
+    parameters:                        # Optional query parameters
+      - name: "parameter_name"
+        type: "STRING|INTEGER|LONG|DOUBLE|BOOLEAN|TIMESTAMP"
+        required: true|false
+        defaultValue: "default_value"  # Optional default
+    cache:                            # Optional caching configuration
+      enabled: true|false
+      ttl: 300                        # Time to live in seconds
+```
+
+### Endpoint Configuration Schema
+
+```yaml
+endpoints:
+  endpoint_name:
+    path: "/api/resource/{id}"         # URL path with optional parameters
+    method: "GET|POST|PUT|DELETE|PATCH"
+    query: "query_reference"
+    countQuery: "count_query_reference" # Optional for pagination
+    description: "Human readable description"
+    parameters:                        # Optional endpoint parameters
+      - name: "parameter_name"
+        type: "STRING|INTEGER|LONG|DOUBLE|BOOLEAN"
+        required: true|false
+        source: "QUERY|PATH|HEADER"    # Parameter source
+        defaultValue: "default_value"  # Optional default
+        description: "Parameter description"
+    requestBody:                       # Optional for POST/PUT requests
+      required: true|false
+      schema:
+        type: "object"
+        properties:
+          field_name:
+            type: "string|number|boolean"
+    pagination:                        # Optional pagination configuration
+      enabled: true|false
+      defaultPageSize: 10
+      maxPageSize: 100
+    security:                          # Optional security configuration
+      requireAuth: true|false
+      roles: ["admin", "user"]
+```
+
+---
+
+## Final Summary
+
+**CORDAL** transforms how you build REST APIs by eliminating the need for traditional coding. Through this comprehensive guide, you've learned:
+
+### **From Simple to Complex**
+- **Started** with a 5-minute "Hello World" API
+- **Progressed** through CRUD operations and pagination
+- **Advanced** to multi-database setups and complex analytics
+- **Mastered** production deployment and monitoring
+
+### **Key Capabilities Mastered**
+- **Zero-Code APIs** - Define endpoints with YAML only
+- **Database Integration** - Multiple databases with connection pooling
+- **Performance Optimization** - Caching, indexing, and monitoring
+- **Production Deployment** - Scalable, monitored, high-availability setups
+- **Type Safety** - Compile-time validation and error prevention
+
+### **Production Ready Features**
+- **Automatic Metrics** - Built-in performance monitoring
+- **Health Checks** - Comprehensive system health monitoring
+- **Caching Layer** - Intelligent caching with TTL management
+- **Connection Pooling** - Optimized database connection management
+- **Hot Reload** - Configuration changes without restart
+- **Security** - Built-in parameter validation and SQL injection prevention
+
+### **What's Next?**
+
+You now have the knowledge to:
+1. **Build Production APIs** in minutes instead of weeks
+2. **Scale Horizontally** with load balancers and database replicas
+3. **Monitor Performance** with built-in dashboards and metrics
+4. **Optimize for Speed** using caching and database tuning
+5. **Deploy Confidently** with comprehensive health checks
+
+**CORDAL** empowers you to focus on **business logic and data modeling** rather than boilerplate code and infrastructure concerns. Your APIs are now configuration-driven, type-safe, and production-ready from day one.
+
+---
+
+*Happy API building with CORDAL!*
 

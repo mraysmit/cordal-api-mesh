@@ -1,0 +1,110 @@
+CORDAL - Configuration Orchestrated REST Dynamic API Layer
+Copyright 2025 Mark Andrew Ray-Smith Cityline Ltd
+
+This product includes software developed by Mark Andrew Ray-Smith Cityline Ltd.
+
+================================================================================
+
+CORDAL is a revolutionary framework that enables developers to create powerful
+REST APIs using only YAML configuration files - no Java coding required!
+
+Key Features:
+- Zero-Code API Development through YAML configuration
+- Type-Safe DTOs with compile-time validation
+- Built-in Performance Monitoring and Metrics
+- Multi-Database Support with Connection Pooling
+- Intelligent Caching with TTL Management
+- Hot Reload Configuration Changes
+- Production-Ready Health Checks and Monitoring
+
+================================================================================
+
+This software contains the following third-party components:
+
+Java 21 Runtime Environment
+  License: Oracle No-Fee Terms and Conditions (NFTC)
+  Copyright (c) Oracle Corporation
+  https://www.oracle.com/java/
+
+Javalin Web Framework (io.javalin:javalin:6.1.3)
+  License: Apache License 2.0
+  Copyright (c) 2017 David Åse and contributors
+  https://github.com/javalin/javalin
+
+Google Guice Dependency Injection (com.google.inject:guice:7.0.0)
+  License: Apache License 2.0
+  Copyright (C) 2006 Google Inc.
+  https://github.com/google/guice
+
+HikariCP Connection Pool (com.zaxxer:HikariCP:5.0.1)
+  License: Apache License 2.0
+  Copyright (C) 2013 Brett Wooldridge
+  https://github.com/brettwooldridge/HikariCP
+
+Jackson JSON Processing (com.fasterxml.jackson.core:jackson-databind:2.15.2)
+  License: Apache License 2.0
+  Copyright (c) 2007- Tatu Saloranta, tatu.saloranta@iki.fi
+  https://github.com/FasterXML/jackson-databind
+
+H2 Database Engine (com.h2database:h2:2.2.224)
+  License: Mozilla Public License 2.0 and Eclipse Public License 1.0
+  Copyright (c) 2004-2023 H2 Group
+  https://github.com/h2database/h2database
+
+PostgreSQL JDBC Driver (org.postgresql:postgresql:42.6.0)
+  License: BSD 2-Clause License
+  Copyright (c) 1997, PostgreSQL Global Development Group
+  https://github.com/pgjdbc/pgjdbc
+
+SLF4J Logging API (org.slf4j:slf4j-api:2.0.9)
+  License: MIT License
+  Copyright (c) 2004-2023 QOS.ch Sarl (Switzerland)
+  https://github.com/qos-ch/slf4j
+
+Logback Classic (ch.qos.logback:logback-classic:1.4.11)
+  License: Eclipse Public License 1.0 and GNU Lesser General Public License 2.1
+  Copyright (C) 1999-2023, QOS.ch
+  https://github.com/qos-ch/logback
+
+SnakeYAML Configuration Parser (org.yaml:snakeyaml:2.2)
+  License: Apache License 2.0
+  Copyright (c) 2008, SnakeYAML
+  https://bitbucket.org/snakeyaml/snakeyaml
+
+Apache Commons Lang (org.apache.commons:commons-lang3:3.13.0)
+  License: Apache License 2.0
+  Copyright 2001-2023 The Apache Software Foundation
+  https://github.com/apache/commons-lang
+
+JUnit 5 Testing Framework (org.junit.jupiter:junit-jupiter:5.10.1)
+  License: Eclipse Public License 2.0
+  Copyright 2015-2023 the original author or authors
+  https://github.com/junit-team/junit5
+
+AssertJ Testing Library (org.assertj:assertj-core:3.24.2)
+  License: Apache License 2.0
+  Copyright 2013-2023 AssertJ
+  https://github.com/assertj/assertj-core
+
+Mockito Testing Framework (org.mockito:mockito-core:5.7.0)
+  License: MIT License
+  Copyright (c) 2007 Mockito contributors
+  https://github.com/mockito/mockito
+
+TestContainers (org.testcontainers:testcontainers:1.18.3)
+  License: MIT License
+  Copyright (c) 2015-2023 Richard North and other authors
+  https://github.com/testcontainers/testcontainers-java
+
+Maven Build System (org.apache.maven:maven-core:3.9.5)
+  License: Apache License 2.0
+  Copyright 2001-2023 The Apache Software Foundation
+  https://github.com/apache/maven
+
+================================================================================
+
+For complete license texts, see the respective project repositories or the
+licenses directory in this distribution.
+
+This software is provided "AS IS" without warranty of any kind. See the
+LICENSE file for complete terms and conditions.
