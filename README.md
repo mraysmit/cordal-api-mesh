@@ -8,7 +8,7 @@
 
 ## What is CORDAL?
 
-CORDAL is an interesting framework that can transform how you build REST APIs. Instead of writing Java code, you define your entire API using simple YAML configuration files. CORDAL handles all the heavy lifting - database connections, query execution, JSON serialization, caching, monitoring, and more.
+CORDAL is a novel Java framework that can transform how you build REST APIs. Instead of writing Java code, you define your entire API using simple YAML configuration files. CORDAL handles all the heavy lifting - database connections, query execution, JSON serialization, caching, monitoring, and more.
 
 ## Key Features
 
