@@ -8,15 +8,23 @@ module dev.cordal.generic.api {
     exports dev.cordal.generic.model;
 
     // Open packages to Guice for reflection and dependency injection
-    opens dev.cordal.config to com.google.guice;
-    opens dev.cordal.database to com.google.guice;
+    opens dev.cordal.api;
+    opens dev.cordal.config;
+    opens dev.cordal.cache;
+    opens dev.cordal.database;
     opens dev.cordal.database.loader to com.google.guice;
     opens dev.cordal.database.repository to com.google.guice;
-    opens dev.cordal.generic to com.google.guice;
-    opens dev.cordal.generic.config to com.google.guice;
+    opens dev.cordal.dto;
+    opens dev.cordal.generic;
+    opens dev.cordal.generic.config;
     opens dev.cordal.generic.database to com.google.guice;
-    opens dev.cordal.generic.management to com.google.guice;
-    opens dev.cordal.generic.migration to com.google.guice;
+    opens dev.cordal.generic.dto;
+    opens dev.cordal.generic.management;
+    opens dev.cordal.generic.migration;
+    opens dev.cordal.generic.model;
+    opens dev.cordal.hotreload;
+    opens dev.cordal.integration;
+    opens dev.cordal.util;
     
     // Required modules
     requires dev.cordal.common;  // Provides core framework dependencies

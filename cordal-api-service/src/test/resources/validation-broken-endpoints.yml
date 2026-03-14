@@ -1,0 +1,6 @@
+endpoints:
+  broken-endpoint:
+    path: "/api/broken/endpoint"
+    method: "GET"
+    query: "missing-query"
+    description: "Broken endpoint for validation testing"

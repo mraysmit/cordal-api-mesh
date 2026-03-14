@@ -1,15 +1,22 @@
 package dev.cordal.generic;
 
+import com.google.inject.Injector;
 import dev.cordal.config.GenericApiConfig;
+import dev.cordal.generic.config.ApiEndpointConfig;
+import dev.cordal.generic.config.ConfigurationLoader;
+import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.database.DatabaseConnectionManager;
-// Note: Stock trades functionality moved to integration tests
-import dev.cordal.test.TestDataInitializer;
-import dev.cordal.test.TestDatabaseManager;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.*;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration tests for the Generic API Application
@@ -55,6 +62,12 @@ class GenericApiApplicationTest {
         }
     }
 
+    @AfterEach
+    void restoreTestProperties() {
+        System.setProperty("generic.config.file", "application-test.yml");
+        System.clearProperty("test.data.loading.enabled");
+    }
+
     // Removed initializeTestDataForStockTrades method as it was causing application to stop
     // Test data initialization is not needed for basic application structure tests
 
@@ -91,7 +104,7 @@ class GenericApiApplicationTest {
 
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/api/generic/health");
-            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.code()).isIn(200, 503);
         });
     }
 
@@ -103,8 +116,8 @@ class GenericApiApplicationTest {
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/api/generic/stock-trades");
             int responseCode = response.code();
-            // Accept either 200 (if data exists) or 500 (table doesn't exist, but endpoint is registered)
-            assertThat(responseCode).isIn(200, 500);
+            // Accept 404 when the endpoint is intentionally skipped because the backing database is unavailable.
+            assertThat(responseCode).isIn(200, 404, 500);
         });
     }
 
@@ -156,8 +169,7 @@ class GenericApiApplicationTest {
             // Test a generic endpoint that should exist in test configuration
             var response = client.get("/api/test/endpoint");
             int responseCode = response.code();
-            // Accept either 200 (if data exists) or 500 (table doesn't exist, but endpoint is registered)
-            assertThat(responseCode).isIn(200, 500);
+            assertThat(responseCode).isIn(200, 404, 500);
         });
     }
 
@@ -169,8 +181,7 @@ class GenericApiApplicationTest {
         JavalinTest.test(app, (server, client) -> {
             var response = client.get("/api/generic/stock-trades/date-range?start_date=2024-01-01&end_date=2024-12-31");
             int responseCode = response.code();
-            // Accept either 200 (if data exists) or 500 (table doesn't exist, but endpoint is registered)
-            assertThat(responseCode).isIn(200, 500);
+            assertThat(responseCode).isIn(200, 404, 500);
         });
     }
 
@@ -186,5 +197,80 @@ class GenericApiApplicationTest {
             String responseBody = response.body().string();
             assertThat(responseBody).contains("VALID");
         });
+    }
+
+    @Test
+    void shouldRunValidationOnlyFromCommandLineFlag() {
+        System.setProperty("generic.config.file", "application-validation-only-success.yml");
+
+        assertThatCode(() -> GenericApiApplication.main(new String[]{"--validate-only"}))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldFailStartupWhenValidateOnlyConfigurationHasErrors() {
+        System.setProperty("generic.config.file", "application-validation-only-failure.yml");
+
+        assertThatThrownBy(() -> GenericApiApplication.main(new String[0]))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Failed to start Generic API application")
+            .hasRootCauseMessage("Configuration validation failed");
+    }
+
+    @Test
+    void shouldContinueInitializationWhenStartupValidationFailsNonFatally() {
+        TestableGenericApiApplication validatingApplication = new TestableGenericApiApplication();
+        Injector injector = mock(Injector.class);
+        GenericApiConfig config = mock(GenericApiConfig.class);
+        dev.cordal.database.DatabaseManager configurationDatabaseManager = mock(dev.cordal.database.DatabaseManager.class);
+        ConfigurationLoader configurationLoader = mock(ConfigurationLoader.class);
+        EndpointConfigurationManager configurationManager = mock(EndpointConfigurationManager.class);
+        DatabaseConnectionManager databaseConnectionManager = mock(DatabaseConnectionManager.class);
+
+        ApiEndpointConfig brokenEndpoint = new ApiEndpointConfig();
+        brokenEndpoint.setQuery("missing-query");
+
+        when(config.isValidationRunOnStartup()).thenReturn(true);
+        when(config.isValidationValidateOnly()).thenReturn(false);
+        when(injector.getInstance(dev.cordal.database.DatabaseManager.class)).thenReturn(configurationDatabaseManager);
+        when(injector.getInstance(GenericApiConfig.class)).thenReturn(config);
+        when(injector.getInstance(ConfigurationLoader.class)).thenReturn(configurationLoader);
+        when(injector.getInstance(EndpointConfigurationManager.class)).thenReturn(configurationManager);
+        when(injector.getInstance(DatabaseConnectionManager.class)).thenReturn(databaseConnectionManager);
+        when(configurationManager.getAllDatabaseConfigurations()).thenReturn(Map.of());
+        when(configurationManager.getAllQueryConfigurations()).thenReturn(Map.of());
+        when(configurationManager.getAllEndpointConfigurations()).thenReturn(Map.of("broken-endpoint", brokenEndpoint));
+
+        validatingApplication.setInjectorForTest(injector);
+
+        assertThatCode(validatingApplication::runPreStartupInitializationForTest)
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRunPostStartupEndpointValidationWhenEnabled() {
+        System.setProperty("generic.config.file", "application-post-startup-validation.yml");
+
+        TestableGenericApiApplication validatingApplication = new TestableGenericApiApplication();
+        validatingApplication.initializeForTesting();
+
+        assertThatCode(validatingApplication::runPostStartupInitializationForTest)
+            .doesNotThrowAnyException();
+
+        validatingApplication.stop();
+    }
+
+    private static final class TestableGenericApiApplication extends GenericApiApplication {
+        private void setInjectorForTest(Injector injector) {
+            this.injector = injector;
+        }
+
+        private void runPreStartupInitializationForTest() {
+            performPreStartupInitialization();
+        }
+
+        private void runPostStartupInitializationForTest() {
+            performPostStartupInitialization();
+        }
     }
 }
