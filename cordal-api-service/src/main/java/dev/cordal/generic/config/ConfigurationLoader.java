@@ -5,20 +5,15 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Singleton;
-import javax.inject.Inject;
+import jakarta.inject.Singleton;
+import jakarta.inject.Inject;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 import dev.cordal.config.GenericApiConfig;
 import dev.cordal.common.exception.ConfigurationException;
 
@@ -400,7 +395,6 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                 });
 
             } catch (Exception e) {
-                String errorMessage = "Failed to load database configurations from file: " + databaseFile + " - " + e.getMessage();
                 failedFiles.add(databaseFile.toString() + " (" + e.getMessage() + ")");
 
                 logger.error("CONFIGURATION ERROR: Failed to load database configurations");
@@ -517,7 +511,6 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
                 });
 
             } catch (Exception e) {
-                String errorMessage = "Failed to load endpoint configurations from file: " + endpointFile + " - " + e.getMessage();
                 failedFiles.add(endpointFile.toString() + " (" + e.getMessage() + ")");
 
                 logger.error("CONFIGURATION ERROR: Failed to load endpoint configurations");

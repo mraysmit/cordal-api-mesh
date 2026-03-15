@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Tests for loading configurations from database source
@@ -24,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 public class DatabaseConfigurationLoaderTest {
 
     private DatabaseManager databaseManager;
-    private ConfigurationDataLoader configurationDataLoader;
     private TestGenericApiConfig genericApiConfig;
 
     @BeforeEach
@@ -43,7 +41,8 @@ public class DatabaseConfigurationLoaderTest {
         // Create ConfigurationLoader for the data loader
         dev.cordal.generic.config.ConfigurationLoader configurationLoader = new dev.cordal.generic.config.ConfigurationLoader(genericApiConfig);
 
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
+        // ConfigurationDataLoader constructor initializes database tables as a side effect
+        new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
 
         // Populate database with test data for testing
         populateTestData();

@@ -3,17 +3,17 @@ package dev.cordal.generic;
 import dev.cordal.common.exception.ApiException;
 import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.config.DatabaseConfig;
+import dev.cordal.generic.dto.RequestParameters;
 import dev.cordal.generic.model.GenericResponse;
 import dev.cordal.generic.management.UsageStatisticsService;
 import io.javalin.http.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Generic API controller that handles all configured endpoints
@@ -60,7 +60,7 @@ public class GenericApiController {
             if (async) {
                 handleAsyncRequest(ctx, endpointName, requestParameters);
             } else {
-                GenericResponse response = genericApiService.executeEndpoint(endpointName, requestParameters);
+                GenericResponse response = genericApiService.executeEndpoint(endpointName, new RequestParameters(requestParameters));
                 ctx.json(response);
             }
 
@@ -96,7 +96,7 @@ public class GenericApiController {
         String requestId = java.util.UUID.randomUUID().toString();
 
         // Submit the async request (fire and forget)
-        genericApiService.executeEndpointAsync(endpointName, requestParameters)
+        genericApiService.executeEndpointAsync(endpointName, new RequestParameters(requestParameters))
             .whenComplete((result, throwable) -> {
                 if (throwable != null) {
                     logger.error("Async request {} failed for endpoint {}", requestId, endpointName, throwable);
@@ -292,7 +292,7 @@ public class GenericApiController {
         logger.debug("Validating all configurations");
 
         try {
-            var validationResults = genericApiService.validateConfigurationsMap();
+            var validationResults = genericApiService.validateConfigurations();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -308,7 +308,7 @@ public class GenericApiController {
         logger.debug("Validating endpoint configurations");
 
         try {
-            var validationResults = genericApiService.validateEndpointConfigurationsMap();
+            var validationResults = genericApiService.validateEndpointConfigurations();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -324,7 +324,7 @@ public class GenericApiController {
         logger.debug("Validating query configurations");
 
         try {
-            var validationResults = genericApiService.validateQueryConfigurationsMap();
+            var validationResults = genericApiService.validateQueryConfigurations();
             ctx.json(validationResults);
 
         } catch (Exception e) {
@@ -374,7 +374,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint configuration schema");
 
         try {
-            var schema = genericApiService.getEndpointConfigurationSchemaMap();
+            var schema = genericApiService.getEndpointConfigurationSchema();
             ctx.json(schema);
 
         } catch (Exception e) {
@@ -390,7 +390,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint parameters");
 
         try {
-            var parameters = genericApiService.getEndpointParametersMap();
+            var parameters = genericApiService.getEndpointParameters();
             ctx.json(parameters);
 
         } catch (Exception e) {
@@ -406,7 +406,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint database connections");
 
         try {
-            var connections = genericApiService.getEndpointDatabaseConnectionsMap();
+            var connections = genericApiService.getEndpointDatabaseConnections();
             ctx.json(connections);
 
         } catch (Exception e) {
@@ -422,7 +422,7 @@ public class GenericApiController {
         logger.debug("Getting endpoint configuration summary");
 
         try {
-            var summary = genericApiService.getEndpointConfigurationSummaryMap();
+            var summary = genericApiService.getEndpointConfigurationSummary();
             ctx.json(summary);
 
         } catch (Exception e) {
@@ -438,7 +438,7 @@ public class GenericApiController {
         logger.debug("Getting query configuration schema");
 
         try {
-            var schema = genericApiService.getQueryConfigurationSchemaMap();
+            var schema = genericApiService.getQueryConfigurationSchema();
             ctx.json(schema);
 
         } catch (Exception e) {
@@ -454,7 +454,7 @@ public class GenericApiController {
         logger.debug("Getting query parameters");
 
         try {
-            var parameters = genericApiService.getQueryParametersMap();
+            var parameters = genericApiService.getQueryParameters();
             ctx.json(parameters);
 
         } catch (Exception e) {
@@ -470,7 +470,7 @@ public class GenericApiController {
         logger.debug("Getting query database connections");
 
         try {
-            var connections = genericApiService.getQueryDatabaseConnectionsMap();
+            var connections = genericApiService.getQueryDatabaseConnections();
             ctx.json(connections);
 
         } catch (Exception e) {
@@ -486,7 +486,7 @@ public class GenericApiController {
         logger.debug("Getting query configuration summary");
 
         try {
-            var summary = genericApiService.getQueryConfigurationSummaryMap();
+            var summary = genericApiService.getQueryConfigurationSummary();
             ctx.json(summary);
 
         } catch (Exception e) {
@@ -502,7 +502,7 @@ public class GenericApiController {
         logger.debug("Getting database configuration schema");
 
         try {
-            var schema = genericApiService.getDatabaseConfigurationSchemaMap();
+            var schema = genericApiService.getDatabaseConfigurationSchema();
             ctx.json(schema);
 
         } catch (Exception e) {
@@ -615,24 +615,6 @@ public class GenericApiController {
             return Boolean.parseBoolean(value);
         } catch (Exception e) {
             logger.warn("Invalid boolean value for parameter {}: {}, using default: {}", 
-                       paramName, value, defaultValue);
-            return defaultValue;
-        }
-    }
-    
-    /**
-     * Parse integer parameter with default value
-     */
-    private int parseIntParameter(Context ctx, String paramName, int defaultValue) {
-        String value = ctx.queryParam(paramName);
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            logger.warn("Invalid integer value for parameter {}: {}, using default: {}", 
                        paramName, value, defaultValue);
             return defaultValue;
         }

@@ -39,6 +39,7 @@ public class PostgreSQLContainerManager {
      * @param databaseSchema Name of the database schema to create
      * @return The configured PostgreSQL container
      */
+    @SuppressWarnings("resource")
     public PostgreSQLContainer<?> createContainer(String databaseName, String databaseSchema) {
         logger.info("Creating PostgreSQL container for database: {}", databaseName);
         

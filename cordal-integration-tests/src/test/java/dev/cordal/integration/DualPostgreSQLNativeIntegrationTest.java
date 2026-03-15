@@ -874,25 +874,4 @@ class DualPostgreSQLNativeIntegrationTest {
         return (System.nanoTime() - startTime) / 1_000_000; // Convert to milliseconds
     }
 
-    /**
-     * Verify database health
-     */
-    private void verifyDatabaseHealth(String databaseName) throws IOException {
-        try {
-            JsonNode health = getJsonResponse("/api/management/health/databases/" + databaseName);
-            assertThat(health.get("status").asText()).isIn("UP", "DEGRADED", "DOWN");
-            logger.info("Database {} health: {}", databaseName, health.get("status").asText());
-        } catch (Exception e) {
-            logger.info("Database health check not available for {}: {}", databaseName, e.getMessage());
-        }
-    }
-
-    /**
-     * Generate test load on an endpoint
-     */
-    private void generateTestLoad(String endpoint, int requestCount) throws IOException {
-        for (int i = 0; i < requestCount; i++) {
-            testEndpoint(endpoint + "?test_load=" + i, "Load test request " + i);
-        }
-    }
 }

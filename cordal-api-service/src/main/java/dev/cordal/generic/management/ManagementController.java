@@ -1,13 +1,12 @@
 package dev.cordal.generic.management;
 
-import dev.cordal.generic.GenericApiService;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import io.javalin.http.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,19 +20,16 @@ public class ManagementController {
     private final ConfigurationMetadataService metadataService;
     private final UsageStatisticsService statisticsService;
     private final HealthMonitoringService healthService;
-    private final GenericApiService genericApiService;
     private final EndpointConfigurationManager configurationManager;
     
     @Inject
     public ManagementController(ConfigurationMetadataService metadataService,
                               UsageStatisticsService statisticsService,
                               HealthMonitoringService healthService,
-                              GenericApiService genericApiService,
                               EndpointConfigurationManager configurationManager) {
         this.metadataService = metadataService;
         this.statisticsService = statisticsService;
         this.healthService = healthService;
-        this.genericApiService = genericApiService;
         this.configurationManager = configurationManager;
         
         logger.info("Management controller initialized");
@@ -202,10 +198,10 @@ public class ManagementController {
     public void getHealthStatus(Context ctx) {
         logger.debug("Getting health status");
         try {
-            Map<String, Object> health = healthService.getHealthStatusMap();
+            var health = healthService.getHealthStatus();
             
             // Set HTTP status based on overall health
-            String overallHealth = (String) health.get("overall");
+            String overallHealth = health.getOverall();
             if ("DOWN".equals(overallHealth)) {
                 ctx.status(503); // Service Unavailable
             } else if ("DEGRADED".equals(overallHealth)) {
@@ -227,7 +223,7 @@ public class ManagementController {
     public void getDatabaseHealth(Context ctx) {
         logger.debug("Getting database health");
         try {
-            Map<String, Object> databaseHealth = healthService.getDatabasesHealthMap();
+            var databaseHealth = healthService.getDatabasesHealth();
             ctx.json(databaseHealth);
         } catch (Exception e) {
             logger.error("Error getting database health", e);
@@ -265,7 +261,7 @@ public class ManagementController {
     public void getDeploymentInfo(Context ctx) {
         logger.debug("Getting deployment verification info");
         try {
-            Map<String, Object> deploymentInfo = healthService.getDeploymentInfoMap();
+            var deploymentInfo = healthService.getDeploymentInfo();
             ctx.json(deploymentInfo);
         } catch (Exception e) {
             logger.error("Error getting deployment info", e);
@@ -293,10 +289,10 @@ public class ManagementController {
     public void getReadinessCheck(Context ctx) {
         logger.debug("Performing readiness check");
         try {
-            Map<String, Object> readiness = healthService.getReadinessCheckMap();
+            var readiness = healthService.getReadinessCheck();
 
             // Set HTTP status based on readiness
-            String status = (String) readiness.get("status");
+            String status = readiness.getStatus();
             if ("NOT_READY".equals(status)) {
                 ctx.status(503); // Service Unavailable
             } else {
@@ -316,10 +312,10 @@ public class ManagementController {
     public void getLivenessCheck(Context ctx) {
         logger.debug("Performing liveness check");
         try {
-            Map<String, Object> liveness = healthService.getLivenessCheckMap();
+            var liveness = healthService.getLivenessCheck();
 
             // Set HTTP status based on liveness
-            String status = (String) liveness.get("status");
+            String status = liveness.getStatus();
             if ("DOWN".equals(status)) {
                 ctx.status(503); // Service Unavailable
             } else {

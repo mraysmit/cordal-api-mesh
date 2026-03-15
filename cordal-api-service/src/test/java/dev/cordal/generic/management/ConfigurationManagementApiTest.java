@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
 import java.util.Optional;
 import dev.cordal.dto.ConfigurationStatisticsResponse;
 import dev.cordal.dto.ConfigurationSourceInfoResponse;
@@ -109,49 +108,46 @@ class ConfigurationManagementApiTest {
     @Test
     void testGetAllDatabaseConfigurations() {
         // Test getting all database configurations
-        Map<String, Object> result = configManagementService.getAllDatabaseConfigurationsMap();
+        var result = configManagementService.getAllDatabaseConfigurations();
         
         assertThat(result).isNotNull();
-        assertThat(result).containsKey("count");
-        assertThat(result).containsKey("source");
-        assertThat(result).containsKey("timestamp");
-        assertThat(result).containsKey("databases");
+        assertThat(result.getCount()).isEqualTo(2);
+        assertThat(result.getSource()).isEqualTo("yaml");
+        assertThat(result.getTimestamp()).isNotNull();
+        assertThat(result.getConfigurations()).containsKeys("stock-trades-db", "metrics-db");
         
         // Should have configurations from YAML source
-        assertThat(result.get("count")).isEqualTo(2); // 2 databases in test config (stock-trades-db, metrics-db)
-        assertThat(result.get("source")).isEqualTo("yaml");
+        assertThat(result.getCount()).isEqualTo(2); // 2 databases in test config (stock-trades-db, metrics-db)
     }
 
     @Test
     void testGetAllQueryConfigurations() {
         // Test getting all query configurations
-        Map<String, Object> result = configManagementService.getAllQueryConfigurationsMap();
+        var result = configManagementService.getAllQueryConfigurations();
         
         assertThat(result).isNotNull();
-        assertThat(result).containsKey("count");
-        assertThat(result).containsKey("source");
-        assertThat(result).containsKey("timestamp");
-        assertThat(result).containsKey("queries");
+        assertThat(result.getCount()).isEqualTo(12);
+        assertThat(result.getSource()).isEqualTo("yaml");
+        assertThat(result.getTimestamp()).isNotNull();
+        assertThat(result.getConfigurations()).containsKey("test-query");
         
         // Should have configurations from YAML source
-        assertThat(result.get("count")).isEqualTo(12); // 12 queries in test config
-        assertThat(result.get("source")).isEqualTo("yaml");
+        assertThat(result.getCount()).isEqualTo(12); // 12 queries in test config
     }
 
     @Test
     void testGetAllEndpointConfigurations() {
         // Test getting all endpoint configurations
-        Map<String, Object> result = configManagementService.getAllEndpointConfigurationsMap();
+        var result = configManagementService.getAllEndpointConfigurations();
         
         assertThat(result).isNotNull();
-        assertThat(result).containsKey("count");
-        assertThat(result).containsKey("source");
-        assertThat(result).containsKey("timestamp");
-        assertThat(result).containsKey("endpoints");
+        assertThat(result.getCount()).isEqualTo(6);
+        assertThat(result.getSource()).isEqualTo("yaml");
+        assertThat(result.getTimestamp()).isNotNull();
+        assertThat(result.getConfigurations()).containsKey("test-endpoint");
         
         // Should have configurations from YAML source
-        assertThat(result.get("count")).isEqualTo(6); // 6 endpoints in test config
-        assertThat(result.get("source")).isEqualTo("yaml");
+        assertThat(result.getCount()).isEqualTo(6); // 6 endpoints in test config
     }
 
     @Test

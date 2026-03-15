@@ -6,8 +6,8 @@ import dev.cordal.common.cache.CacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,8 @@ public class QueryResultCache {
     public Optional<List<Map<String, Object>>> get(String cacheName, String key) {
         try {
             // First try to get as the expected type
-            Optional<List> rawResult = cacheManager.get(cacheName, key, List.class);
+            Optional<List<?>> rawResult = cacheManager.get(cacheName, key, List.class)
+                .map(list -> (List<?>) list);
             
             if (rawResult.isEmpty()) {
                 return Optional.empty();

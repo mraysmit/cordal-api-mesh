@@ -7,15 +7,14 @@ import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import dev.cordal.generic.dto.RequestParameters;
-import dev.cordal.generic.dto.ResponseMetadata;
 import dev.cordal.generic.dto.*;
 import dev.cordal.generic.model.GenericResponse;
 import dev.cordal.generic.model.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -132,7 +131,7 @@ public class GenericApiService {
         validatePaginationParameters(page, size, endpointConfig.getPagination().getMaxSize());
         
         // Execute main query
-        List<Map<String, Object>> results = genericRepository.executeQuery(queryConfig, queryParameters);
+        List<Map<String, Object>> results = executeQueryAsMaps(queryConfig, queryParameters);
         
         // Execute count query if available
         long totalElements = 0;
@@ -154,7 +153,7 @@ public class GenericApiService {
      * Execute single result endpoint
      */
     private GenericResponse executeSingleEndpoint(QueryConfig queryConfig, List<QueryParameter> queryParameters) {
-        List<Map<String, Object>> results = genericRepository.executeQuery(queryConfig, queryParameters);
+        List<Map<String, Object>> results = executeQueryAsMaps(queryConfig, queryParameters);
         
         if (results.isEmpty()) {
             throw ApiException.notFound("No data found");
@@ -165,6 +164,14 @@ public class GenericApiService {
         } else {
             return GenericResponse.list(results);
         }
+    }
+
+    private List<Map<String, Object>> executeQueryAsMaps(QueryConfig queryConfig, List<QueryParameter> queryParameters) {
+        return genericRepository.executeQuerySafe(queryConfig, queryParameters).stream()
+            .map(QueryResult::getData)
+            .map(LinkedHashMap::new)
+            .map(result -> (Map<String, Object>) result)
+            .toList();
     }
     
     /**
@@ -754,18 +761,6 @@ public class GenericApiService {
         summary.put("timestamp", System.currentTimeMillis());
 
         return summary;
-    }
-
-    /**
-     * Helper method to create field information for schema APIs
-     */
-    private Map<String, Object> createFieldInfo(String name, String type, boolean required, String description) {
-        Map<String, Object> fieldInfo = new HashMap<>();
-        fieldInfo.put("name", name);
-        fieldInfo.put("type", type);
-        fieldInfo.put("required", required);
-        fieldInfo.put("description", description);
-        return fieldInfo;
     }
 
     /**

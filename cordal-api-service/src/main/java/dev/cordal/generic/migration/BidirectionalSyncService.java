@@ -11,8 +11,8 @@ import dev.cordal.generic.migration.ConfigurationMigrationService.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Instant;
 import java.util.*;
 
@@ -123,6 +123,7 @@ public class BidirectionalSyncService {
                 case YAML_WINS:
                     actions.add(new SyncAction(SyncActionType.COPY_YAML_TO_DB, type, name));
                     break;
+                case DATABASE_TO_YAML:
                 case DATABASE_WINS:
                     // Do nothing - database wins, so YAML-only configs are ignored
                     break;
@@ -139,6 +140,7 @@ public class BidirectionalSyncService {
                 case DATABASE_WINS:
                     actions.add(new SyncAction(SyncActionType.COPY_DB_TO_YAML, type, name));
                     break;
+                case YAML_TO_DATABASE:
                 case YAML_WINS:
                     actions.add(new SyncAction(SyncActionType.DELETE_FROM_DB, type, name));
                     break;
@@ -153,9 +155,11 @@ public class BidirectionalSyncService {
             // For now, assume configurations in both are synchronized
             // In a more advanced implementation, you would compare content for conflicts
             switch (strategy) {
+                case YAML_TO_DATABASE:
                 case YAML_WINS:
                     actions.add(new SyncAction(SyncActionType.COPY_YAML_TO_DB, type, name));
                     break;
+                case DATABASE_TO_YAML:
                 case DATABASE_WINS:
                     actions.add(new SyncAction(SyncActionType.COPY_DB_TO_YAML, type, name));
                     break;
@@ -204,6 +208,11 @@ public class BidirectionalSyncService {
                         executeDeleteFromDatabase(action, type);
                         result.deletedFromDb++;
                         break;
+
+                    case DELETE_FROM_YAML:
+                        throw new UnsupportedOperationException(
+                            "Deleting YAML-backed configuration files is not implemented"
+                        );
                         
                     case MANUAL_REVIEW:
                         result.manualReviewRequired++;

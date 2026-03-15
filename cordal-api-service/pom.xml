@@ -117,7 +117,21 @@
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
+                            <include>**/*UnitTest.java</include>
                     </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>dev/cordal/bootstrap/SystemBootstrapDemo*</exclude>
+                        <exclude>dev/cordal/generic/migration/ProductionMigrationUtility*</exclude>
+                        <exclude>dev/cordal/generic/migration/BidirectionalSyncService*</exclude>
+                        <exclude>dev/cordal/generic/migration/ConfigurationMigrationController*</exclude>
+                        <exclude>dev/cordal/util/SqlAnalyzer*</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>

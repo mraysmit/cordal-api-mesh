@@ -82,7 +82,7 @@ class GenericRepositoryTest {
 
         // Act & Assert - should not throw an exception
         assertThatCode(() -> {
-            var results = repository.executeQuery(queryConfig, parameters);
+            var results = repository.executeQuerySafe(queryConfig, parameters);
             assertThat(results).isNotNull();
         }).doesNotThrowAnyException();
     }

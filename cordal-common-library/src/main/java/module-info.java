@@ -1,3 +1,4 @@
+@SuppressWarnings("requires-automatic")
 module dev.cordal.common {
     // Export all packages from common library
     exports dev.cordal.common.application;
@@ -11,19 +12,19 @@ module dev.cordal.common {
     exports dev.cordal.common.util;
 
     // Core framework dependencies
-    requires io.javalin;
+    requires transitive io.javalin;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.dataformat.yaml;
 
     // Database dependencies
     requires com.h2database;
-    requires com.zaxxer.hikari;
-    requires java.sql;
+    requires transitive com.zaxxer.hikari;
+    requires transitive java.sql;
 
     // Dependency injection
-    requires com.google.guice;
-    requires javax.inject;
+    requires transitive com.google.guice;
+    requires jakarta.inject;
 
     // Configuration
     requires org.yaml.snakeyaml;

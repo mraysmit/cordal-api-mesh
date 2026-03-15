@@ -1,13 +1,19 @@
+@SuppressWarnings("requires-automatic")
 module dev.cordal.metrics {
     // Export only packages needed by other modules (integration-tests)
     exports dev.cordal.metrics;  // Main application class
 
     // Export configuration and model packages for integration testing
     exports dev.cordal.config;
+    exports dev.cordal.dto;
     exports dev.cordal.model;
+    exports dev.cordal.controller;
+    exports dev.cordal.database;
+    exports dev.cordal.repository;
+    exports dev.cordal.service;
     
     // Required modules
-    requires dev.cordal.common;  // Provides all core framework dependencies
+    requires transitive dev.cordal.common;  // Provides all core framework dependencies
 
     // Transitive dependencies from common-library (needed for direct usage)
     requires transitive io.javalin;
@@ -17,7 +23,7 @@ module dev.cordal.metrics {
     requires transitive com.h2database;
     requires transitive com.zaxxer.hikari;
     requires transitive com.google.guice;
-    requires transitive javax.inject;
+    requires transitive jakarta.inject;
     requires transitive org.yaml.snakeyaml;
     requires transitive ch.qos.logback.classic;
     requires transitive org.slf4j;

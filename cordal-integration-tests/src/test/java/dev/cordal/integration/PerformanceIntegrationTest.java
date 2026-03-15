@@ -1,6 +1,5 @@
 package dev.cordal.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.cordal.generic.GenericApiApplication;
@@ -197,7 +196,6 @@ class PerformanceIntegrationTest {
     @Test
     void shouldHandleConcurrentRequestsToGenericApi() throws InterruptedException {
         int numberOfRequests = 100;
-        int concurrentThreads = 10;
         CountDownLatch latch = new CountDownLatch(numberOfRequests);
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger errorCount = new AtomicInteger(0);

@@ -16,6 +16,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +60,7 @@ public class CacheManagementControllerUnitTest {
         controller.getQueryMetricsByName(ctx);
         controller.getCacheNames(ctx);
 
-        verify(ctx).status(404);
+        verify(ctx, times(2)).status(404);
     }
 
     @Test
@@ -133,7 +134,6 @@ public class CacheManagementControllerUnitTest {
         when(cacheManager.cacheExists("orders")).thenThrow(new RuntimeException("boom-clear"));
         when(ctx.bodyAsClass(CacheInvalidationRequest.class)).thenThrow(new RuntimeException("boom-invalidate"));
         when(cacheManager.getCacheNames()).thenThrow(new RuntimeException("boom-names"));
-        when(metricsCollector.getOverallStatistics()).thenThrow(new RuntimeException("boom-health"));
         doThrow(new RuntimeException("boom-clear-all")).when(cacheManager).clearAll();
         doThrow(new RuntimeException("boom-reset")).when(metricsCollector).resetMetrics();
 
@@ -148,6 +148,6 @@ public class CacheManagementControllerUnitTest {
         controller.resetCacheMetrics(ctx);
         controller.getCacheHealth(ctx);
 
-        verify(ctx).status(500);
+        verify(ctx, times(10)).status(500);
     }
 }

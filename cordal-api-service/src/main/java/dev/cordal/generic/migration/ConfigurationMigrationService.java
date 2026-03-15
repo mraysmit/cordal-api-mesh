@@ -12,8 +12,8 @@ import dev.cordal.database.loader.DatabaseConfigurationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Instant;
 import java.util.*;
 
@@ -28,7 +28,6 @@ public class ConfigurationMigrationService {
     private final QueryConfigurationRepository queryRepository;
     private final EndpointConfigurationRepository endpointRepository;
     private final ConfigurationLoader yamlLoader;
-    private final DatabaseConfigurationLoader databaseLoader;
     private final ConfigurationLoaderFactory configurationLoaderFactory;
 
     @Inject
@@ -42,7 +41,6 @@ public class ConfigurationMigrationService {
         this.queryRepository = queryRepository;
         this.endpointRepository = endpointRepository;
         this.yamlLoader = yamlLoader;
-        this.databaseLoader = databaseLoader;
         this.configurationLoaderFactory = configurationLoaderFactory;
         logger.info("Configuration migration service initialized");
     }

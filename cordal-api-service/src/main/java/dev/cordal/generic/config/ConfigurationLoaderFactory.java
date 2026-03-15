@@ -5,8 +5,8 @@ import dev.cordal.database.loader.DatabaseConfigurationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 /**
  * Factory for creating the appropriate configuration loader based on the configuration source

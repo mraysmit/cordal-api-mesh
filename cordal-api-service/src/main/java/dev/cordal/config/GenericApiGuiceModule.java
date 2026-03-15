@@ -55,7 +55,7 @@ public class GenericApiGuiceModule extends AbstractModule {
     
     @Provides
     @Singleton
-    public GenericApiConfig provideGenericApiConfig() {
+    GenericApiConfig provideGenericApiConfig() {
         logger.info("Creating GenericApiConfig instance");
         return GenericApiConfig.loadFromFile();
     }
@@ -65,61 +65,61 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public SwaggerConfig provideSwaggerConfig(GenericApiConfig genericApiConfig) {
+    SwaggerConfig provideSwaggerConfig(GenericApiConfig genericApiConfig) {
         logger.info("Creating SwaggerConfig instance");
         return new SwaggerConfig(genericApiConfig);
     }
 
     @Provides
     @Singleton
-    public ConfigurationLoader provideConfigurationLoader(GenericApiConfig genericApiConfig) {
+    ConfigurationLoader provideConfigurationLoader(GenericApiConfig genericApiConfig) {
         logger.info("Creating ConfigurationLoader instance");
         return new ConfigurationLoader(genericApiConfig);
     }
 
     @Provides
     @Singleton
-    public DatabaseConfigurationRepository provideDatabaseConfigurationRepository(DatabaseManager databaseManager) {
+    DatabaseConfigurationRepository provideDatabaseConfigurationRepository(DatabaseManager databaseManager) {
         logger.info("Creating DatabaseConfigurationRepository instance");
         return new DatabaseConfigurationRepository(databaseManager);
     }
 
     @Provides
     @Singleton
-    public QueryConfigurationRepository provideQueryConfigurationRepository(DatabaseManager databaseManager) {
+    QueryConfigurationRepository provideQueryConfigurationRepository(DatabaseManager databaseManager) {
         logger.info("Creating QueryConfigurationRepository instance");
         return new QueryConfigurationRepository(databaseManager);
     }
 
     @Provides
     @Singleton
-    public EndpointConfigurationRepository provideEndpointConfigurationRepository(DatabaseManager databaseManager) {
+    EndpointConfigurationRepository provideEndpointConfigurationRepository(DatabaseManager databaseManager) {
         logger.info("Creating EndpointConfigurationRepository instance");
         return new EndpointConfigurationRepository(databaseManager);
     }
 
     @Provides
     @Singleton
-    public DatabaseConfigurationLoader provideDatabaseConfigurationLoader(DatabaseConfigurationRepository databaseRepository,
-                                                                        QueryConfigurationRepository queryRepository,
-                                                                        EndpointConfigurationRepository endpointRepository) {
+    DatabaseConfigurationLoader provideDatabaseConfigurationLoader(DatabaseConfigurationRepository databaseRepository,
+                                                                   QueryConfigurationRepository queryRepository,
+                                                                   EndpointConfigurationRepository endpointRepository) {
         logger.info("Creating DatabaseConfigurationLoader instance");
         return new DatabaseConfigurationLoader(databaseRepository, queryRepository, endpointRepository);
     }
 
     @Provides
     @Singleton
-    public ConfigurationLoaderFactory provideConfigurationLoaderFactory(GenericApiConfig genericApiConfig,
-                                                                       ConfigurationLoader yamlConfigurationLoader,
-                                                                       DatabaseConfigurationLoader databaseConfigurationLoader) {
+    ConfigurationLoaderFactory provideConfigurationLoaderFactory(GenericApiConfig genericApiConfig,
+                                                                 ConfigurationLoader yamlConfigurationLoader,
+                                                                 DatabaseConfigurationLoader databaseConfigurationLoader) {
         logger.info("Creating ConfigurationLoaderFactory instance");
         return new ConfigurationLoaderFactory(genericApiConfig, yamlConfigurationLoader, databaseConfigurationLoader);
     }
 
     @Provides
     @Singleton
-    public EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory,
-                                                                           GenericApiConfig genericApiConfig) {
+    EndpointConfigurationManager provideEndpointConfigurationManager(ConfigurationLoaderFactory configurationLoaderFactory,
+                                                                    GenericApiConfig genericApiConfig) {
         logger.info("Creating EndpointConfigurationManager instance");
         EndpointConfigurationManager manager = new EndpointConfigurationManager(configurationLoaderFactory);
 
@@ -136,14 +136,14 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public DatabaseConnectionManager provideDatabaseConnectionManager(EndpointConfigurationManager configurationManager) {
+    DatabaseConnectionManager provideDatabaseConnectionManager(EndpointConfigurationManager configurationManager) {
         logger.info("Creating DatabaseConnectionManager instance");
         return new DatabaseConnectionManager(configurationManager);
     }
 
     @Provides
     @Singleton
-    public CacheManager provideCacheManager(GenericApiConfig genericApiConfig) {
+    CacheManager provideCacheManager(GenericApiConfig genericApiConfig) {
         logger.info("Creating CacheManager instance");
         GenericApiConfig.CacheSettings cacheSettings = genericApiConfig.getCacheSettings();
 
@@ -162,105 +162,105 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public CacheMetricsCollector provideCacheMetricsCollector(CacheManager cacheManager) {
+    CacheMetricsCollector provideCacheMetricsCollector(CacheManager cacheManager) {
         logger.info("Creating CacheMetricsCollector instance");
         return new CacheMetricsCollector(cacheManager);
     }
 
     @Provides
     @Singleton
-    public dev.cordal.generic.cache.QueryResultCache provideQueryResultCache(CacheManager cacheManager) {
+    dev.cordal.generic.cache.QueryResultCache provideQueryResultCache(CacheManager cacheManager) {
         logger.info("Creating QueryResultCache instance");
         return new dev.cordal.generic.cache.QueryResultCache(cacheManager);
     }
 
     @Provides
     @Singleton
-    public GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager,
-                                                     CacheManager cacheManager,
-                                                     CacheMetricsCollector cacheMetricsCollector,
-                                                     dev.cordal.generic.cache.QueryResultCache queryResultCache) {
+    GenericRepository provideGenericRepository(DatabaseConnectionManager databaseConnectionManager,
+                                               CacheManager cacheManager,
+                                               CacheMetricsCollector cacheMetricsCollector,
+                                               dev.cordal.generic.cache.QueryResultCache queryResultCache) {
         logger.info("Creating GenericRepository instance");
         return new GenericRepository(databaseConnectionManager, cacheManager, cacheMetricsCollector, queryResultCache);
     }
 
     @Provides
     @Singleton
-    public CacheEventPublisher provideCacheEventPublisher() {
+    CacheEventPublisher provideCacheEventPublisher() {
         logger.info("Creating CacheEventPublisher instance");
         return new CacheEventPublisher();
     }
 
     @Provides
     @Singleton
-    public CacheInvalidationEngine provideCacheInvalidationEngine(CacheManager cacheManager,
-                                                                 CacheEventPublisher eventPublisher) {
+    CacheInvalidationEngine provideCacheInvalidationEngine(CacheManager cacheManager,
+                                                           CacheEventPublisher eventPublisher) {
         logger.info("Creating CacheInvalidationEngine instance");
         return new CacheInvalidationEngine(cacheManager, eventPublisher);
     }
 
     @Provides
     @Singleton
-    public CacheInvalidationService provideCacheInvalidationService(CacheEventPublisher eventPublisher,
-                                                                   CacheInvalidationEngine invalidationEngine) {
+    CacheInvalidationService provideCacheInvalidationService(CacheEventPublisher eventPublisher,
+                                                             CacheInvalidationEngine invalidationEngine) {
         logger.info("Creating CacheInvalidationService instance");
         return new CacheInvalidationService(eventPublisher, invalidationEngine);
     }
 
     @Provides
     @Singleton
-    public CacheManagementController provideCacheManagementController(CacheManager cacheManager,
-                                                                     CacheMetricsCollector cacheMetricsCollector) {
+    CacheManagementController provideCacheManagementController(CacheManager cacheManager,
+                                                               CacheMetricsCollector cacheMetricsCollector) {
         logger.info("Creating CacheManagementController instance");
         return new CacheManagementController(cacheManager, cacheMetricsCollector);
     }
 
     @Provides
     @Singleton
-    public GenericApiService provideGenericApiService(GenericRepository genericRepository,
-                                                     EndpointConfigurationManager configurationManager,
-                                                     DatabaseConnectionManager databaseConnectionManager) {
+    GenericApiService provideGenericApiService(GenericRepository genericRepository,
+                                               EndpointConfigurationManager configurationManager,
+                                               DatabaseConnectionManager databaseConnectionManager) {
         logger.info("Creating GenericApiService instance");
         return new GenericApiService(genericRepository, configurationManager, databaseConnectionManager);
     }
 
     @Provides
     @Singleton
-    public GenericApiController provideGenericApiController(GenericApiService genericApiService,
-                                                           UsageStatisticsService statisticsService) {
+    GenericApiController provideGenericApiController(GenericApiService genericApiService,
+                                                     UsageStatisticsService statisticsService) {
         logger.info("Creating GenericApiController instance");
         return new GenericApiController(genericApiService, statisticsService);
     }
 
     @Provides
     @Singleton
-    public ConfigurationMetadataService provideConfigurationMetadataService(GenericApiConfig genericApiConfig) {
+    ConfigurationMetadataService provideConfigurationMetadataService(GenericApiConfig genericApiConfig) {
         logger.info("Creating ConfigurationMetadataService instance");
         return new ConfigurationMetadataService(genericApiConfig);
     }
 
     @Provides
     @Singleton
-    public UsageStatisticsService provideUsageStatisticsService() {
+    UsageStatisticsService provideUsageStatisticsService() {
         logger.info("Creating UsageStatisticsService instance");
         return new UsageStatisticsService();
     }
 
     @Provides
     @Singleton
-    public HealthMonitoringService provideHealthMonitoringService(DatabaseConnectionManager databaseConnectionManager,
-                                                                EndpointConfigurationManager configurationManager) {
+    HealthMonitoringService provideHealthMonitoringService(DatabaseConnectionManager databaseConnectionManager,
+                                                           EndpointConfigurationManager configurationManager) {
         logger.info("Creating HealthMonitoringService instance");
         return new HealthMonitoringService(databaseConnectionManager, configurationManager);
     }
 
     @Provides
     @Singleton
-    public ConfigurationManagementService provideConfigurationManagementService(DatabaseConfigurationRepository databaseRepository,
-                                                                               QueryConfigurationRepository queryRepository,
-                                                                               EndpointConfigurationRepository endpointRepository,
-                                                                               ConfigurationLoaderFactory configurationLoaderFactory,
-                                                                               EndpointConfigurationManager configurationManager) {
+    ConfigurationManagementService provideConfigurationManagementService(DatabaseConfigurationRepository databaseRepository,
+                                                                        QueryConfigurationRepository queryRepository,
+                                                                        EndpointConfigurationRepository endpointRepository,
+                                                                        ConfigurationLoaderFactory configurationLoaderFactory,
+                                                                        EndpointConfigurationManager configurationManager) {
         logger.info("Creating ConfigurationManagementService instance");
         return new ConfigurationManagementService(databaseRepository, queryRepository, endpointRepository,
                                                  configurationLoaderFactory, configurationManager);
@@ -268,19 +268,19 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ConfigurationManagementController provideConfigurationManagementController(ConfigurationManagementService configurationManagementService) {
+    ConfigurationManagementController provideConfigurationManagementController(ConfigurationManagementService configurationManagementService) {
         logger.info("Creating ConfigurationManagementController instance");
         return new ConfigurationManagementController(configurationManagementService);
     }
 
     @Provides
     @Singleton
-    public ConfigurationMigrationService provideConfigurationMigrationService(DatabaseConfigurationRepository databaseRepository,
-                                                                             QueryConfigurationRepository queryRepository,
-                                                                             EndpointConfigurationRepository endpointRepository,
-                                                                             ConfigurationLoader yamlLoader,
-                                                                             DatabaseConfigurationLoader databaseLoader,
-                                                                             ConfigurationLoaderFactory configurationLoaderFactory) {
+    ConfigurationMigrationService provideConfigurationMigrationService(DatabaseConfigurationRepository databaseRepository,
+                                                                      QueryConfigurationRepository queryRepository,
+                                                                      EndpointConfigurationRepository endpointRepository,
+                                                                      ConfigurationLoader yamlLoader,
+                                                                      DatabaseConfigurationLoader databaseLoader,
+                                                                      ConfigurationLoaderFactory configurationLoaderFactory) {
         logger.info("Creating ConfigurationMigrationService instance");
         return new ConfigurationMigrationService(databaseRepository, queryRepository, endpointRepository,
                                                 yamlLoader, databaseLoader, configurationLoaderFactory);
@@ -288,26 +288,24 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ConfigurationMigrationController provideConfigurationMigrationController(ConfigurationMigrationService configurationMigrationService) {
+    ConfigurationMigrationController provideConfigurationMigrationController(ConfigurationMigrationService configurationMigrationService) {
         logger.info("Creating ConfigurationMigrationController instance");
         return new ConfigurationMigrationController(configurationMigrationService);
     }
 
     @Provides
     @Singleton
-    public ManagementController provideManagementController(ConfigurationMetadataService metadataService,
-                                                          UsageStatisticsService statisticsService,
-                                                          HealthMonitoringService healthService,
-                                                          GenericApiService genericApiService,
-                                                          EndpointConfigurationManager configurationManager) {
+    ManagementController provideManagementController(ConfigurationMetadataService metadataService,
+                                                     UsageStatisticsService statisticsService,
+                                                     HealthMonitoringService healthService,
+                                                     EndpointConfigurationManager configurationManager) {
         logger.info("Creating ManagementController instance");
-        return new ManagementController(metadataService, statisticsService, healthService,
-                                      genericApiService, configurationManager);
+        return new ManagementController(metadataService, statisticsService, healthService, configurationManager);
     }
 
     @Provides
     @Singleton
-    public DatabaseManager provideDatabaseManager(GenericApiConfig genericApiConfig) {
+    DatabaseManager provideDatabaseManager(GenericApiConfig genericApiConfig) {
         logger.info("Creating DatabaseManager instance");
         DatabaseManager databaseManager = new DatabaseManager(genericApiConfig);
 
@@ -320,9 +318,9 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ConfigurationDataLoader provideConfigurationDataLoader(DatabaseManager databaseManager,
-                                                                GenericApiConfig genericApiConfig,
-                                                                dev.cordal.generic.config.ConfigurationLoader configurationLoader) {
+    ConfigurationDataLoader provideConfigurationDataLoader(DatabaseManager databaseManager,
+                                                           GenericApiConfig genericApiConfig,
+                                                           dev.cordal.generic.config.ConfigurationLoader configurationLoader) {
         logger.info("Creating ConfigurationDataLoader instance");
         ConfigurationDataLoader dataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
 
@@ -335,66 +333,65 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public H2ServerConfig provideH2ServerConfig(GenericApiConfig genericApiConfig) {
+    H2ServerConfig provideH2ServerConfig(GenericApiConfig genericApiConfig) {
         logger.info("Creating H2ServerConfig instance");
         return new H2ServerConfig(genericApiConfig);
     }
 
     @Provides
     @Singleton
-    public H2ServerController provideH2ServerController(H2ServerConfig h2ServerConfig) {
+    H2ServerController provideH2ServerController(H2ServerConfig h2ServerConfig) {
         logger.info("Creating H2ServerController instance");
         return new H2ServerController(h2ServerConfig);
     }
 
     @Provides
     @Singleton
-    public FileWatcherService provideFileWatcherService() {
+    FileWatcherService provideFileWatcherService() {
         logger.info("Creating FileWatcherService instance");
         return new FileWatcherService();
     }
 
     @Provides
     @Singleton
-    public ConfigurationStateManager provideConfigurationStateManager() {
+    ConfigurationStateManager provideConfigurationStateManager() {
         logger.info("Creating ConfigurationStateManager instance");
         return new ConfigurationStateManager();
     }
 
     @Provides
     @Singleton
-    public ValidationPipeline provideValidationPipeline(DatabaseManager databaseManager,
-                                                       ConfigurationStateManager stateManager) {
+    ValidationPipeline provideValidationPipeline(
+                                                 ConfigurationStateManager stateManager) {
         logger.info("Creating ValidationPipeline instance");
-        return new ValidationPipeline(databaseManager, stateManager);
+        return new ValidationPipeline(stateManager);
     }
 
     @Provides
     @Singleton
-    public DynamicEndpointRegistry provideDynamicEndpointRegistry() {
+    DynamicEndpointRegistry provideDynamicEndpointRegistry() {
         logger.info("Creating DynamicEndpointRegistry instance");
         return new DynamicEndpointRegistry();
     }
 
     @Provides
     @Singleton
-    public AtomicUpdateManager provideAtomicUpdateManager(DatabaseManager databaseManager,
-                                                         DynamicEndpointRegistry endpointRegistry) {
+    AtomicUpdateManager provideAtomicUpdateManager(
+                                                   DynamicEndpointRegistry endpointRegistry) {
         logger.info("Creating AtomicUpdateManager instance");
-        return new AtomicUpdateManager(databaseManager, endpointRegistry);
+        return new AtomicUpdateManager(endpointRegistry);
     }
 
     @Provides
     @Singleton
-    public ConfigurationReloadManager provideConfigurationReloadManager(
+    ConfigurationReloadManager provideConfigurationReloadManager(
             FileWatcherService fileWatcher,
             ConfigurationStateManager stateManager,
             ValidationPipeline validationPipeline,
-            DynamicEndpointRegistry endpointRegistry,
             AtomicUpdateManager atomicUpdateManager,
             GenericApiConfig config) {
         logger.info("Creating ConfigurationReloadManager instance");
         return new ConfigurationReloadManager(fileWatcher, stateManager, validationPipeline,
-                                            endpointRegistry, atomicUpdateManager, config);
+                                            atomicUpdateManager, config);
     }
 }

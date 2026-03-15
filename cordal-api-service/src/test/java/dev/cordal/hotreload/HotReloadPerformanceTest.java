@@ -126,7 +126,7 @@ class HotReloadPerformanceTest {
         
         // Create snapshot
         startTime = System.currentTimeMillis();
-        String version = stateManager.createSnapshot(databases, queries, endpoints);
+        stateManager.createSnapshot(databases, queries, endpoints);
         long snapshotCreationTime = System.currentTimeMillis() - startTime;
         
         // Calculate delta with modified configuration

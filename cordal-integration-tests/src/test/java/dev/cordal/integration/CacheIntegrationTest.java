@@ -7,7 +7,6 @@ import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -372,7 +371,8 @@ class CacheIntegrationTest {
             .build();
 
         HttpResponse<String> response1 = httpClient.send(metricsRequest1, HttpResponse.BodyHandlers.ofString());
-        JsonNode json1 = objectMapper.readTree(response1.body());
+        JsonNode metricsBeforeReset = objectMapper.readTree(response1.body());
+        assertTrue(metricsBeforeReset.get("overall").get("totalRequests").asInt() > 0);
         
         // Reset metrics
         HttpRequest resetRequest = HttpRequest.newBuilder()

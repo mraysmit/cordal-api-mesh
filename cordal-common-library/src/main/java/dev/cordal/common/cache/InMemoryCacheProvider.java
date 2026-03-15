@@ -256,8 +256,5 @@ public class InMemoryCacheProvider implements CacheProvider {
             return Instant.now().isAfter(expiryTime);
         }
         
-        public Instant getExpiryTime() {
-            return expiryTime;
-        }
     }
 }

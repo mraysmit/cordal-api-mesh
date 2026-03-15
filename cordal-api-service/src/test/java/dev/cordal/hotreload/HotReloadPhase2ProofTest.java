@@ -1,7 +1,6 @@
 package dev.cordal.hotreload;
 
 import dev.cordal.config.GenericApiConfig;
-import dev.cordal.database.DatabaseManager;
 import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.config.DatabaseConfig;
@@ -18,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class HotReloadPhase2ProofTest {
 
-    private DatabaseManager databaseManager;
     private TestGenericApiConfig config;
     private FileWatcherService fileWatcher;
     private ConfigurationStateManager stateManager;
@@ -31,16 +29,15 @@ class HotReloadPhase2ProofTest {
     void setUp() {
         // Initialize components
         config = new TestGenericApiConfig();
-        databaseManager = new TestDatabaseManager(config);
         fileWatcher = new FileWatcherService();
         stateManager = new ConfigurationStateManager();
-        validationPipeline = new ValidationPipeline(databaseManager, stateManager);
+        validationPipeline = new ValidationPipeline(stateManager);
         endpointRegistry = new DynamicEndpointRegistry();
-        atomicUpdateManager = new AtomicUpdateManager(databaseManager, endpointRegistry);
+        atomicUpdateManager = new AtomicUpdateManager(endpointRegistry);
         
         reloadManager = new ConfigurationReloadManager(
             fileWatcher, stateManager, validationPipeline, 
-            endpointRegistry, atomicUpdateManager, config
+            atomicUpdateManager, config
         );
     }
 
@@ -374,9 +371,4 @@ class HotReloadPhase2ProofTest {
         public boolean isHotReloadValidateBeforeApply() { return true; }
     }
     
-    private static class TestDatabaseManager extends DatabaseManager {
-        public TestDatabaseManager(GenericApiConfig config) {
-            super(config);
-        }
-    }
 }

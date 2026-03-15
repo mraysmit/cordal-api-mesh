@@ -1,6 +1,5 @@
 package dev.cordal.generic;
 
-import dev.cordal.generic.GenericApiApplication;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;

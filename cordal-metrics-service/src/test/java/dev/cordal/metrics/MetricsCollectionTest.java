@@ -1,6 +1,5 @@
 package dev.cordal.metrics;
 
-import dev.cordal.metrics.MetricsApplication;
 import dev.cordal.common.model.PerformanceMetrics;
 import dev.cordal.service.PerformanceMetricsService;
 import io.javalin.Javalin;
@@ -167,8 +166,7 @@ public class MetricsCollectionTest {
 
         JavalinTest.test(app, (server, client) -> {
             // Get initial metrics count
-            var initialMetrics = metricsService.getAllMetrics(0, 100);
-            int initialCount = initialMetrics.getData().size();
+            metricsService.getAllMetrics(0, 100);
 
             // Note: Dashboard is disabled in test environment to prevent hanging
             // Test with a different excluded path that's still available

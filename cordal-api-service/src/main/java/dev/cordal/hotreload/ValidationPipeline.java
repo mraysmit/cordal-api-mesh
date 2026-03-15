@@ -1,11 +1,10 @@
 package dev.cordal.hotreload;
 
-import dev.cordal.database.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -18,14 +17,12 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class ValidationPipeline {
     private static final Logger logger = LoggerFactory.getLogger(ValidationPipeline.class);
-    
-    private final DatabaseManager databaseManager;
+
     private final ConfigurationStateManager stateManager;
     private final List<ConfigurationValidator> validators;
     
     @Inject
-    public ValidationPipeline(DatabaseManager databaseManager, ConfigurationStateManager stateManager) {
-        this.databaseManager = databaseManager;
+    public ValidationPipeline(ConfigurationStateManager stateManager) {
         this.stateManager = stateManager;
         this.validators = initializeValidators();
         

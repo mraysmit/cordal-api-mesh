@@ -1,6 +1,5 @@
 package dev.cordal.hotreload;
 
-import dev.cordal.config.GenericApiConfig;
 import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.config.DatabaseConfig;
@@ -15,10 +14,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

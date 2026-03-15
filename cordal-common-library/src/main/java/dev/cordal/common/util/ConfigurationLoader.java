@@ -27,8 +27,9 @@ public class ConfigurationLoader {
                 logger.warn("Configuration file not found: {}", fileName);
                 return Map.of();
             }
-            
-            Map<String, Object> config = yamlMapper.readValue(inputStream, Map.class);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> config = (Map<String, Object>) yamlMapper.readValue(inputStream, Map.class);
             
             if (config == null) {
                 config = Map.of();

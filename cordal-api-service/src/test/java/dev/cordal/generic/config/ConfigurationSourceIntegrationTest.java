@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.cordal.config.GenericApiConfig;
 import dev.cordal.generic.GenericApiApplication;
-import dev.cordal.generic.config.ApiEndpointConfig;
-import dev.cordal.generic.config.DatabaseConfig;
-import dev.cordal.generic.config.QueryConfig;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.Test;
@@ -83,7 +80,7 @@ class ConfigurationSourceIntegrationTest {
         System.setProperty("generic.config.file", "application-database-test.yml");
 
         // Load configuration to verify source
-        GenericApiConfig config = GenericApiConfig.loadFromFile();
+        GenericApiConfig.loadFromFile();
 
         // Start application to initialize database configurations
         GenericApiApplication application = new GenericApiApplication();

@@ -3,7 +3,6 @@ package dev.cordal.config;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import dev.cordal.common.config.DatabaseConfig;
 import dev.cordal.database.MetricsDatabaseManager;
 import dev.cordal.controller.PerformanceMetricsController;
 import dev.cordal.metrics.MetricsCollectionHandler;

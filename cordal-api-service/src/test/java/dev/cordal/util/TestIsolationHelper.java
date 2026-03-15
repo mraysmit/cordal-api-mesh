@@ -1,7 +1,6 @@
 package dev.cordal.util;
 
 import dev.cordal.generic.GenericApiApplication;
-import dev.cordal.test.TestDatabaseManager;
 
 /**
  * Utility class to help with test isolation and cleanup

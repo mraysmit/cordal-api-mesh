@@ -1,13 +1,10 @@
 package dev.cordal.hotreload;
 
-import dev.cordal.database.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,15 +15,13 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class AtomicUpdateManager {
     private static final Logger logger = LoggerFactory.getLogger(AtomicUpdateManager.class);
-    
-    private final DatabaseManager databaseManager;
+
     private final DynamicEndpointRegistry endpointRegistry;
     private final AtomicBoolean updateInProgress = new AtomicBoolean(false);
     private final AtomicReference<String> currentUpdateId = new AtomicReference<>();
     
     @Inject
-    public AtomicUpdateManager(DatabaseManager databaseManager, DynamicEndpointRegistry endpointRegistry) {
-        this.databaseManager = databaseManager;
+    public AtomicUpdateManager(DynamicEndpointRegistry endpointRegistry) {
         this.endpointRegistry = endpointRegistry;
         logger.info("AtomicUpdateManager initialized");
     }
@@ -173,7 +168,6 @@ public class AtomicUpdateManager {
             // Add new databases
             for (var entry : delta.addedDatabases.entrySet()) {
                 String dbName = entry.getKey();
-                var dbConfig = entry.getValue();
                 
                 try {
                     // This would integrate with the actual DatabaseManager
@@ -189,7 +183,6 @@ public class AtomicUpdateManager {
             // Update modified databases
             for (var entry : delta.modifiedDatabases.entrySet()) {
                 String dbName = entry.getKey();
-                var dbConfig = entry.getValue();
                 
                 try {
                     logger.debug("Updating database: {}", dbName);

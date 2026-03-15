@@ -7,8 +7,6 @@ import dev.cordal.common.config.PoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-
 /**
  * Factory class for creating database connections with HikariCP
  * Common database connection factory used across all modules

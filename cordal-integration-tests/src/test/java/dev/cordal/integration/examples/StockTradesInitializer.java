@@ -3,8 +3,7 @@ package dev.cordal.integration.examples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * EXAMPLE IMPLEMENTATION: Initializer for the stock trades database
@@ -21,8 +20,6 @@ import javax.inject.Singleton;
 @Singleton
 public class StockTradesInitializer {
     private static final Logger logger = LoggerFactory.getLogger(StockTradesInitializer.class);
-    
-    private static final String STOCKTRADES_DATABASE = "stocktrades";
     
     // Note: This class would need to be updated to work with the integration test framework
     // Dependencies like DatabaseConnectionManager would need to be provided by the integration test setup

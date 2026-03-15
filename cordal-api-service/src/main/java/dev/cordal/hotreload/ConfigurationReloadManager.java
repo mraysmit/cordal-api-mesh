@@ -1,15 +1,11 @@
 package dev.cordal.hotreload;
 
 import dev.cordal.config.GenericApiConfig;
-import dev.cordal.generic.config.ApiEndpointConfig;
-import dev.cordal.generic.config.QueryConfig;
-import dev.cordal.generic.config.DatabaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.nio.file.Path;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +24,6 @@ public class ConfigurationReloadManager implements ConfigurationChangeListener {
     private final FileWatcherService fileWatcher;
     private final ConfigurationStateManager stateManager;
     private final ValidationPipeline validationPipeline;
-    private final DynamicEndpointRegistry endpointRegistry;
     private final AtomicUpdateManager atomicUpdateManager;
     private final GenericApiConfig config;
     
@@ -42,14 +37,12 @@ public class ConfigurationReloadManager implements ConfigurationChangeListener {
             FileWatcherService fileWatcher,
             ConfigurationStateManager stateManager,
             ValidationPipeline validationPipeline,
-            DynamicEndpointRegistry endpointRegistry,
             AtomicUpdateManager atomicUpdateManager,
             GenericApiConfig config) {
         
         this.fileWatcher = fileWatcher;
         this.stateManager = stateManager;
         this.validationPipeline = validationPipeline;
-        this.endpointRegistry = endpointRegistry;
         this.atomicUpdateManager = atomicUpdateManager;
         this.config = config;
         

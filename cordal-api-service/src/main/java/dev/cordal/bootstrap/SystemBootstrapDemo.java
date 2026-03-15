@@ -6,8 +6,6 @@ import dev.cordal.generic.config.ConfigurationLoaderFactory;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import dev.cordal.generic.config.DatabaseConfig;
-import dev.cordal.generic.config.QueryConfig;
-import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.config.GenericApiConfig;
 import dev.cordal.database.loader.DatabaseConfigurationLoader;
 import dev.cordal.database.repository.DatabaseConfigurationRepository;
@@ -21,15 +19,12 @@ import dev.cordal.util.MetricsApiEndpoints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Bootstrap demonstration class that shows system startup and makes calls to all management API endpoints.
@@ -664,7 +659,6 @@ public class SystemBootstrapDemo {
 
         for (Map.Entry<String, DatabaseConfig> entry : allDatabases.entrySet()) {
             String databaseName = entry.getKey();
-            DatabaseConfig config = entry.getValue();
 
             String status;
             String details;
@@ -782,7 +776,6 @@ public class SystemBootstrapDemo {
         final long responseTime;
         final boolean success;
         final int responseSize;
-        final String errorMessage;
 
         EndpointTestResult(String endpoint, int statusCode, long responseTime, boolean success,
                           int responseSize, String errorMessage) {
@@ -791,7 +784,6 @@ public class SystemBootstrapDemo {
             this.responseTime = responseTime;
             this.success = success;
             this.responseSize = responseSize;
-            this.errorMessage = errorMessage;
         }
     }
 

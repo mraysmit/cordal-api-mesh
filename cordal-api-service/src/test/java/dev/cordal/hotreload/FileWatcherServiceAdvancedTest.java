@@ -152,6 +152,9 @@ class FileWatcherServiceAdvancedTest {
                         latch.countDown();
                     }
                 }
+                case UNKNOWN -> {
+                    // Ignore non-configuration files in this test.
+                }
             }
         };
 

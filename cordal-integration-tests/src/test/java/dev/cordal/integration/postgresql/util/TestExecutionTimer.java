@@ -249,13 +249,11 @@ public class TestExecutionTimer {
      * Internal class to track phase timing information
      */
     private static class PhaseTimer {
-        final String phaseName;
         final Instant startTime;
         Instant endTime;
         Duration duration;
         
         PhaseTimer(String phaseName, Instant startTime) {
-            this.phaseName = phaseName;
             this.startTime = startTime;
         }
     }

@@ -1,7 +1,6 @@
 package dev.cordal.common.metrics;
 
 import dev.cordal.common.cache.CacheManager;
-import dev.cordal.common.cache.CacheStatistics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,7 +99,7 @@ class CacheMetricsCollectorTest {
     void testCreateCacheMetrics() {
         // Setup cache with some data
         cacheManager.put("test_cache", "test_key", "test_value");
-        CacheStatistics cacheStats = cacheManager.getStatistics("test_cache");
+        cacheManager.getStatistics("test_cache");
 
         CachePerformanceMetrics metrics = metricsCollector.createCacheMetrics(
             "test_query", true, "test_cache", "test_key", 75);

@@ -89,7 +89,6 @@ public class TestProfiler {
         double maxTime = tests.stream().mapToDouble(TestTimingExtension.TestExecutionData::getDurationMs).max().orElse(0);
         
         long slowTests = tests.stream().filter(t -> t.getDurationMs() > 1000).count();
-        long verySlowTests = tests.stream().filter(t -> t.getDurationMs() > 5000).count();
         long failedTests = tests.stream().filter(t -> !t.isSuccess()).count();
         
         return new TestRunStatistics(tests.size(), totalTime, avgTime, maxTime, slowTests, failedTests);

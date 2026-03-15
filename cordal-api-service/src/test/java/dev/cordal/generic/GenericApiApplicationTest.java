@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 class GenericApiApplicationTest {
 
     private GenericApiApplication application;
-    private static final int TEST_PORT = 18080; // Use different port for testing
 
     @BeforeAll
     void setUpAll() {

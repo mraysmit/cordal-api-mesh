@@ -12,8 +12,8 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,9 +70,9 @@ public class H2ServerControllerUnitTest {
         controller.startTcpServer(ctx);
         controller.stopTcpServer(ctx);
 
-        verify(ctx).json(argThat(payload -> payload instanceof Map<?, ?> map
+        verify(ctx, times(2)).json(argThat(payload -> payload instanceof Map<?, ?> map
             && Boolean.TRUE.equals(map.get("success"))));
-        verify(ctx).status(500);
+        verify(ctx, times(2)).status(500);
     }
 
     @Test
@@ -86,9 +86,9 @@ public class H2ServerControllerUnitTest {
         controller.startWebServer(ctx);
         controller.stopWebServer(ctx);
 
-        verify(ctx).json(argThat(payload -> payload instanceof Map<?, ?> map
+        verify(ctx, times(2)).json(argThat(payload -> payload instanceof Map<?, ?> map
             && Boolean.TRUE.equals(map.get("success"))));
-        verify(ctx).status(500);
+        verify(ctx, times(2)).status(500);
     }
 
     @Test
@@ -102,8 +102,8 @@ public class H2ServerControllerUnitTest {
         controller.startServers(ctx);
         controller.stopServers(ctx);
 
-        verify(ctx).json(argThat(payload -> payload instanceof Map<?, ?> map
+        verify(ctx, times(2)).json(argThat(payload -> payload instanceof Map<?, ?> map
             && Boolean.TRUE.equals(map.get("success"))));
-        verify(ctx).status(500);
+        verify(ctx, times(2)).status(500);
     }
 }

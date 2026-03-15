@@ -7,8 +7,8 @@ import dev.cordal.generic.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -244,15 +244,6 @@ public class HealthMonitoringService {
      */
     public MemoryUsageResponse getMemoryUsage() {
         return MemoryUsageResponse.fromRuntime();
-    }
-
-    /**
-     * Get memory usage information (DEPRECATED - use type-safe version)
-     * @deprecated Use getMemoryUsage() for type safety
-     */
-    @Deprecated
-    private Map<String, Object> getMemoryUsageMap() {
-        return getMemoryUsage().toMap();
     }
 
     /**

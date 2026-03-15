@@ -1,6 +1,5 @@
 package dev.cordal.metrics;
 
-import dev.cordal.metrics.MetricsApplication;
 import dev.cordal.common.model.PerformanceMetrics;
 import dev.cordal.service.PerformanceMetricsService;
 import io.javalin.Javalin;

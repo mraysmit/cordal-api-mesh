@@ -1,11 +1,7 @@
 package dev.cordal.common.metrics;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.cordal.common.cache.CacheStatistics;
 import dev.cordal.common.model.PerformanceMetrics;
-
-import java.time.LocalDateTime;
-import java.util.Map;
 
 /**
  * Extended performance metrics that includes cache statistics

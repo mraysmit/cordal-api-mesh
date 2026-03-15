@@ -12,8 +12,8 @@ import dev.cordal.generic.model.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.sql.*;
 import java.time.Duration;
 import java.util.*;
@@ -35,9 +35,9 @@ public class GenericRepository {
 
     @Inject
     public GenericRepository(DatabaseConnectionManager databaseConnectionManager,
-                           CacheManager cacheManager,
-                           CacheMetricsCollector cacheMetricsCollector,
-                           QueryResultCache queryResultCache) {
+                             CacheManager cacheManager,
+                             CacheMetricsCollector cacheMetricsCollector,
+                             QueryResultCache queryResultCache) {
         this.databaseConnectionManager = databaseConnectionManager;
         this.cacheManager = cacheManager;
         this.cacheMetricsCollector = cacheMetricsCollector;

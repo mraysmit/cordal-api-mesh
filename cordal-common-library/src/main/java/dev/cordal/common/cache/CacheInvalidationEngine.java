@@ -3,9 +3,8 @@ package dev.cordal.common.cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.time.Duration;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -213,8 +212,6 @@ public class CacheInvalidationEngine {
      * @return the pattern with variables substituted
      */
     private String substituteVariablesInPattern(String pattern, CacheEvent event) {
-        String result = pattern;
-        
         // Simple variable substitution for patterns like {variable}
         java.util.regex.Pattern variablePattern = java.util.regex.Pattern.compile("\\{([^}]+)\\}");
         java.util.regex.Matcher matcher = variablePattern.matcher(pattern);

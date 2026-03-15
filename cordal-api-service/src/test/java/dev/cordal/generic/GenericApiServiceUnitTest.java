@@ -7,6 +7,7 @@ import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.dto.ConfigurationParametersResponse;
 import dev.cordal.generic.dto.ConfigurationSchemaResponse;
+import dev.cordal.generic.dto.QueryResult;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import dev.cordal.generic.dto.ConfigurationSummaryResponse;
 import dev.cordal.generic.dto.ConfigurationValidationResponse;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("deprecation")
 public class GenericApiServiceUnitTest {
 
     private GenericRepository genericRepository;
@@ -55,14 +57,14 @@ public class GenericApiServiceUnitTest {
         when(configurationManager.getEndpointConfig("orders")).thenReturn(Optional.of(endpoint));
         when(configurationManager.getQueryConfig("orders-query")).thenReturn(Optional.of(query));
         when(databaseConnectionManager.isDatabaseAvailable("orders-db")).thenReturn(true);
-        when(genericRepository.executeQuery(eq(query), any())).thenReturn(List.of(Map.of("id", 1)));
+        when(genericRepository.executeQuerySafe(eq(query), any())).thenReturn(List.of(new QueryResult(Map.of("id", 1))));
 
         RequestParameters parameters = new RequestParameters().add("page", 1).add("size", 10);
 
         GenericResponse response = service.executeEndpoint("orders", parameters);
 
         assertThat(response.getType()).isEqualTo("PAGED");
-        verify(genericRepository).executeQuery(eq(query), argThat(queryParameters ->
+        verify(genericRepository).executeQuerySafe(eq(query), argThat(queryParameters ->
             queryParameters.size() == 2
                 && "limit".equals(queryParameters.get(0).getName())
                 && Integer.valueOf(10).equals(queryParameters.get(0).getValue())

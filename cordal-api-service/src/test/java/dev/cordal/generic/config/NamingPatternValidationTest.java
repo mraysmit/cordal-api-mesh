@@ -5,10 +5,7 @@ import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NamingPatternValidationTest {
     private static final Logger logger = LoggerFactory.getLogger(NamingPatternValidationTest.class);
-    
-    private Path testConfigDir;
+
     private GenericApiConfig config;
     private ConfigurationLoader loader;
     
@@ -152,83 +148,13 @@ class NamingPatternValidationTest {
     void testCustomPatterns() {
         // Create config with custom patterns
         GenericApiConfig customConfig = createConfigWithCustomPatterns();
-        ConfigurationLoader customLoader = new ConfigurationLoader(customConfig);
+        assertThatCode(() -> new ConfigurationLoader(customConfig)).doesNotThrowAnyException();
         
         // Test that patterns are loaded correctly (using test patterns)
         List<String> customDatabasePatterns = customConfig.getDatabasePatterns();
         assertThat(customDatabasePatterns).contains("test-databases.yml");
         
         logger.info("Custom patterns validated successfully");
-    }
-    
-    private void createTestFilesWithDifferentPatterns() throws IOException {
-        // Create files that should match patterns
-        createMatchingDatabaseFiles();
-        createMatchingQueryFiles();
-        createMatchingEndpointFiles();
-        
-        // Create files that should NOT match patterns
-        createNonMatchingFiles();
-    }
-    
-    private void createMatchingDatabaseFiles() throws IOException {
-        // Files that should match database patterns
-        String dbContent = """
-            databases:
-              test-db:
-                name: "test-db"
-                url: "jdbc:h2:mem:test"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        
-        Files.writeString(testConfigDir.resolve("main-database.yml"), dbContent);
-        Files.writeString(testConfigDir.resolve("analytics-databases.yml"), dbContent);
-    }
-    
-    private void createMatchingQueryFiles() throws IOException {
-        // Files that should match query patterns
-        String queryContent = """
-            queries:
-              test-query:
-                name: "Test Query"
-                database: "test-db"
-                sql: "SELECT * FROM test_table"
-            """;
-        
-        Files.writeString(testConfigDir.resolve("main-query.yml"), queryContent);
-        Files.writeString(testConfigDir.resolve("analytics-queries.yml"), queryContent);
-    }
-    
-    private void createMatchingEndpointFiles() throws IOException {
-        // Files that should match endpoint patterns
-        String endpointContent = """
-            endpoints:
-              test-endpoint:
-                description: "Test endpoint"
-                method: "GET"
-                path: "/api/test"
-                query: "test-query"
-            """;
-        
-        Files.writeString(testConfigDir.resolve("main-endpoint.yml"), endpointContent);
-        Files.writeString(testConfigDir.resolve("analytics-endpoints.yml"), endpointContent);
-        Files.writeString(testConfigDir.resolve("user-api.yml"), endpointContent);
-    }
-    
-    private void createNonMatchingFiles() throws IOException {
-        // Files that should NOT match any patterns
-        String content = """
-            ignored:
-              ignored-config: "This should be ignored"
-            """;
-        
-        Files.writeString(testConfigDir.resolve("database.yml"), content); // No prefix
-        Files.writeString(testConfigDir.resolve("queries.yml"), content); // No prefix
-        Files.writeString(testConfigDir.resolve("endpoints.yml"), content); // No prefix
-        Files.writeString(testConfigDir.resolve("config.yaml"), content); // Wrong extension
-        Files.writeString(testConfigDir.resolve("readme.txt"), content); // Wrong extension
     }
     
     private boolean matchesAnyPattern(String filename, List<String> patterns) {
@@ -247,13 +173,6 @@ class NamingPatternValidationTest {
             .replace("*", ".*");
         
         return filename.matches(regex);
-    }
-    
-    private GenericApiConfig createTestConfig() {
-        // Create config that uses our test directory
-        GenericApiConfig testConfig = new GenericApiConfig();
-        // Configure to use test directory and standard patterns
-        return testConfig;
     }
     
     private GenericApiConfig createConfigWithCustomPatterns() {

@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 public class DatabaseConfigurationSourceTest {
 
     private DatabaseManager databaseManager;
-    private ConfigurationDataLoader configurationDataLoader;
     private GenericApiConfig genericApiConfig;
 
     @BeforeEach
@@ -39,7 +38,8 @@ public class DatabaseConfigurationSourceTest {
         // Create ConfigurationLoader for the data loader
         dev.cordal.generic.config.ConfigurationLoader configurationLoader = new dev.cordal.generic.config.ConfigurationLoader(genericApiConfig);
 
-        configurationDataLoader = new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
+        // ConfigurationDataLoader constructor initializes database tables as a side effect
+        new ConfigurationDataLoader(databaseManager, genericApiConfig, configurationLoader);
     }
 
     @AfterEach
@@ -167,7 +167,6 @@ public class DatabaseConfigurationSourceTest {
 
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
-                    String description = resultSet.getString("description");
                     String url = resultSet.getString("url");
                     String driver = resultSet.getString("driver");
 

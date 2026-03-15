@@ -4,22 +4,16 @@ import dev.cordal.test.TestDatabaseManager;
 import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.exception.ApiException;
 import dev.cordal.common.metrics.CacheMetricsCollector;
-import dev.cordal.generic.config.ApiEndpointConfig;
 import dev.cordal.generic.config.ConfigurationLoader;
 import dev.cordal.generic.config.EndpointConfigurationManager;
-import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
-import dev.cordal.generic.model.GenericResponse;
+import dev.cordal.generic.dto.RequestParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -108,7 +102,7 @@ class GenericApiServiceTest {
     @Test
     void testExecuteEndpoint_NotFound() {
         // Test executing a non-existent endpoint
-        assertThatThrownBy(() -> service.executeEndpoint("nonexistent-endpoint", Map.of()))
+        assertThatThrownBy(() -> service.executeEndpoint("nonexistent-endpoint", new RequestParameters(Map.of())))
             .isInstanceOf(ApiException.class)
             .hasMessageContaining("Endpoint not found");
     }

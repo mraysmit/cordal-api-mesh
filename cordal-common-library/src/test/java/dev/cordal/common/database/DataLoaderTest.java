@@ -163,10 +163,6 @@ public class DataLoaderTest {
         public void setSampleDataLoadingEnabled(boolean enabled) {
             this.sampleDataLoadingEnabled = enabled;
         }
-
-        public void setSampleDataSize(int size) {
-            this.sampleDataSize = size;
-        }
     }
 
     /**

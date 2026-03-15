@@ -10,14 +10,13 @@ import dev.cordal.generic.config.ConfigurationLoaderFactory;
 import dev.cordal.generic.config.EndpointConfigurationManager;
 import dev.cordal.dto.ConfigurationStatisticsResponse;
 import dev.cordal.dto.ConfigurationSourceInfoResponse;
-import dev.cordal.dto.ConfigurationListResponse;
 import dev.cordal.generic.dto.ConfigurationCollectionResponse;
 import dev.cordal.generic.dto.ConfigurationOperationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,10 +37,10 @@ public class ConfigurationManagementService {
 
     @Inject
     public ConfigurationManagementService(DatabaseConfigurationRepository databaseRepository,
-                                        QueryConfigurationRepository queryRepository,
-                                        EndpointConfigurationRepository endpointRepository,
-                                        ConfigurationLoaderFactory configurationLoaderFactory,
-                                        EndpointConfigurationManager configurationManager) {
+                                          QueryConfigurationRepository queryRepository,
+                                          EndpointConfigurationRepository endpointRepository,
+                                          ConfigurationLoaderFactory configurationLoaderFactory,
+                                          EndpointConfigurationManager configurationManager) {
         this.databaseRepository = databaseRepository;
         this.queryRepository = queryRepository;
         this.endpointRepository = endpointRepository;

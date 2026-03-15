@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Main application class for the Generic API Service
@@ -84,7 +83,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
     protected void performPreStartupInitialization() {
         // Initialize configuration database
         logger.info("Initializing configuration database");
-        dev.cordal.database.DatabaseManager dbManager = injector.getInstance(dev.cordal.database.DatabaseManager.class);
+        injector.getInstance(dev.cordal.database.DatabaseManager.class);
         logger.info("Configuration database initialized successfully");
 
         // Check if test data loading is enabled (for integration tests)
@@ -122,8 +121,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         try {
             // Get database connection manager
-            dev.cordal.generic.database.DatabaseConnectionManager databaseConnectionManager =
-                injector.getInstance(dev.cordal.generic.database.DatabaseConnectionManager.class);
+            injector.getInstance(dev.cordal.generic.database.DatabaseConnectionManager.class);
 
             // Note: Example data initialization (like stock trades) should be handled
             // by integration tests, not by the core application
@@ -685,8 +683,7 @@ public class GenericApiApplication extends BaseJavalinApplication {
 
         try {
             // Get configuration components
-            dev.cordal.generic.config.ConfigurationLoader configurationLoader =
-                injector.getInstance(dev.cordal.generic.config.ConfigurationLoader.class);
+            injector.getInstance(dev.cordal.generic.config.ConfigurationLoader.class);
             dev.cordal.generic.config.EndpointConfigurationManager configurationManager =
                 injector.getInstance(dev.cordal.generic.config.EndpointConfigurationManager.class);
             dev.cordal.generic.database.DatabaseConnectionManager databaseConnectionManager =

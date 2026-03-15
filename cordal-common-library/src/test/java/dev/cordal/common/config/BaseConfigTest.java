@@ -1,11 +1,7 @@
 package dev.cordal.common.config;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,12 +82,13 @@ class BaseConfigTest {
     @Test
     void shouldReloadConfiguration() {
         TestConfig config = new TestConfig("test-config.yml");
-        Map<String, Object> originalData = config.getConfigData();
+        Map<String, Object> beforeReload = config.getConfigData();
         
         config.reload();
         
         // Should have reloaded (may be same content, but method should work)
         assertThat(config.getConfigData()).isNotNull();
+        assertThat(config.getConfigData()).isEqualTo(beforeReload);
     }
 
     // Test implementation of BaseConfig

@@ -222,16 +222,16 @@ class EndToEndConfigurationManagementTest {
         System.out.println("\n--- PHASE 4: Configuration Management APIs ---");
         
         // Test management service operations
-        Map<String, Object> allDatabases = managementService.getAllDatabaseConfigurationsMap();
-        Map<String, Object> allQueries = managementService.getAllQueryConfigurationsMap();
-        Map<String, Object> allEndpoints = managementService.getAllEndpointConfigurationsMap();
+        var allDatabases = managementService.getAllDatabaseConfigurations();
+        var allQueries = managementService.getAllQueryConfigurations();
+        var allEndpoints = managementService.getAllEndpointConfigurations();
         
-        assertThat(allDatabases.get("count")).isNotNull();
-        assertThat(allQueries.get("count")).isNotNull();
-        assertThat(allEndpoints.get("count")).isNotNull();
+        assertThat(allDatabases.getCount()).isNotNull();
+        assertThat(allQueries.getCount()).isNotNull();
+        assertThat(allEndpoints.getCount()).isNotNull();
         
         System.out.printf("Management API counts - Databases: %s, Queries: %s, Endpoints: %s%n",
-                         allDatabases.get("count"), allQueries.get("count"), allEndpoints.get("count"));
+                 allDatabases.getCount(), allQueries.getCount(), allEndpoints.getCount());
         
         // Test individual configuration retrieval
         Optional<DatabaseConfig> stockTradesDb = managementService.getDatabaseConfiguration("stock-trades-db");

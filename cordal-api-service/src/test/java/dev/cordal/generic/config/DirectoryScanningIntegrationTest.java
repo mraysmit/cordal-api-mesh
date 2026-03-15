@@ -1,17 +1,10 @@
 package dev.cordal.generic.config;
 
 import dev.cordal.config.GenericApiConfig;
-import dev.cordal.generic.config.ApiEndpointConfig;
-import dev.cordal.generic.config.DatabaseConfig;
-import dev.cordal.generic.config.QueryConfig;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -26,19 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 class DirectoryScanningIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryScanningIntegrationTest.class);
     
-    private Path testConfigDir;
     private GenericApiConfig config;
     private ConfigurationLoader loader;
     
     @BeforeAll
-    void setUpTestEnvironment() throws IOException {
+    void setUpTestEnvironment() {
         // Use isolated test configuration that reads from test resources only
         System.setProperty("generic.config.file", "application-isolated-test.yml");
         logger.info("Using isolated test configuration for integration testing");
     }
     
     @AfterAll
-    void cleanUpTestEnvironment() throws IOException {
+    void cleanUpTestEnvironment() {
         System.clearProperty("generic.config.file");
     }
     
@@ -102,7 +94,7 @@ class DirectoryScanningIntegrationTest {
     
     @Test
     @DisplayName("Should handle multiple directories")
-    void testMultipleDirectories() throws IOException {
+    void testMultipleDirectories() {
         // For isolated testing, we'll test that the current configuration works correctly
         // rather than creating temporary directories that reference production configs
 
@@ -167,235 +159,6 @@ class DirectoryScanningIntegrationTest {
         logger.info("Comprehensive logging validated successfully");
     }
     
-    private void createComprehensiveTestConfiguration() throws IOException {
-        // Create stock trades configurations
-        createStockTradesConfigurations();
-        
-        // Create analytics configurations
-        createAnalyticsConfigurations();
-        
-        // Create reporting configurations
-        createReportingConfigurations();
-    }
-    
-    private void createStockTradesConfigurations() throws IOException {
-        // Stock trades database configuration
-        String stockDbContent = """
-            databases:
-              stocktrades-db:
-                name: "stocktrades-db"
-                description: "Stock trades database"
-                url: "jdbc:h2:mem:stocktrades"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-              stocktrades-archive:
-                name: "stocktrades-archive"
-                description: "Stock trades archive database"
-                url: "jdbc:h2:mem:stocktrades_archive"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(testConfigDir.resolve("stocktrades-databases.yml"), stockDbContent);
-        
-        // Stock trades query configuration
-        String stockQueryContent = """
-            queries:
-              get-all-trades:
-                name: "Get All Trades"
-                description: "Get all stock trades"
-                database: "stocktrades-db"
-                sql: "SELECT * FROM trades"
-              get-trades-by-symbol:
-                name: "Get Trades by Symbol"
-                description: "Get trades for specific symbol"
-                database: "stocktrades-db"
-                sql: "SELECT * FROM trades WHERE symbol = ?"
-                parameters:
-                  - name: "symbol"
-                    type: "string"
-                    required: true
-            """;
-        Files.writeString(testConfigDir.resolve("stocktrades-queries.yml"), stockQueryContent);
-        
-        // Stock trades endpoint configuration
-        String stockEndpointContent = """
-            endpoints:
-              list-trades:
-                description: "List all trades"
-                method: "GET"
-                path: "/api/trades"
-                query: "get-all-trades"
-              trades-by-symbol:
-                description: "Get trades by symbol"
-                method: "GET"
-                path: "/api/trades/symbol/{symbol}"
-                query: "get-trades-by-symbol"
-                parameters:
-                  - name: "symbol"
-                    type: "path"
-                    required: true
-            """;
-        Files.writeString(testConfigDir.resolve("stocktrades-endpoints.yml"), stockEndpointContent);
-    }
-    
-    private void createAnalyticsConfigurations() throws IOException {
-        // Analytics database configuration
-        String analyticsDbContent = """
-            databases:
-              analytics-db:
-                name: "analytics-db"
-                description: "Analytics database"
-                url: "jdbc:h2:mem:analytics"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-              analytics-cache:
-                name: "analytics-cache"
-                description: "Analytics cache database"
-                url: "jdbc:h2:mem:analytics_cache"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-database.yml"), analyticsDbContent);
-        
-        // Analytics query configuration
-        String analyticsQueryContent = """
-            queries:
-              daily-volume:
-                name: "Daily Volume"
-                description: "Calculate daily trading volume"
-                database: "analytics-db"
-                sql: "SELECT symbol, DATE(trade_date) as date, SUM(quantity) as volume FROM trades GROUP BY symbol, DATE(trade_date)"
-              top-performers:
-                name: "Top Performers"
-                description: "Get top performing stocks"
-                database: "analytics-db"
-                sql: "SELECT symbol, (MAX(price) - MIN(price)) / MIN(price) * 100 as gain FROM trades GROUP BY symbol ORDER BY gain DESC LIMIT ?"
-                parameters:
-                  - name: "limit"
-                    type: "integer"
-                    required: false
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-query.yml"), analyticsQueryContent);
-        
-        // Analytics endpoint configuration
-        String analyticsEndpointContent = """
-            endpoints:
-              daily-volume-api:
-                description: "Daily volume analysis"
-                method: "GET"
-                path: "/api/analytics/daily-volume"
-                query: "daily-volume"
-              top-performers-api:
-                description: "Top performers analysis"
-                method: "GET"
-                path: "/api/analytics/top-performers"
-                query: "top-performers"
-                parameters:
-                  - name: "limit"
-                    type: "query"
-                    required: false
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-api.yml"), analyticsEndpointContent);
-    }
-    
-    private void createReportingConfigurations() throws IOException {
-        // Reporting database configuration
-        String reportingDbContent = """
-            databases:
-              reporting-db:
-                name: "reporting-db"
-                description: "Reporting database"
-                url: "jdbc:h2:mem:reporting"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-              reporting-warehouse:
-                name: "reporting-warehouse"
-                description: "Reporting data warehouse"
-                url: "jdbc:h2:mem:reporting_warehouse"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(testConfigDir.resolve("reporting-databases.yml"), reportingDbContent);
-        
-        // Reporting query configuration
-        String reportingQueryContent = """
-            queries:
-              monthly-summary:
-                name: "Monthly Summary"
-                description: "Generate monthly trading summary"
-                database: "reporting-db"
-                sql: "SELECT YEAR(trade_date) as year, MONTH(trade_date) as month, COUNT(*) as trades, SUM(quantity * price) as volume FROM trades GROUP BY YEAR(trade_date), MONTH(trade_date)"
-              portfolio-performance:
-                name: "Portfolio Performance"
-                description: "Calculate portfolio performance"
-                database: "reporting-warehouse"
-                sql: "SELECT trader_id, SUM(quantity * price) as total_value FROM trades WHERE trader_id = ? GROUP BY trader_id"
-                parameters:
-                  - name: "trader_id"
-                    type: "string"
-                    required: true
-            """;
-        Files.writeString(testConfigDir.resolve("reporting-queries.yml"), reportingQueryContent);
-        
-        // Reporting endpoint configuration
-        String reportingEndpointContent = """
-            endpoints:
-              monthly-summary-api:
-                description: "Monthly summary report"
-                method: "GET"
-                path: "/api/reports/monthly-summary"
-                query: "monthly-summary"
-              portfolio-performance-api:
-                description: "Portfolio performance report"
-                method: "GET"
-                path: "/api/reports/portfolio/{trader_id}"
-                query: "portfolio-performance"
-                parameters:
-                  - name: "trader_id"
-                    type: "path"
-                    required: true
-            """;
-        Files.writeString(testConfigDir.resolve("reporting-endpoint.yml"), reportingEndpointContent);
-    }
-    
-    private void createAdditionalConfigurationFiles(Path additionalDir) throws IOException {
-        String additionalDbContent = """
-            databases:
-              additional-db:
-                name: "additional-db"
-                url: "jdbc:h2:mem:additional"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(additionalDir.resolve("additional-databases.yml"), additionalDbContent);
-        
-        String additionalQueryContent = """
-            queries:
-              additional-query:
-                name: "Additional Query"
-                database: "additional-db"
-                sql: "SELECT * FROM additional_table"
-            """;
-        Files.writeString(additionalDir.resolve("additional-queries.yml"), additionalQueryContent);
-        
-        String additionalEndpointContent = """
-            endpoints:
-              additional-endpoint:
-                description: "Additional endpoint"
-                method: "GET"
-                path: "/api/additional"
-                query: "additional-query"
-            """;
-        Files.writeString(additionalDir.resolve("additional-endpoints.yml"), additionalEndpointContent);
-    }
-    
     private void verifyTestConfigurations(Map<String, DatabaseConfig> databases,
                                         Map<String, QueryConfig> queries,
                                         Map<String, ApiEndpointConfig> endpoints) {
@@ -413,19 +176,5 @@ class DirectoryScanningIntegrationTest {
         assertThat(endpoints).containsKey("test-endpoint");
         assertThat(endpoints).containsKey("stock-trades-list");
         assertThat(endpoints).containsKey("stock-trades-by-symbol");
-    }
-    
-
-    
-    private GenericApiConfig createTestConfig() {
-        GenericApiConfig testConfig = new GenericApiConfig();
-        // Configure to use test directory
-        return testConfig;
-    }
-    
-    private GenericApiConfig createMultiDirectoryConfig(List<String> directories) {
-        GenericApiConfig multiDirConfig = new GenericApiConfig();
-        // Configure to use multiple directories
-        return multiDirConfig;
     }
 }

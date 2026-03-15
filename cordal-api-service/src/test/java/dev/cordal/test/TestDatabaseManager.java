@@ -1,7 +1,6 @@
 package dev.cordal.test;
 
 import dev.cordal.common.database.BaseDatabaseManager;
-import dev.cordal.test.DatabaseConfigAdapter;
 import dev.cordal.config.GenericApiConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

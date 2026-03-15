@@ -1,6 +1,5 @@
 package dev.cordal.metrics;
 
-import dev.cordal.config.MetricsConfig;
 import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.AfterEach;
@@ -17,7 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MetricsApplicationTest {
 
     private MetricsApplication application;
-    private int testPort = 18081; // Use different port for testing
 
     @BeforeEach
     void setUp() {

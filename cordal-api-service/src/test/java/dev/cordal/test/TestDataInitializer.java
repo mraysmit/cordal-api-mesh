@@ -1,7 +1,6 @@
 package dev.cordal.test;
 
 import dev.cordal.generic.database.DatabaseConnectionManager;
-import dev.cordal.test.TestDatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,13 +11,11 @@ import org.slf4j.LoggerFactory;
  */
 public class TestDataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(TestDataInitializer.class);
-    
-    private final DatabaseConnectionManager databaseConnectionManager;
+
     private final TestDatabaseManager testDatabaseManager;
     
     public TestDataInitializer(DatabaseConnectionManager databaseConnectionManager, 
                               TestDatabaseManager testDatabaseManager) {
-        this.databaseConnectionManager = databaseConnectionManager;
         this.testDatabaseManager = testDatabaseManager;
     }
     

@@ -1,19 +1,13 @@
 package dev.cordal.generic.config;
 
 import dev.cordal.config.GenericApiConfig;
-import dev.cordal.generic.config.ApiEndpointConfig;
-import dev.cordal.generic.config.DatabaseConfig;
-import dev.cordal.generic.config.QueryConfig;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DirectoryScanningConfigurationTest {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryScanningConfigurationTest.class);
-    
-    private Path testConfigDir;
+
     private GenericApiConfig config;
     private ConfigurationLoader loader;
     
@@ -167,140 +160,4 @@ class DirectoryScanningConfigurationTest {
         logger.info("Naming patterns validated successfully");
     }
     
-    private void createTestConfigurationFiles() throws IOException {
-        // Create test database files
-        createTestDatabaseFile1();
-        createTestDatabaseFile2();
-        
-        // Create test query files
-        createTestQueryFile1();
-        createTestQueryFile2();
-        
-        // Create test endpoint files
-        createTestEndpointFile1();
-        createTestEndpointFile2();
-    }
-    
-    private void createTestDatabaseFile1() throws IOException {
-        String content = """
-            databases:
-              test-db-1:
-                name: "test-db-1"
-                description: "Test database 1"
-                url: "jdbc:h2:mem:testdb1"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-              test-db-2:
-                name: "test-db-2"
-                description: "Test database 2"
-                url: "jdbc:h2:mem:testdb2"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(testConfigDir.resolve("test1-databases.yml"), content);
-    }
-    
-    private void createTestDatabaseFile2() throws IOException {
-        String content = """
-            databases:
-              analytics-db:
-                name: "analytics-db"
-                description: "Analytics database"
-                url: "jdbc:h2:mem:analytics"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-              reporting-db:
-                name: "reporting-db"
-                description: "Reporting database"
-                url: "jdbc:h2:mem:reporting"
-                username: "sa"
-                password: ""
-                driver: "org.h2.Driver"
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-database.yml"), content);
-    }
-    
-    private void createTestQueryFile1() throws IOException {
-        String content = """
-            queries:
-              test-query-1:
-                name: "Test Query 1"
-                description: "First test query"
-                database: "test-db-1"
-                sql: "SELECT * FROM test_table_1"
-              test-query-2:
-                name: "Test Query 2"
-                description: "Second test query"
-                database: "test-db-2"
-                sql: "SELECT * FROM test_table_2"
-            """;
-        Files.writeString(testConfigDir.resolve("test1-queries.yml"), content);
-    }
-    
-    private void createTestQueryFile2() throws IOException {
-        String content = """
-            queries:
-              analytics-query:
-                name: "Analytics Query"
-                description: "Analytics query"
-                database: "analytics-db"
-                sql: "SELECT * FROM analytics_table"
-              reporting-query:
-                name: "Reporting Query"
-                description: "Reporting query"
-                database: "reporting-db"
-                sql: "SELECT * FROM reporting_table"
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-query.yml"), content);
-    }
-    
-    private void createTestEndpointFile1() throws IOException {
-        String content = """
-            endpoints:
-              test-endpoint-1:
-                description: "Test endpoint 1"
-                method: "GET"
-                path: "/api/test/endpoint1"
-                query: "test-query-1"
-              test-endpoint-2:
-                description: "Test endpoint 2"
-                method: "GET"
-                path: "/api/test/endpoint2"
-                query: "test-query-2"
-            """;
-        Files.writeString(testConfigDir.resolve("test1-endpoints.yml"), content);
-    }
-    
-    private void createTestEndpointFile2() throws IOException {
-        String content = """
-            endpoints:
-              analytics-endpoint:
-                description: "Analytics endpoint"
-                method: "GET"
-                path: "/api/analytics/data"
-                query: "analytics-query"
-              reporting-endpoint:
-                description: "Reporting endpoint"
-                method: "GET"
-                path: "/api/reporting/data"
-                query: "reporting-query"
-            """;
-        Files.writeString(testConfigDir.resolve("analytics-api.yml"), content);
-    }
-    
-    private GenericApiConfig createTestConfig() {
-        return createConfigWithDirectory(testConfigDir.toString());
-    }
-
-    private GenericApiConfig createConfigWithDirectory(String directory) {
-        // Create a test config that uses directory scanning
-        // We'll need to create a test application.yml that points to our test directory
-        System.setProperty("test.config.directory", directory);
-
-        GenericApiConfig testConfig = GenericApiConfig.loadFromFile();
-        return testConfig;
-    }
 }

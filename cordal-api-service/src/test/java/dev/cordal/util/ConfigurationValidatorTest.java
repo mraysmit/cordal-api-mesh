@@ -7,10 +7,9 @@ import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.database.DatabaseConnectionManager;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -156,5 +155,114 @@ public class ConfigurationValidatorTest {
             "Failed to connect to database 'reporting': socket closed"
         );
         assertThat(result.getSuccesses()).isEmpty();
+    }
+
+    @Test
+    void validateEndpointConnectivityShouldBuildSampleUrlsAndCaptureConnectionErrors() {
+        EndpointConfigurationManager configurationManager = mock(EndpointConfigurationManager.class);
+        DatabaseConnectionManager databaseConnectionManager = mock(DatabaseConnectionManager.class);
+        ConfigurationValidator validator = new ConfigurationValidator(configurationManager, databaseConnectionManager);
+
+        ApiEndpointConfig pathEndpoint = new ApiEndpointConfig();
+        pathEndpoint.setMethod("GET");
+        pathEndpoint.setPath("/api/orders/{id}/symbol/{symbol}/trader/{trader_id}");
+
+        ApiEndpointConfig paginatedDateRangeEndpoint = new ApiEndpointConfig();
+        paginatedDateRangeEndpoint.setMethod("GET");
+        paginatedDateRangeEndpoint.setPath("/api/date-range");
+        ApiEndpointConfig.PaginationConfig pagination = new ApiEndpointConfig.PaginationConfig();
+        pagination.setEnabled(true);
+        paginatedDateRangeEndpoint.setPagination(pagination);
+
+        ApiEndpointConfig analyticsEndpoint = new ApiEndpointConfig();
+        analyticsEndpoint.setMethod("GET");
+        analyticsEndpoint.setPath("/analytics/daily-volume");
+
+        when(configurationManager.getAllEndpointConfigurations()).thenReturn(Map.of(
+            "path-endpoint", pathEndpoint,
+            "paged-date-range", paginatedDateRangeEndpoint,
+            "analytics", analyticsEndpoint
+        ));
+
+        ValidationResult result = validator.validateEndpointConnectivity("http://127.0.0.1:1");
+
+        assertThat(result.getErrors()).hasSize(3);
+        assertThat(result.getErrors()).anySatisfy(error -> assertThat(error)
+            .contains("path-endpoint")
+            .contains("/api/orders/{id}/symbol/{symbol}/trader/{trader_id}"));
+        assertThat(result.getErrors()).anySatisfy(error -> assertThat(error)
+            .contains("paged-date-range")
+            .contains("/api/date-range"));
+        assertThat(result.getErrors()).anySatisfy(error -> assertThat(error)
+            .contains("analytics")
+            .contains("/analytics/daily-volume"));
+    }
+
+    @Test
+    void displayValidationResultsShouldHandleLargeResultSets() {
+        EndpointConfigurationManager configurationManager = mock(EndpointConfigurationManager.class);
+        DatabaseConnectionManager databaseConnectionManager = mock(DatabaseConnectionManager.class);
+        ConfigurationValidator validator = new ConfigurationValidator(configurationManager, databaseConnectionManager);
+        ValidationResult result = new ValidationResult();
+
+        for (int i = 0; i < 12; i++) {
+            result.addSuccess("success-" + i);
+            result.addError("error-" + i);
+        }
+        for (int i = 0; i < 6; i++) {
+            result.addWarning("warning-" + i);
+        }
+
+        validator.displayValidationResults("connectivity", result);
+        validator.displayValidationResults("clean-run", new ValidationResult());
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getSuccessCount()).isEqualTo(12);
+        assertThat(result.getWarningCount()).isEqualTo(6);
+        assertThat(result.getErrorCount()).isEqualTo(12);
+    }
+
+    @Test
+    void privateUrlAndSchemaHelpersShouldNormalizeExpectedValues() throws Exception {
+        EndpointConfigurationManager configurationManager = mock(EndpointConfigurationManager.class);
+        DatabaseConnectionManager databaseConnectionManager = mock(DatabaseConnectionManager.class);
+        ConfigurationValidator validator = new ConfigurationValidator(configurationManager, databaseConnectionManager);
+
+        ApiEndpointConfig paginatedEndpoint = new ApiEndpointConfig();
+        ApiEndpointConfig.PaginationConfig pagination = new ApiEndpointConfig.PaginationConfig();
+        pagination.setEnabled(true);
+        paginatedEndpoint.setPagination(pagination);
+
+        DatabaseConfig postgresConfig = new DatabaseConfig();
+        postgresConfig.setUrl("jdbc:postgresql://localhost:5432/orders?currentSchema=analytics&ssl=false");
+
+        DatabaseConfig h2Config = new DatabaseConfig();
+        h2Config.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+
+        DatabaseConfig mysqlConfig = new DatabaseConfig();
+        mysqlConfig.setUrl("jdbc:mysql://localhost:3306/orders");
+
+        assertThat(invokeStringMethod(validator, "replaceSamplePathParameters", "/api/{id}/{symbol}/{trader_id}/{exchange}/{trade_type}/{databaseName}/{name}/{queryName}"))
+            .isEqualTo("/api/1/AAPL/TRADER_001/NASDAQ/BUY/postgres-trades/test/test-query");
+        assertThat(invokeStringMethod(validator, "addSampleQueryParameters", "/api/date-range", paginatedEndpoint))
+            .isEqualTo("/api/date-range?page=0&size=2&start_date=2024-01-01&end_date=2024-12-31");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromDatabase", postgresConfig)).isEqualTo(" (schema: analytics)");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromDatabase", h2Config)).isEqualTo(" (H2)");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromDatabase", mysqlConfig)).isEqualTo(" (MySQL)");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromDatabase", new Object[] { null })).isEqualTo("");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromUrl", "jdbc:postgresql://localhost/db?currentSchema=analytics&ssl=false")).isEqualTo("analytics");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromUrl", "jdbc:sqlserver://localhost;schema=reporting;encrypt=true")).isEqualTo("reporting;encrypt=true");
+        assertThat(invokeStringMethod(validator, "extractSchemaFromUrl", "jdbc:h2:mem:testdb")).isNull();
+    }
+
+    private static String invokeStringMethod(ConfigurationValidator validator, String methodName, Object... args) throws Exception {
+        Class<?>[] parameterTypes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            parameterTypes[i] = args[i] == null ? DatabaseConfig.class : args[i].getClass();
+        }
+
+        Method method = ConfigurationValidator.class.getDeclaredMethod(methodName, parameterTypes);
+        method.setAccessible(true);
+        return (String) method.invoke(validator, args);
     }
 }

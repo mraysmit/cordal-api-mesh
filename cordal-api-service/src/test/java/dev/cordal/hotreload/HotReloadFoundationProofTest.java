@@ -247,7 +247,7 @@ class HotReloadFoundationProofTest {
         // Test delta calculation performance
         startTime = System.currentTimeMillis();
         ConfigurationSnapshot snapshot = stateManager.getSnapshot(version).get();
-        ConfigurationDelta delta = stateManager.calculateDelta(snapshot, largeDatabases, largeQueries, largeEndpoints);
+        stateManager.calculateDelta(snapshot, largeDatabases, largeQueries, largeEndpoints);
         long deltaTime = System.currentTimeMillis() - startTime;
 
         System.out.println("✅ Performance proof complete:");

@@ -1,10 +1,6 @@
 package dev.cordal.generic;
 
 import dev.cordal.test.TestDatabaseManager;
-import dev.cordal.generic.config.ConfigurationLoader;
-import dev.cordal.generic.config.EndpointConfigurationManager;
-import dev.cordal.generic.database.DatabaseConnectionManager;
-import io.javalin.Javalin;
 import io.javalin.testtools.JavalinTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;

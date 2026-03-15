@@ -3,8 +3,6 @@ package dev.cordal.integration.examples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-
 /**
  * EXAMPLE IMPLEMENTATION: Test utility class for managing stock trades test data
  * 

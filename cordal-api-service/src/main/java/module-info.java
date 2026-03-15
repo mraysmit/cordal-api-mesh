@@ -1,10 +1,20 @@
+@SuppressWarnings("requires-automatic")
 module dev.cordal.generic.api {
     // Export only packages needed by other modules (integration-tests)
     exports dev.cordal.generic;  // Main application class
     exports dev.cordal.bootstrap;  // Bootstrap demo functionality
 
     // Export configuration and model packages for integration testing
+    exports dev.cordal.config;
+    exports dev.cordal.database;
+    exports dev.cordal.database.loader;
+    exports dev.cordal.database.repository;
+    exports dev.cordal.dto;
+    exports dev.cordal.generic.cache;
     exports dev.cordal.generic.config;
+    exports dev.cordal.generic.database;
+    exports dev.cordal.generic.dto;
+    exports dev.cordal.generic.management;
     exports dev.cordal.generic.model;
 
     // Open packages to Guice for reflection and dependency injection
@@ -23,11 +33,10 @@ module dev.cordal.generic.api {
     opens dev.cordal.generic.migration;
     opens dev.cordal.generic.model;
     opens dev.cordal.hotreload;
-    opens dev.cordal.integration;
     opens dev.cordal.util;
     
     // Required modules
-    requires dev.cordal.common;  // Provides core framework dependencies
+    requires transitive dev.cordal.common;  // Provides core framework dependencies
 
     // Transitive dependencies from common-library (needed for direct usage)
     requires transitive io.javalin;
@@ -37,7 +46,7 @@ module dev.cordal.generic.api {
     requires transitive com.h2database;
     requires transitive com.zaxxer.hikari;
     requires transitive com.google.guice;
-    requires transitive javax.inject;
+    requires transitive jakarta.inject;
     requires transitive org.yaml.snakeyaml;
     requires transitive ch.qos.logback.classic;
     requires transitive org.slf4j;
@@ -45,11 +54,8 @@ module dev.cordal.generic.api {
     // Additional database support
     requires java.naming;  // Required for PostgreSQL JNDI support
 
-    // API documentation
-    requires swagger.ui;
-
     // Java platform modules
-    requires java.sql;
+    requires transitive java.sql;
     requires java.management;
     requires java.net.http;
 }

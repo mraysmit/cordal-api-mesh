@@ -143,8 +143,8 @@ public class ProductionMigrationUtility {
             }
             
             // Show configuration counts
-            Map<String, Object> yamlCounts = (Map<String, Object>) status.get("yamlCounts");
-            Map<String, Object> dbCounts = (Map<String, Object>) status.get("databaseCounts");
+            Map<String, Object> yamlCounts = getNestedMap(status, "yamlCounts");
+            Map<String, Object> dbCounts = getNestedMap(status, "databaseCounts");
             
             System.out.println("\nCurrent configuration counts:");
             System.out.printf("  YAML: %s databases, %s queries, %s endpoints (Total: %s)%n",
@@ -304,7 +304,7 @@ public class ProductionMigrationUtility {
             // Test configuration loading from database
             System.out.println("Testing database configuration loading...");
             Map<String, Object> stats = migrationService.getMigrationStatus();
-            Map<String, Object> dbCounts = (Map<String, Object>) stats.get("databaseCounts");
+            Map<String, Object> dbCounts = getNestedMap(stats, "databaseCounts");
 
             int totalDbConfigs = (Integer) dbCounts.get("total");
             if (totalDbConfigs > 0) {
@@ -351,6 +351,15 @@ public class ProductionMigrationUtility {
         System.out.println("  - And more...");
         System.out.println();
         System.out.println("=== PRODUCTION MIGRATION COMPLETED ===");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getNestedMap(Map<String, Object> source, String key) {
+        Object value = source.get(key);
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        throw new IllegalStateException("Expected map value for key '" + key + "'");
     }
 
     /**
