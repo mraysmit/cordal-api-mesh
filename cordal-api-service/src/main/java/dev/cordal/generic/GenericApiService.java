@@ -17,8 +17,9 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Generic API service that handles requests based on configuration
@@ -30,7 +31,7 @@ public class GenericApiService {
     private final GenericRepository genericRepository;
     private final EndpointConfigurationManager configurationManager;
     private final DatabaseConnectionManager databaseConnectionManager;
-    private final Executor asyncExecutor;
+    private final ExecutorService virtualThreadExecutor;
 
     @Inject
     public GenericApiService(GenericRepository genericRepository,
@@ -39,7 +40,7 @@ public class GenericApiService {
         this.genericRepository = genericRepository;
         this.configurationManager = configurationManager;
         this.databaseConnectionManager = databaseConnectionManager;
-        this.asyncExecutor = ForkJoinPool.commonPool();
+        this.virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
     }
     
     /**
@@ -112,11 +113,11 @@ public class GenericApiService {
                 logger.error("Async execution failed for endpoint: {}", endpointName, e);
                 throw e;
             }
-        }, asyncExecutor);
+        }, virtualThreadExecutor);
     }
     
     /**
-     * Execute paginated endpoint
+     * Execute paginated endpoint with parallel data + count queries on virtual threads
      */
     private GenericResponse executePaginatedEndpoint(ApiEndpointConfig endpointConfig, 
                                                    QueryConfig queryConfig,
@@ -130,18 +131,32 @@ public class GenericApiService {
         // Validate pagination parameters
         validatePaginationParameters(page, size, endpointConfig.getPagination().getMaxSize());
         
-        // Execute main query
-        List<Map<String, Object>> results = executeQueryAsMaps(queryConfig, queryParameters);
-        
-        // Execute count query if available
+        List<Map<String, Object>> results;
         long totalElements = 0;
+
         if (endpointConfig.getCountQuery() != null) {
             QueryConfig countQueryConfig = configurationManager.getQueryConfig(endpointConfig.getCountQuery())
                     .orElseThrow(() -> ApiException.internalError("Count query not found: " + endpointConfig.getCountQuery()));
             
             // Remove pagination parameters for count query
             List<QueryParameter> countParameters = removeParametersByName(queryParameters, Arrays.asList("limit", "offset"));
-            totalElements = genericRepository.executeCountQuery(countQueryConfig, countParameters);
+
+            // Execute main query and count query in parallel on virtual threads
+            var dataFuture = CompletableFuture.supplyAsync(
+                () -> executeQueryAsMaps(queryConfig, queryParameters), virtualThreadExecutor);
+            var countFuture = CompletableFuture.supplyAsync(
+                () -> genericRepository.executeCountQuery(countQueryConfig, countParameters), virtualThreadExecutor);
+
+            try {
+                results = dataFuture.join();
+                totalElements = countFuture.join();
+            } catch (CompletionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof RuntimeException re) throw re;
+                throw new RuntimeException(cause);
+            }
+        } else {
+            results = executeQueryAsMaps(queryConfig, queryParameters);
         }
         
         logger.debug("Paginated query returned {} results out of {} total", results.size(), totalElements);

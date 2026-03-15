@@ -228,6 +228,55 @@ public class PerformanceMetricsRepository {
     }
     
     /**
+     * Count performance metrics by test type
+     */
+    public long countByTestType(String testType) {
+        String sql = "SELECT COUNT(*) FROM performance_metrics WHERE test_type = ?";
+        
+        try (Connection connection = metricsDatabaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setString(1, testType);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getLong(1);
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Error counting performance metrics by test type", e);
+            throw new RuntimeException("Failed to count performance metrics by test type", e);
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * Count performance metrics within date range
+     */
+    public long countByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        String sql = "SELECT COUNT(*) FROM performance_metrics WHERE timestamp BETWEEN ? AND ?";
+        
+        try (Connection connection = metricsDatabaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setTimestamp(1, Timestamp.valueOf(startDate));
+            statement.setTimestamp(2, Timestamp.valueOf(endDate));
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getLong(1);
+                }
+            }
+            
+        } catch (SQLException e) {
+            logger.error("Error counting performance metrics by date range", e);
+            throw new RuntimeException("Failed to count performance metrics by date range", e);
+        }
+        
+        return 0;
+    }
+    
+    /**
      * Get distinct test types
      */
     public List<String> getDistinctTestTypes() {

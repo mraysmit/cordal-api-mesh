@@ -263,9 +263,9 @@ public class MetricsCollectionHandler {
     }
     
     private static class EndpointMetrics {
-        long totalRequests = 0;
-        double totalResponseTime = 0.0;
-        long successfulRequests = 0;
-        LocalDateTime lastRequestTime;
+        volatile long totalRequests = 0;
+        volatile double totalResponseTime = 0.0;
+        volatile long successfulRequests = 0;
+        volatile LocalDateTime lastRequestTime;
     }
 }

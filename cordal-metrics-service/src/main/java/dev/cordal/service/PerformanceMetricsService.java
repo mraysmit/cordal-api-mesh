@@ -60,7 +60,7 @@ public class PerformanceMetricsService {
      */
     public PagedResponse<PerformanceMetrics> getMetricsByTestType(String testType, int page, int size) {
         List<PerformanceMetrics> metrics = repository.findByTestType(testType, page, size);
-        long totalElements = repository.count(); // Note: This could be optimized to count by test type
+        long totalElements = repository.countByTestType(testType);
         
         return new PagedResponse<>(metrics, page, size, totalElements);
     }
@@ -71,7 +71,7 @@ public class PerformanceMetricsService {
     public PagedResponse<PerformanceMetrics> getMetricsByDateRange(
             LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
         List<PerformanceMetrics> metrics = repository.findByDateRange(startDate, endDate, page, size);
-        long totalElements = repository.count(); // Note: This could be optimized to count by date range
+        long totalElements = repository.countByDateRange(startDate, endDate);
         
         return new PagedResponse<>(metrics, page, size, totalElements);
     }

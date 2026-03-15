@@ -292,7 +292,7 @@ Each database contains 100 realistic stock trade records with:
 ## Running the Tests
 
 ### Prerequisites
-- Java 21 or higher
+- Java 25 or higher (with `--enable-preview`)
 - Maven 3.8 or higher
 - Docker (for TestContainers - PostgreSQL tests only)
 

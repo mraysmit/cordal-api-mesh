@@ -86,7 +86,7 @@ public class GranularConfigurationApiTest {
             // Read response body once and verify it contains expected JSON structure
             String responseBody = response.body().string();
             assertThat(responseBody).contains("\"configType\":\"endpoints\"");
-            assertThat(responseBody).contains("\"endpointDatabases\":");
+            assertThat(responseBody).contains("\"connections\":");
         });
     }
 
@@ -150,7 +150,7 @@ public class GranularConfigurationApiTest {
             // Read response body once and verify it contains expected JSON structure
             String responseBody = response.body().string();
             assertThat(responseBody).contains("\"configType\":\"queries\"");
-            assertThat(responseBody).contains("\"queryDatabases\":");
+            assertThat(responseBody).contains("\"connections\":");
         });
     }
 

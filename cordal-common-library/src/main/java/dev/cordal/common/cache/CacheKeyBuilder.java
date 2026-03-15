@@ -116,8 +116,7 @@ public class CacheKeyBuilder {
         }
         
         if (value instanceof String) {
-            // Trim and convert to lowercase for consistency
-            return ((String) value).trim().toLowerCase();
+            return ((String) value).trim();
         }
         
         if (value instanceof Number) {
@@ -125,7 +124,7 @@ public class CacheKeyBuilder {
         }
         
         if (value instanceof Boolean) {
-            return value.toString().toLowerCase();
+            return value.toString();
         }
         
         if (value instanceof Collection) {
@@ -145,7 +144,7 @@ public class CacheKeyBuilder {
         }
         
         // For other objects, use toString and normalize
-        return value.toString().trim().toLowerCase();
+        return value.toString().trim();
     }
     
     /**

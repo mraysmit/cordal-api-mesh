@@ -23,12 +23,8 @@ public class CacheEventPublisher {
     private volatile boolean shutdown = false;
 
     public CacheEventPublisher() {
-        this.executorService = Executors.newCachedThreadPool(r -> {
-            Thread t = new Thread(r, "cache-event-publisher");
-            t.setDaemon(true);
-            return t;
-        });
-        logger.info("CacheEventPublisher initialized");
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+        logger.info("CacheEventPublisher initialized with virtual threads");
     }
 
     /**

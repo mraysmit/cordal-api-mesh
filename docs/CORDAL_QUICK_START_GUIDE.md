@@ -7,7 +7,7 @@
 
 ## What is CORDAL?
 
-CORDAL is a **generic, configuration-driven REST API framework** built on Java 21 and Javalin 6.1.3. Create dynamic REST APIs for **any domain** through YAML configuration files instead of writing code.
+CORDAL is a **generic, configuration-driven REST API framework** built on Java 25 and Javalin 6.7.0. Create dynamic REST APIs for **any domain** through YAML configuration files instead of writing code.
 
 ## Core vs. Example Architecture
 
@@ -28,7 +28,7 @@ CORDAL is a **generic, configuration-driven REST API framework** built on Java 2
 ## Quick Start (5 Minutes)
 
 ### Prerequisites
-- **Java 21+** (JDK required)
+- **Java 25** (JDK required, with `--enable-preview`)
 - **Maven 3.6.0+**
 - **PostgreSQL** (optional, for production)
 

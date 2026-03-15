@@ -1,5 +1,6 @@
 package dev.cordal.generic.management;
 
+import dev.cordal.common.exception.ApiException;
 import dev.cordal.generic.config.DatabaseConfig;
 import dev.cordal.generic.config.QueryConfig;
 import dev.cordal.generic.config.ApiEndpointConfig;
@@ -11,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * REST controller for configuration management operations
@@ -19,6 +21,7 @@ import java.util.Optional;
 @Singleton
 public class ConfigurationManagementController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagementController.class);
+    private static final Pattern VALID_NAME = Pattern.compile("^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,99}$");
 
     private final ConfigurationManagementService configurationManagementService;
 
@@ -26,6 +29,16 @@ public class ConfigurationManagementController {
     public ConfigurationManagementController(ConfigurationManagementService configurationManagementService) {
         this.configurationManagementService = configurationManagementService;
         logger.info("Configuration management controller initialized");
+    }
+
+    private static String validateResourceName(String name) {
+        if (name == null || name.isBlank()) {
+            throw ApiException.badRequest("Resource name cannot be empty");
+        }
+        if (!VALID_NAME.matcher(name).matches()) {
+            throw ApiException.badRequest("Invalid resource name: must be alphanumeric (with _ . -), max 100 chars");
+        }
+        return name;
     }
 
     // ========== DATABASE CONFIGURATION ENDPOINTS ==========
@@ -40,7 +53,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all database configurations", e);
-            ctx.status(500).json(Map.of("error", "Failed to get database configurations: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get database configurations"));
         }
     }
 
@@ -48,7 +61,7 @@ public class ConfigurationManagementController {
      * GET /api/management/config/databases/{name} - Get database configuration by name
      */
     public void getDatabaseConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Getting database configuration: {}", name);
         
         try {
@@ -69,7 +82,7 @@ public class ConfigurationManagementController {
             }
         } catch (Exception e) {
             logger.error("Error getting database configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to get database configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get database configuration"));
         }
     }
 
@@ -77,7 +90,7 @@ public class ConfigurationManagementController {
      * POST /api/management/config/databases/{name} - Create or update database configuration
      */
     public void saveDatabaseConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Saving database configuration: {}", name);
         
         try {
@@ -89,7 +102,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error saving database configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to save database configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to save database configuration"));
         }
     }
 
@@ -97,7 +110,7 @@ public class ConfigurationManagementController {
      * DELETE /api/management/config/databases/{name} - Delete database configuration
      */
     public void deleteDatabaseConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Deleting database configuration: {}", name);
         
         try {
@@ -108,7 +121,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting database configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to delete database configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to delete database configuration"));
         }
     }
 
@@ -124,7 +137,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all query configurations", e);
-            ctx.status(500).json(Map.of("error", "Failed to get query configurations: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get query configurations"));
         }
     }
 
@@ -132,7 +145,7 @@ public class ConfigurationManagementController {
      * GET /api/management/config/queries/{name} - Get query configuration by name
      */
     public void getQueryConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Getting query configuration: {}", name);
         
         try {
@@ -153,7 +166,7 @@ public class ConfigurationManagementController {
             }
         } catch (Exception e) {
             logger.error("Error getting query configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to get query configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get query configuration"));
         }
     }
 
@@ -161,7 +174,7 @@ public class ConfigurationManagementController {
      * GET /api/management/config/queries/by-database/{databaseName} - Get queries by database
      */
     public void getQueryConfigurationsByDatabase(Context ctx) {
-        String databaseName = ctx.pathParam("databaseName");
+        String databaseName = validateResourceName(ctx.pathParam("databaseName"));
         logger.debug("Getting query configurations for database: {}", databaseName);
         
         try {
@@ -169,7 +182,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting query configurations for database: {}", databaseName, e);
-            ctx.status(500).json(Map.of("error", "Failed to get query configurations: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get query configurations"));
         }
     }
 
@@ -177,7 +190,7 @@ public class ConfigurationManagementController {
      * POST /api/management/config/queries/{name} - Create or update query configuration
      */
     public void saveQueryConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Saving query configuration: {}", name);
         
         try {
@@ -189,7 +202,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error saving query configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to save query configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to save query configuration"));
         }
     }
 
@@ -197,7 +210,7 @@ public class ConfigurationManagementController {
      * DELETE /api/management/config/queries/{name} - Delete query configuration
      */
     public void deleteQueryConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Deleting query configuration: {}", name);
         
         try {
@@ -208,7 +221,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting query configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to delete query configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to delete query configuration"));
         }
     }
 
@@ -224,7 +237,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting all endpoint configurations", e);
-            ctx.status(500).json(Map.of("error", "Failed to get endpoint configurations: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get endpoint configurations"));
         }
     }
 
@@ -232,7 +245,7 @@ public class ConfigurationManagementController {
      * GET /api/management/config/endpoints/{name} - Get endpoint configuration by name
      */
     public void getEndpointConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Getting endpoint configuration: {}", name);
         
         try {
@@ -253,7 +266,7 @@ public class ConfigurationManagementController {
             }
         } catch (Exception e) {
             logger.error("Error getting endpoint configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to get endpoint configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get endpoint configuration"));
         }
     }
 
@@ -261,7 +274,7 @@ public class ConfigurationManagementController {
      * GET /api/management/config/endpoints/by-query/{queryName} - Get endpoints by query
      */
     public void getEndpointConfigurationsByQuery(Context ctx) {
-        String queryName = ctx.pathParam("queryName");
+        String queryName = validateResourceName(ctx.pathParam("queryName"));
         logger.debug("Getting endpoint configurations for query: {}", queryName);
         
         try {
@@ -269,7 +282,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting endpoint configurations for query: {}", queryName, e);
-            ctx.status(500).json(Map.of("error", "Failed to get endpoint configurations: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get endpoint configurations"));
         }
     }
 
@@ -277,7 +290,7 @@ public class ConfigurationManagementController {
      * POST /api/management/config/endpoints/{name} - Create or update endpoint configuration
      */
     public void saveEndpointConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Saving endpoint configuration: {}", name);
 
         try {
@@ -289,7 +302,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error saving endpoint configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to save endpoint configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to save endpoint configuration"));
         }
     }
 
@@ -297,7 +310,7 @@ public class ConfigurationManagementController {
      * DELETE /api/management/config/endpoints/{name} - Delete endpoint configuration
      */
     public void deleteEndpointConfiguration(Context ctx) {
-        String name = ctx.pathParam("name");
+        String name = validateResourceName(ctx.pathParam("name"));
         logger.debug("Deleting endpoint configuration: {}", name);
 
         try {
@@ -308,7 +321,7 @@ public class ConfigurationManagementController {
             ctx.status(400).json(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             logger.error("Error deleting endpoint configuration: {}", name, e);
-            ctx.status(500).json(Map.of("error", "Failed to delete endpoint configuration: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to delete endpoint configuration"));
         }
     }
 
@@ -324,7 +337,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting configuration statistics", e);
-            ctx.status(500).json(Map.of("error", "Failed to get configuration statistics: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get configuration statistics"));
         }
     }
 
@@ -338,7 +351,7 @@ public class ConfigurationManagementController {
             ctx.json(result);
         } catch (Exception e) {
             logger.error("Error getting configuration source information", e);
-            ctx.status(500).json(Map.of("error", "Failed to get configuration source information: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to get configuration source information"));
         }
     }
 
@@ -360,7 +373,7 @@ public class ConfigurationManagementController {
             ));
         } catch (Exception e) {
             logger.error("Error checking configuration management availability", e);
-            ctx.status(500).json(Map.of("error", "Failed to check configuration management availability: " + e.getMessage()));
+            ctx.status(500).json(Map.of("error", "Failed to check configuration management availability"));
         }
     }
 }

@@ -135,10 +135,6 @@ public class ConfigurationReloadManager implements ConfigurationChangeListener {
             return ReloadResult.failure("Hot reload is not enabled");
         }
         
-        if (currentStatus.get() == ReloadStatus.RELOADING) {
-            return ReloadResult.failure("Reload already in progress");
-        }
-        
         logger.info("Manual reload triggered: {}", request);
         
         try {
@@ -167,23 +163,25 @@ public class ConfigurationReloadManager implements ConfigurationChangeListener {
      * Process configuration reload from file change
      */
     private void processConfigurationReload(FileChangeEvent event) {
-        if (currentStatus.get() == ReloadStatus.RELOADING) {
-            logger.warn("Reload already in progress, skipping file change: {}", event.getFileName());
-            return;
-        }
-        
         ReloadRequest request = ReloadRequest.fromFileChange(event);
-        performReload(request);
+        ReloadResult result = performReload(request);
+        if (!result.isSuccess()) {
+            logger.warn("Reload from file change skipped or failed: {}", result.getMessage());
+        }
     }
     
     /**
      * Perform the actual configuration reload
      */
     private ReloadResult performReload(ReloadRequest request) {
+        // Atomically transition to RELOADING only if currently WATCHING
+        if (!currentStatus.compareAndSet(ReloadStatus.WATCHING, ReloadStatus.RELOADING)) {
+            return ReloadResult.failure("Reload already in progress or system not in WATCHING state");
+        }
+        
         String reloadId = generateReloadId();
         logger.info("Starting configuration reload: {} (request: {})", reloadId, request);
         
-        currentStatus.set(ReloadStatus.RELOADING);
         int attempt = reloadAttempts.incrementAndGet();
         
         try {

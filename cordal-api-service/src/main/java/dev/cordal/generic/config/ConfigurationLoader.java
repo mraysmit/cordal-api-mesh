@@ -43,7 +43,8 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
     }
 
     /**
-     * Resolve a configuration resource with fallback paths
+     * Resolve a configuration resource with fallback paths.
+     * External file paths are validated against the configured directories to prevent path traversal.
      */
     private InputStream resolveConfigResource(String configPath) {
         logger.debug("Attempting to load resource: {}", configPath);
@@ -52,9 +53,20 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
         if (configPath.startsWith("./") || configPath.startsWith("../") || configPath.startsWith("/") ||
             (configPath.length() > 1 && configPath.charAt(1) == ':')) {
             try {
-                // Resolve the path relative to the current working directory
                 Path filePath = Paths.get(configPath).toAbsolutePath().normalize();
                 logger.debug("Trying to load external file: {}", filePath);
+
+                // Validate path is within an allowed configuration directory
+                if (!isWithinAllowedDirectory(filePath)) {
+                    logger.warn("Rejected external config path outside allowed directories: {}", filePath);
+                    return null;
+                }
+
+                // Reject symbolic links to prevent escaping directory boundaries
+                if (Files.isSymbolicLink(filePath)) {
+                    logger.warn("Rejected symbolic link in config path: {}", filePath);
+                    return null;
+                }
 
                 if (Files.exists(filePath)) {
                     logger.info("Successfully loading external file: {}", filePath);
@@ -97,6 +109,27 @@ public class ConfigurationLoader implements ConfigurationLoaderInterface {
         }
 
         return inputStream;
+    }
+
+    /**
+     * Check whether a resolved file path falls within one of the allowed configuration directories.
+     * Also accepts the current working directory as an implicit allowed root.
+     */
+    private boolean isWithinAllowedDirectory(Path filePath) {
+        Path normalized = filePath.toAbsolutePath().normalize();
+        // Allow paths under the current working directory
+        Path cwd = Paths.get("").toAbsolutePath().normalize();
+        if (normalized.startsWith(cwd)) {
+            return true;
+        }
+        // Allow paths under any explicitly configured directory
+        for (String dir : genericApiConfig.getConfigDirectories()) {
+            Path allowedDir = Paths.get(dir).toAbsolutePath().normalize();
+            if (normalized.startsWith(allowedDir)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -51,22 +51,26 @@ public class DynamicEndpointRegistry {
         logger.info("Registering endpoint: {} -> {} {}", name, config.getMethod(), config.getPath());
         
         try {
-            // Check if endpoint already exists
-            if (activeEndpoints.containsKey(name)) {
-                return EndpointRegistrationResult.failure("Endpoint already exists: " + name);
-            }
-            
             // Create handler for the endpoint
             Handler handler = createEndpointHandler(name, config);
             
-            // Register with Javalin based on HTTP method
-            registerWithJavalin(config.getMethod(), config.getPath(), handler);
-            
-            // Track the registered endpoint
+            // Track the registered endpoint — atomically check-and-insert to avoid TOCTOU race
             RegisteredEndpoint registeredEndpoint = new RegisteredEndpoint(
                 name, config, handler, System.currentTimeMillis()
             );
-            activeEndpoints.put(name, registeredEndpoint);
+            RegisteredEndpoint existing = activeEndpoints.putIfAbsent(name, registeredEndpoint);
+            if (existing != null) {
+                return EndpointRegistrationResult.failure("Endpoint already exists: " + name);
+            }
+            
+            try {
+                // Register with Javalin based on HTTP method
+                registerWithJavalin(config.getMethod(), config.getPath(), handler);
+            } catch (Exception e) {
+                // Roll back the map entry if Javalin registration fails
+                activeEndpoints.remove(name);
+                throw e;
+            }
             
             int totalEndpoints = registrationCounter.incrementAndGet();
             logger.info("Endpoint registered successfully: {} (total active: {})", name, totalEndpoints);

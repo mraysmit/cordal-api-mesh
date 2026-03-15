@@ -88,7 +88,6 @@ All Java source files must include the following license header:
 - **JUnit Jupiter** (5.10.1) - Eclipse Public License 2.0
 - **JUnit Platform Suite** (1.10.1) - Eclipse Public License 2.0
 - **AssertJ Core** (3.24.2) - Apache License 2.0
-- **Mockito Core** (5.7.0) - MIT License
 
 #### Integration Testing
 - **TestContainers** (1.18.3) - MIT License

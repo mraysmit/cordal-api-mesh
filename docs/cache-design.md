@@ -2,6 +2,8 @@
 **Date:** 2025-03-05
 **Author:** Mark Andrew Ray-Smith Cityline Ltd
 
+> **Note:** This is an early design document. Caching has since been implemented in `cordal-common-library` (see `InMemoryCacheProvider`). This document is retained for historical reference; the actual implementation may differ from what is described below.
+
 ## **Proposed Caching Architecture**
 
 ### **1. Cache Configuration Layer**

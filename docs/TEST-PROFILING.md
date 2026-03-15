@@ -121,7 +121,6 @@ The system automatically identifies optimization priorities based on:
 - Cache database connections in test setup
 
 ### 2. Integration Tests
-- Mock external services
 - Use TestContainers for faster setup
 - Parallelize independent tests
 
@@ -218,7 +217,7 @@ Map<String, TestExecutionData> timings = TestTimingExtension.getTimingData();
 3. **Monitor trends** over time
 4. **Focus on the slowest tests** first
 5. **Use parallel execution** where appropriate
-6. **Mock external dependencies** in unit tests
+6. **Use Testcontainers** for external dependencies in tests
 7. **Keep integration tests focused** and minimal
 
 ## Example Output

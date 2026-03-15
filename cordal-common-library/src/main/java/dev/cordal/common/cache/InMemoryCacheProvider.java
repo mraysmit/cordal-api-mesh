@@ -54,22 +54,15 @@ public class InMemoryCacheProvider implements CacheProvider {
             }
             
             if (entry.isExpired()) {
+                // Release read lock before acquiring write lock — must re-check after
                 lock.readLock().unlock();
-                lock.writeLock().lock();
                 try {
-                    // Double-check after acquiring write lock
-                    entry = cache.get(key);
-                    if (entry != null && entry.isExpired()) {
-                        cache.remove(key);
-                        accessOrder.remove(key);
-                        logger.debug("Removed expired cache entry: {}", key);
-                    }
-                    missCount.incrementAndGet();
-                    return Optional.empty();
+                    removeExpiredEntry(key);
                 } finally {
                     lock.readLock().lock();
-                    lock.writeLock().unlock();
                 }
+                missCount.incrementAndGet();
+                return Optional.empty();
             }
             
             // Update access order
@@ -88,6 +81,20 @@ public class InMemoryCacheProvider implements CacheProvider {
             return Optional.of((T) value);
         } finally {
             lock.readLock().unlock();
+        }
+    }
+    
+    private void removeExpiredEntry(String key) {
+        lock.writeLock().lock();
+        try {
+            CacheEntry entry = cache.get(key);
+            if (entry != null && entry.isExpired()) {
+                cache.remove(key);
+                accessOrder.remove(key);
+                logger.debug("Removed expired cache entry: {}", key);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
     

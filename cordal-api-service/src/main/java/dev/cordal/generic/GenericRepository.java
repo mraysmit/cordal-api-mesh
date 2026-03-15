@@ -56,11 +56,9 @@ public class GenericRepository {
     }
 
     /**
-     * Execute a query and return results as list of maps (DEPRECATED - use executeQuerySafe)
-     * @deprecated Use executeQuerySafe() for type safety
+     * Execute a query with caching support and return results as list of maps
      */
-    @Deprecated
-    public List<Map<String, Object>> executeQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
+    private List<Map<String, Object>> executeQuery(QueryConfig queryConfig, List<QueryParameter> parameters) {
         logger.debug("Executing query: {} with {} parameters on database: {}",
                     queryConfig.getName(), parameters.size(), queryConfig.getDatabase());
 

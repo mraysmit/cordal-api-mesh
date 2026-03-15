@@ -86,11 +86,6 @@ AssertJ Testing Library (org.assertj:assertj-core:3.24.2)
   Copyright 2013-2023 AssertJ
   https://github.com/assertj/assertj-core
 
-Mockito Testing Framework (org.mockito:mockito-core:5.7.0)
-  License: MIT License
-  Copyright (c) 2007 Mockito contributors
-  https://github.com/mockito/mockito
-
 TestContainers (org.testcontainers:testcontainers:1.18.3)
   License: MIT License
   Copyright (c) 2015-2023 Richard North and other authors

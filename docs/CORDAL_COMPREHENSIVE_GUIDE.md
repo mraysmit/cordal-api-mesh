@@ -72,8 +72,8 @@ A REST API that responds to `GET /api/hello` with a personalized greeting. This 
 ### Step 1: Prerequisites
 
 ```bash
-# You need Java 21+ and Maven 3.6+
-java --version   # Should show Java 21+
+# You need Java 25 and Maven 3.6+
+java --version   # Should show Java 25+
 mvn --version    # Should show Maven 3.6+
 ```
 
@@ -153,7 +153,7 @@ endpoints:
 
 ```bash
 # Start CORDAL
-./scripts/start-cordal-api-service.sh
+./scripts/start-generic-api-service.sh
 ```
 
 ### Step 6: Test Your API
@@ -227,7 +227,7 @@ When you call `GET /api/hello`:
 
 ### System Requirements
 
-- **Java 21+** (JDK for building, JRE for running)
+- **Java 25** (JDK for building, with `--enable-preview`)
 - **Maven 3.6+** (for building)
 - **4GB RAM** (minimum for development)
 - **PostgreSQL** (optional, for production)
@@ -253,10 +253,10 @@ cordal/
 ./scripts/build-executable-jars.sh
 
 # Start API service
-./scripts/start-cordal-api-service.sh
+./scripts/start-generic-api-service.sh
 
 # Start metrics service (optional)
-./scripts/start-cordal-metrics-service.sh
+./scripts/start-metrics-service.sh
 
 # Stop all services
 ./scripts/stop-all-services.sh
@@ -576,33 +576,9 @@ curl http://localhost:8080/api/users
 
 Large datasets need pagination. Let's add it to our users API.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Add Paginated Query
+### Step 1: Add Paginated Query
 
 **Update: `generic-config/users-queries.yml`**
 ```yaml
@@ -700,33 +676,9 @@ curl "http://localhost:8080/api/users/paginated?page=1&size=5"
 
 Let's add search and filtering capabilities to our API.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Add Search Queries
+### Step 1: Add Search Queries
 
 **Update: `generic-config/users-queries.yml`**
 ```yaml
@@ -822,33 +774,9 @@ curl "http://localhost:8080/api/users/search?name=smith&page=0&size=5"
 
 Let's add caching to improve performance for frequently accessed data.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Enable Caching in Queries
+### Step 1: Enable Caching in Queries
 
 **Update: `generic-config/users-queries.yml`**
 ```yaml
@@ -917,33 +845,9 @@ curl -X POST http://localhost:8080/api/cache/clear-all
 
 Let's create a more complex scenario with multiple databases.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Define Multiple Databases
+### Step 1: Define Multiple Databases
 
 **File: `generic-config/multi-databases.yml`**
 ```yaml
@@ -1075,33 +979,9 @@ curl http://localhost:8080/api/users/1
 
 Let's create more sophisticated queries with joins and aggregations.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Enhanced Schema with Relationships
+### Step 1: Enhanced Schema with Relationships
 
 **Update: `generic-config/multi-databases.yml`**
 ```yaml
@@ -1336,33 +1216,9 @@ curl "http://localhost:8080/api/analytics/sales?category=Electronics"
 
 Let's set up comprehensive monitoring and observability.
 
-### Step 1: Ensure Application Configuration
+> **Prerequisite:** Ensure your `application.yaml` is configured as shown in [Example 3, Step 1](#step-1-ensure-application-configuration).
 
-Make sure your `application.yaml` is properly configured:
-
-**File: `application.yaml`**
-```yaml
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    dev.cordal: DEBUG
-  file:
-    name: "logs/cordal-api-service.log"
-
-# Configuration file discovery
-cordal:
-  config:
-    directory: "generic-config"
-    patterns:
-      databases: "*-databases.yml"
-      queries: "*-queries.yml"
-      endpoints: "*-endpoints.yml"
-```
-
-### Step 2: Enable Metrics Collection
+### Step 1: Enable Metrics Collection
 
 **File: `generic-config/monitoring-endpoints.yml`**
 ```yaml
@@ -1390,7 +1246,7 @@ endpoints:
 
 ```bash
 # Start the metrics service
-./scripts/start-cordal-metrics-service.sh
+./scripts/start-metrics-service.sh
 
 # Verify metrics service is running
 curl http://localhost:8081/api/metrics/health
@@ -1536,12 +1392,12 @@ PERFORMANCE_LOGGING=true
 ./scripts/build-executable-jars.sh
 
 # Deploy with production configuration
-java -jar -Dspring.profiles.active=production \
+java -jar \
   -Xmx2g -Xms1g \
   cordal-api-service/target/cordal-api-service-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 # Deploy metrics service
-java -jar -Dspring.profiles.active=production \
+java -jar \
   -Xmx1g -Xms512m \
   cordal-metrics-service/target/cordal-metrics-service-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
@@ -1821,7 +1677,7 @@ The stock trades functionality referenced throughout this documentation is **NOT
 
 ### Prerequisites
 
-- **Java 21+** (JDK required for building)
+- **Java 25** (JDK required for building, with `--enable-preview`)
 - **Maven 3.6.0+** for building
 - **PostgreSQL** (optional, for production databases)
 
@@ -1843,8 +1699,8 @@ cd cordal
 ./scripts/start-all-services.sh
 
 # Or start individual services
-./scripts/start-cordal-api-service.sh
-./scripts/start-cordal-metrics-service.sh
+./scripts/start-generic-api-service.sh
+./scripts/start-metrics-service.sh
 ```
 
 ### 3. Verify Installation
@@ -2839,7 +2695,7 @@ java -jar cordal-metrics-service/target/cordal-metrics-service-1.0-SNAPSHOT-opti
 
 #### Docker Deployment
 ```dockerfile
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:25-jre
 
 WORKDIR /app
 COPY cordal-api-service/target/*-optimized.jar app.jar
@@ -2849,7 +2705,7 @@ COPY scripts/ scripts/
 RUN chmod +x scripts/*.sh
 
 EXPOSE 8080
-CMD ["./scripts/start-cordal-api-service.sh"]
+CMD ["./scripts/start-generic-api-service.sh"]
 ```
 
 #### Kubernetes Deployment
@@ -3381,13 +3237,13 @@ logging:
 #### Individual Service Scripts
 ```bash
 # Start Generic API Service
-./scripts/start-cordal-api-service.sh
+./scripts/start-generic-api-service.sh
 
 # Start Metrics Service
-./scripts/start-cordal-metrics-service.sh
+./scripts/start-metrics-service.sh
 
 # Validation mode
-./scripts/start-cordal-api-service.sh --validate-only
+./scripts/start-generic-api-service.sh --validate-only
 ```
 
 ### Analysis and Debugging Scripts
@@ -3427,8 +3283,8 @@ logging:
 All scripts have Windows equivalents:
 - `build-executable-jars.bat`
 - `start-all-services.bat`
-- `start-cordal-api-service.bat`
-- `start-cordal-metrics-service.bat`
+- `start-generic-api-service.bat`
+- `start-metrics-service.bat`
 - `analyze-jars.bat`
 - `start-h2-server.bat`
 - `h2-console.bat`
@@ -3546,7 +3402,7 @@ graph LR
 
 ### Technology Stack
 
-- **Backend**: Java 21, Javalin 6.1.3, Guice DI
+- **Backend**: Java 25, Javalin 6.7.0, Guice DI
 - **Database**: H2 Database (file-based)
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Charts**: Chart.js 4.x
@@ -3916,7 +3772,7 @@ Endpoint validation ensures that all dynamically created API endpoints are prope
 #### Comprehensive Validation
 ```bash
 # Run full validation
-./scripts/start-cordal-api-service.sh --validate-only
+./scripts/start-generic-api-service.sh --validate-only
 ```
 
 #### Specific Validation Tests
@@ -3970,8 +3826,8 @@ Validation Summary:
 
 #### 2. Java Configuration
 1. Go to File → Project Structure
-2. Set Project SDK to Java 21
-3. Set Project language level to 21
+2. Set Project SDK to Java 25
+3. Set Project language level to 25
 4. Configure module dependencies
 
 #### 3. Maven Configuration
@@ -4079,7 +3935,7 @@ Create `.vscode/launch.json`:
 #### 2. Java Build Path
 1. Right-click project → Properties
 2. Java Build Path → Libraries
-3. Add JRE System Library (Java 21)
+3. Add JRE System Library (Java 25)
 4. Configure Maven Dependencies
 
 #### 3. Run Configurations
@@ -4452,7 +4308,7 @@ grep "ConfigurationLoader" logs/application.log
 ### Setting Up Development Environment
 
 #### 1. Prerequisites
-- Java 21+ JDK
+- Java 25 JDK (with `--enable-preview`)
 - Maven 3.6.0+
 - Git
 - IDE (IntelliJ IDEA recommended)
@@ -4526,10 +4382,10 @@ endpoints:
 **Step 3**: Validate and test
 ```bash
 # Validate configuration
-./scripts/start-cordal-api-service.sh --validate-only
+./scripts/start-generic-api-service.sh --validate-only
 
 # Start service and test
-./scripts/start-cordal-api-service.sh
+./scripts/start-generic-api-service.sh
 curl http://localhost:8080/api/users
 ```
 

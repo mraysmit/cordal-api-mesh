@@ -60,14 +60,22 @@ public class FileWatcherService {
                 return t;
             });
             
-            // Register directories for watching
-            for (Path directory : directories) {
-                registerDirectory(directory);
+            boolean started = false;
+            try {
+                // Register directories for watching
+                for (Path directory : directories) {
+                    registerDirectory(directory);
+                }
+                
+                // Start the watcher thread
+                watcherExecutor.submit(this::watchLoop);
+                isWatching.set(true);
+                started = true;
+            } finally {
+                if (!started) {
+                    stopWatching();
+                }
             }
-            
-            // Start the watcher thread
-            watcherExecutor.submit(this::watchLoop);
-            isWatching.set(true);
             
             logger.info("File watcher started monitoring {} directories with patterns: {}", 
                        directories.size(), patterns);
