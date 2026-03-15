@@ -17,9 +17,11 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Joiner;
+import java.util.concurrent.StructuredTaskScope.Subtask;
 
 /**
  * Generic API service that handles requests based on configuration
@@ -141,19 +143,24 @@ public class GenericApiService {
             // Remove pagination parameters for count query
             List<QueryParameter> countParameters = removeParametersByName(queryParameters, Arrays.asList("limit", "offset"));
 
-            // Execute main query and count query in parallel on virtual threads
-            var dataFuture = CompletableFuture.supplyAsync(
-                () -> executeQueryAsMaps(queryConfig, queryParameters), virtualThreadExecutor);
-            var countFuture = CompletableFuture.supplyAsync(
-                () -> genericRepository.executeCountQuery(countQueryConfig, countParameters), virtualThreadExecutor);
+            // Execute main query and count query in parallel using structured concurrency
+            try (var scope = StructuredTaskScope.open(Joiner.allSuccessfulOrThrow())) {
+                Subtask<List<Map<String, Object>>> dataTask = scope.fork(
+                    () -> executeQueryAsMaps(queryConfig, queryParameters));
+                Subtask<Long> countTask = scope.fork(
+                    () -> genericRepository.executeCountQuery(countQueryConfig, countParameters));
 
-            try {
-                results = dataFuture.join();
-                totalElements = countFuture.join();
-            } catch (CompletionException e) {
+                scope.join();
+
+                results = dataTask.get();
+                totalElements = countTask.get();
+            } catch (StructuredTaskScope.FailedException e) {
                 Throwable cause = e.getCause();
                 if (cause instanceof RuntimeException re) throw re;
                 throw new RuntimeException(cause);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Paginated query interrupted", e);
             }
         } else {
             results = executeQueryAsMaps(queryConfig, queryParameters);
