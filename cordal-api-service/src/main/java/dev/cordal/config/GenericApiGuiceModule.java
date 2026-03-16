@@ -9,6 +9,9 @@ import dev.cordal.cache.CacheManagementController;
 import dev.cordal.common.cache.CacheEventPublisher;
 import dev.cordal.common.cache.CacheInvalidationEngine;
 import dev.cordal.common.cache.CacheManager;
+import dev.cordal.common.cache.CacheProviderFactory;
+import dev.cordal.common.cache.InMemoryCacheProvider;
+import dev.cordal.common.cache.NoOpCacheProvider;
 import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.GenericApiController;
 import dev.cordal.generic.GenericApiService;
@@ -50,6 +53,12 @@ public class GenericApiGuiceModule extends AbstractModule {
     @Override
     protected void configure() {
         logger.info("Configuring Generic API Guice dependency injection");
+
+        // Default cache provider factory — bind a different CacheProviderFactory to swap implementations.
+        bind(CacheProviderFactory.class).toInstance(
+            (name, maxSize, defaultTtl) -> new InMemoryCacheProvider(maxSize, defaultTtl)
+        );
+
         logger.info("Generic API Guice module configured successfully");
     }
     
@@ -143,8 +152,8 @@ public class GenericApiGuiceModule extends AbstractModule {
 
     @Provides
     @Singleton
-    CacheManager provideCacheManager(GenericApiConfig genericApiConfig) {
-        logger.info("Creating CacheManager instance");
+    CacheManager provideCacheManager(GenericApiConfig genericApiConfig, CacheProviderFactory cacheProviderFactory) {
+        logger.info("Creating CacheManager instance using {}", cacheProviderFactory.getClass().getSimpleName());
         GenericApiConfig.CacheSettings cacheSettings = genericApiConfig.getCacheSettings();
 
         if (!cacheSettings.isEnabled()) {
@@ -157,7 +166,20 @@ public class GenericApiGuiceModule extends AbstractModule {
             cacheSettings.getCleanupIntervalSeconds()
         );
 
-        return new CacheManager(config);
+        String provider = cacheSettings.getProvider();
+        CacheProviderFactory selectedProviderFactory;
+        if ("noop".equals(provider)) {
+            logger.info("Cache provider selected: noop");
+            selectedProviderFactory = (name, maxSize, defaultTtl) -> new NoOpCacheProvider();
+        } else if ("inmemory".equals(provider)) {
+            logger.info("Cache provider selected: inmemory");
+            selectedProviderFactory = cacheProviderFactory;
+        } else {
+            logger.warn("Unknown cache provider '{}'. Falling back to inmemory", provider);
+            selectedProviderFactory = cacheProviderFactory;
+        }
+
+        return new CacheManager(config, selectedProviderFactory);
     }
 
     @Provides

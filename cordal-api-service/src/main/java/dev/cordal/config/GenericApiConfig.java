@@ -235,14 +235,25 @@ public class GenericApiConfig extends BaseConfig {
         Integer defaultTtlSeconds = getInteger("cache.defaultTtlSeconds", 300);
         Integer maxSize = getInteger("cache.maxSize", 1000);
         Integer cleanupIntervalSeconds = getInteger("cache.cleanupIntervalSeconds", 60);
+        String provider = getString("cache.provider", "inmemory");
+
+        // Startup override precedence: JVM system property, then environment variable, then YAML.
+        String providerFromSystemProperty = System.getProperty("cache.provider");
+        String providerFromEnvironment = System.getenv("CORDAL_CACHE_PROVIDER");
+        if (providerFromSystemProperty != null && !providerFromSystemProperty.isBlank()) {
+            provider = providerFromSystemProperty;
+        } else if (providerFromEnvironment != null && !providerFromEnvironment.isBlank()) {
+            provider = providerFromEnvironment;
+        }
 
         cache.setEnabled(enabled);
         cache.setDefaultTtlSeconds(defaultTtlSeconds);
         cache.setMaxSize(maxSize);
         cache.setCleanupIntervalSeconds(cleanupIntervalSeconds);
+        cache.setProvider(provider);
 
-        logger.info("Cache configuration: enabled={}, defaultTtlSeconds={}, maxSize={}, cleanupIntervalSeconds={}",
-                   enabled, defaultTtlSeconds, maxSize, cleanupIntervalSeconds);
+        logger.info("Cache configuration: enabled={}, provider={}, defaultTtlSeconds={}, maxSize={}, cleanupIntervalSeconds={}",
+               enabled, cache.getProvider(), defaultTtlSeconds, maxSize, cleanupIntervalSeconds);
     }
 
     @Override
@@ -470,6 +481,10 @@ public class GenericApiConfig extends BaseConfig {
         return cache.cleanupIntervalSeconds;
     }
 
+    public String getCacheProvider() {
+        return cache.provider;
+    }
+
     // Inner classes for configuration structure
     public static class DatabaseSettings {
         private String url = "jdbc:h2:./data/api-service-config;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
@@ -602,6 +617,7 @@ public class GenericApiConfig extends BaseConfig {
 
     public static class CacheSettings {
         private boolean enabled = true;
+        private String provider = "inmemory";
         private int defaultTtlSeconds = 300;
         private int maxSize = 1000;
         private int cleanupIntervalSeconds = 60;
@@ -609,6 +625,14 @@ public class GenericApiConfig extends BaseConfig {
         // Getters and setters
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public String getProvider() { return provider; }
+        public void setProvider(String provider) {
+            if (provider == null || provider.isBlank()) {
+                this.provider = "inmemory";
+            } else {
+                this.provider = provider.trim().toLowerCase();
+            }
+        }
         public int getDefaultTtlSeconds() { return defaultTtlSeconds; }
         public void setDefaultTtlSeconds(int defaultTtlSeconds) { this.defaultTtlSeconds = defaultTtlSeconds; }
         public int getMaxSize() { return maxSize; }

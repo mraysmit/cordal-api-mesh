@@ -21,20 +21,33 @@ public class CacheManager {
     
     private final Map<String, CacheProvider> caches = new ConcurrentHashMap<>();
     private final CacheConfiguration globalConfig;
+    private final CacheProviderFactory providerFactory;
     private final ScheduledExecutorService cleanupExecutor;
-    
+
     /**
-     * Default constructor with default configuration
+     * Default constructor with default configuration and the built-in in-memory provider.
      */
     public CacheManager() {
         this(new CacheConfiguration());
     }
-    
+
     /**
-     * Constructor with custom configuration
+     * Constructor with custom configuration and the built-in in-memory provider.
      */
     public CacheManager(CacheConfiguration config) {
+        this(config, (name, maxSize, defaultTtl) -> new InMemoryCacheProvider(maxSize, defaultTtl));
+    }
+
+    /**
+     * Constructor with custom configuration and a pluggable provider factory.
+     * Bind {@link CacheProviderFactory} in your Guice module to supply this argument.
+     *
+     * @param config          global cache configuration
+     * @param providerFactory factory used to create {@link CacheProvider} instances per named cache
+     */
+    public CacheManager(CacheConfiguration config, CacheProviderFactory providerFactory) {
         this.globalConfig = config;
+        this.providerFactory = providerFactory;
         this.cleanupExecutor = Executors.newScheduledThreadPool(1, r -> {
             Thread t = new Thread(r, "cache-cleanup");
             t.setDaemon(true);
@@ -199,12 +212,14 @@ public class CacheManager {
      */
     private CacheProvider getOrCreateCache(String cacheName) {
         return caches.computeIfAbsent(cacheName, name -> {
-            InMemoryCacheProvider cache = new InMemoryCacheProvider(
+            CacheProvider cache = providerFactory.create(
+                name,
                 globalConfig.getMaxSize(),
                 Duration.ofSeconds(globalConfig.getDefaultTtlSeconds())
             );
-            logger.info("Created new cache: {} with maxSize={}, defaultTtl={}s", 
-                       name, globalConfig.getMaxSize(), globalConfig.getDefaultTtlSeconds());
+            logger.info("Created new cache '{}' using {} (maxSize={}, defaultTtl={}s)",
+                       name, cache.getClass().getSimpleName(),
+                       globalConfig.getMaxSize(), globalConfig.getDefaultTtlSeconds());
             return cache;
         });
     }
