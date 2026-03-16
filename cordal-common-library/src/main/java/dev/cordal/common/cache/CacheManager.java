@@ -251,7 +251,15 @@ public class CacheManager {
             cleanupExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        clearAll();
+
+        for (Map.Entry<String, CacheProvider> entry : caches.entrySet()) {
+            try {
+                entry.getValue().close();
+            } catch (Exception e) {
+                logger.warn("Error closing cache provider '{}'", entry.getKey(), e);
+            }
+        }
+        caches.clear();
     }
     
     /**

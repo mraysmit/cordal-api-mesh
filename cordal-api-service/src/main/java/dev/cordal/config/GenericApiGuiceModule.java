@@ -10,9 +10,7 @@ import dev.cordal.common.cache.CacheEventPublisher;
 import dev.cordal.common.cache.CacheInvalidationEngine;
 import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.cache.CacheProviderFactory;
-import dev.cordal.common.cache.FailFastCacheProvider;
 import dev.cordal.common.cache.InMemoryCacheProvider;
-import dev.cordal.common.cache.NoOpCacheProvider;
 import dev.cordal.common.metrics.CacheMetricsCollector;
 import dev.cordal.generic.GenericApiController;
 import dev.cordal.generic.GenericApiService;
@@ -168,19 +166,11 @@ public class GenericApiGuiceModule extends AbstractModule {
         );
 
         String provider = cacheSettings.getProvider();
-        CacheProviderFactory selectedProviderFactory;
-        if ("noop".equals(provider)) {
-            logger.info("Cache provider selected: noop");
-            selectedProviderFactory = (name, maxSize, defaultTtl) -> new NoOpCacheProvider();
-        } else if ("failfast".equals(provider)) {
-            logger.info("Cache provider selected: failfast");
-            selectedProviderFactory = (name, maxSize, defaultTtl) -> new FailFastCacheProvider();
-        } else if ("inmemory".equals(provider)) {
-            logger.info("Cache provider selected: inmemory");
-            selectedProviderFactory = cacheProviderFactory;
+        CacheProviderFactory selectedProviderFactory = CacheProviderSelector.select(provider, cacheProviderFactory);
+        if (CacheProviderSelector.isKnownProvider(provider)) {
+            logger.info("Cache provider selected: {}", provider);
         } else {
             logger.warn("Unknown cache provider '{}'. Falling back to inmemory", provider);
-            selectedProviderFactory = cacheProviderFactory;
         }
 
         return new CacheManager(config, selectedProviderFactory);

@@ -82,4 +82,14 @@ public interface CacheProvider {
      * This method should be called periodically to remove expired entries
      */
     void cleanup();
+
+    /**
+     * Close provider resources.
+     * <p>
+     * Default implementation is a no-op so existing providers remain source/binary compatible.
+     * Providers that hold external resources (network clients, pools, threads) should override.
+     */
+    default void close() {
+        // No-op by default for backward compatibility.
+    }
 }

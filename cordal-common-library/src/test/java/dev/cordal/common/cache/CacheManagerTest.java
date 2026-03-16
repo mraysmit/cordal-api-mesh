@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -160,5 +161,73 @@ class CacheManagerTest {
         assertEquals("value", result.get());
         
         defaultManager.shutdown();
+    }
+
+    @Test
+    void testShutdownClosesProviders() {
+        AtomicInteger closeCount = new AtomicInteger(0);
+
+        CacheProvider provider = new CacheProvider() {
+            @Override
+            public <T> Optional<T> get(String key, Class<T> type) {
+                return Optional.empty();
+            }
+
+            @Override
+            public void put(String key, Object value, Duration ttl) {
+            }
+
+            @Override
+            public void put(String key, Object value) {
+            }
+
+            @Override
+            public boolean remove(String key) {
+                return false;
+            }
+
+            @Override
+            public int removePattern(String pattern) {
+                return 0;
+            }
+
+            @Override
+            public void clear() {
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @Override
+            public boolean containsKey(String key) {
+                return false;
+            }
+
+            @Override
+            public CacheStatistics getStatistics() {
+                return CacheStatistics.builder().build();
+            }
+
+            @Override
+            public void cleanup() {
+            }
+
+            @Override
+            public void close() {
+                closeCount.incrementAndGet();
+            }
+        };
+
+        CacheManager manager = new CacheManager(
+                new CacheManager.CacheConfiguration(10, 60, 1),
+                (name, maxSize, defaultTtl) -> provider
+        );
+
+        manager.put("cache1", "key1", "value1");
+        manager.shutdown();
+
+        assertEquals(1, closeCount.get());
     }
 }
