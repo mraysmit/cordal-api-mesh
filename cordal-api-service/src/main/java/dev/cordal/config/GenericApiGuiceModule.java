@@ -10,6 +10,7 @@ import dev.cordal.common.cache.CacheEventPublisher;
 import dev.cordal.common.cache.CacheInvalidationEngine;
 import dev.cordal.common.cache.CacheManager;
 import dev.cordal.common.cache.CacheProviderFactory;
+import dev.cordal.common.cache.FailFastCacheProvider;
 import dev.cordal.common.cache.InMemoryCacheProvider;
 import dev.cordal.common.cache.NoOpCacheProvider;
 import dev.cordal.common.metrics.CacheMetricsCollector;
@@ -171,6 +172,9 @@ public class GenericApiGuiceModule extends AbstractModule {
         if ("noop".equals(provider)) {
             logger.info("Cache provider selected: noop");
             selectedProviderFactory = (name, maxSize, defaultTtl) -> new NoOpCacheProvider();
+        } else if ("failfast".equals(provider)) {
+            logger.info("Cache provider selected: failfast");
+            selectedProviderFactory = (name, maxSize, defaultTtl) -> new FailFastCacheProvider();
         } else if ("inmemory".equals(provider)) {
             logger.info("Cache provider selected: inmemory");
             selectedProviderFactory = cacheProviderFactory;
